@@ -82,7 +82,7 @@
 <body>
 <div class="app">
   <header>
-    <div class="brand"><h1>Universal Fit</h1><span class="demo">MVP demo</span></div>
+    <div class="brand"><h1>Universal Fit</h1><div style="display:flex;gap:8px;align-items:center"><span class="demo">MVP demo</span><button id="hLogout" onclick="logout()" style="display:none;background:rgba(255,255,255,.18);border:none;color:#fff;font-size:11px;font-weight:700;padding:4px 10px;border-radius:20px;cursor:pointer">⏻ Salir</button></div></div>
     <div class="roles" id="roles">
       <button id="rpt" onclick="setRole('pt')">Entrenador</button>
       <button id="ral" onclick="setRole('al')">Alumno</button>
@@ -129,7 +129,9 @@ const SPLITS={
  2:[['Full body A',['Piernas','Pecho','Espalda']],['Full body B',['Piernas','Hombros','Brazos','Core']]],
  3:[['Empuje · pecho y hombro',['Pecho','Hombros','Brazos']],['Tirón · espalda y bíceps',['Espalda','Brazos']],['Piernas',['Piernas','Core']]],
  4:[['Tren superior A',['Pecho','Espalda']],['Tren inferior A',['Piernas','Core']],['Tren superior B',['Hombros','Brazos']],['Tren inferior B',['Piernas','Core']]],
- 5:[['Pecho y tríceps',['Pecho','Brazos']],['Espalda y bíceps',['Espalda','Brazos']],['Piernas',['Piernas','Core']],['Hombros y core',['Hombros','Core']],['Full body',['Pecho','Espalda','Piernas']]]
+ 5:[['Pecho y tríceps',['Pecho','Brazos']],['Espalda y bíceps',['Espalda','Brazos']],['Piernas',['Piernas','Core']],['Hombros y core',['Hombros','Core']],['Full body',['Pecho','Espalda','Piernas']]],
+ 6:[['Empuje A',['Pecho','Hombros']],['Tirón A',['Espalda','Brazos']],['Piernas A',['Piernas','Core']],['Empuje B',['Pecho','Brazos']],['Tirón B',['Espalda','Core']],['Piernas B',['Piernas','Hombros']]],
+ 7:[['Empuje A',['Pecho','Hombros']],['Tirón A',['Espalda','Brazos']],['Piernas A',['Piernas','Core']],['Empuje B',['Pecho','Brazos']],['Tirón B',['Espalda','Core']],['Piernas B',['Piernas','Hombros']],['Cardio y movilidad',['Cardio','Core']]]
 };
 function scheme(obj){return {Volumen:{s:4,r:10,n:'',rest:90},Adelgazar:{s:3,r:15,n:'Descansos cortos (30-45s)',rest:40},Fuerza:{s:5,r:5,n:'Descanso largo (2-3 min)',rest:150},'Salud general':{s:2,r:12,n:'',rest:75},Rendimiento:{s:4,r:8,n:'',rest:90}}[obj]||{s:3,r:10,n:'',rest:90};}
 function mkEx(name,cat,sc,w){const bw=/Plancha|Dominadas|Flexiones|Fondos|Face pull|soga|Cinta|Bicicleta|Elíptico/.test(name);return {id:uid(),name,category:cat,sets:sc.s,reps:sc.r,weight:bw?0:w,rest:sc.rest,note:sc.n,video:''};}
@@ -202,15 +204,16 @@ function cur(){return S.routines.find(x=>x.id===S.ui.editRoutineId);}
 function render(){
   applyBrand();
   const roles=document.getElementById('roles');
-  if(!S.user){roles.style.display='none';document.getElementById('idbar').style.display='none';document.getElementById('nav').innerHTML='';document.getElementById('main').innerHTML=vLogin();return;}
+  if(!S.user){roles.style.display='none';var hl0=document.getElementById('hLogout');if(hl0)hl0.style.display='none';document.getElementById('idbar').style.display='none';document.getElementById('nav').innerHTML='';document.getElementById('main').innerHTML=(S.ui&&S.ui.ob)?((S.ui.ob.kind==='pt')?vObPt():vObAl()):vLogin();return;}
+  var hl1=document.getElementById('hLogout');if(hl1)hl1.style.display='inline-block';
   roles.style.display='flex';
   const r=S.ui.role;
   document.getElementById('rpt').className=r==='pt'?'on':'';
   document.getElementById('ral').className=r==='al'?'on':'';
   const idbar=document.getElementById('idbar');
   if(r==='al'){idbar.style.display='flex';const sel=document.getElementById('idsel');
-    sel.innerHTML=S.students.map(s=>`<option value="${s.id}">${esc(s.name)}</option>`).join('');
-    if(!S.students.find(s=>s.id===S.ui.studentId))S.ui.studentId=S.students[0]&&S.students[0].id;
+    const selList=S.students.filter(x=>x.active!==false);sel.innerHTML=selList.map(s=>`<option value="${s.id}">${esc(s.name)}</option>`).join('');
+    if(!selList.find(s=>s.id===S.ui.studentId))S.ui.studentId=selList[0]&&selList[0].id;
     sel.value=S.ui.studentId;}
   else idbar.style.display='none';
   const m=document.getElementById('main'),v=S.ui.view;
@@ -252,9 +255,9 @@ function vPtStudent(){
   const s=S.students.find(x=>x.id===S.ui.viewStudentId);if(!s)return vPtHome();
   const rt=routineOf(s),st=statusOf(s),ex0=allEx(rt)[0],prog=ex0?progress(s,ex0.id):[];
   const logs=[...s.logs].sort((a,b)=>a.date<b.date?1:-1).slice(0,5);
-  const meta=S.ui.editMeta?`<div class="card"><div class="h" style="margin:0 0 6px">Editar datos del alumno</div><div class="cap">Objetivo</div><select class="in" id="mObj">${optList(['Volumen','Adelgazar','Fuerza','Salud general','Rendimiento'],s.objetivo)}</select><div class="cap" style="margin-top:8px">Nivel</div><select class="in" id="mNiv">${optList(['Novato','Intermedio','Avanzado'],s.nivel)}</select><div class="cap" style="margin-top:8px">Días por semana</div><select class="in" id="mDias">${optList([2,3,4,5],s.dias)}</select><button class="btn" onclick="saveMeta('${s.id}')">Guardar cambios</button><button class="btn sec" onclick="regenPlan('${s.id}')">🔄 Regenerar plan (nuevos días)</button><div class="cap" style="margin-top:6px">Regenerar reemplaza la rutina por una nueva sugerida.</div></div>`:'';
+  const meta=S.ui.editMeta?`<div class="card"><div class="h" style="margin:0 0 6px">Editar datos del alumno</div><div class="cap">Objetivo</div><select class="in" id="mObj">${optList(['Volumen','Adelgazar','Fuerza','Salud general','Rendimiento'],s.objetivo)}</select><div class="cap" style="margin-top:8px">Nivel</div><select class="in" id="mNiv">${optList(['Novato','Intermedio','Avanzado'],s.nivel)}</select><div class="cap" style="margin-top:8px">Días por semana</div><select class="in" id="mDias">${optList([2,3,4,5,6,7],s.dias)}</select><button class="btn" onclick="saveMeta('${s.id}')">Guardar cambios</button><button class="btn sec" onclick="regenPlan('${s.id}')">🔄 Regenerar plan (nuevos días)</button><div class="cap" style="margin-top:6px">Regenerar reemplaza la rutina por una nueva sugerida.</div></div>`:'';
   return `<button class="back" onclick="go('pt_home')">← Alumnos</button>
-  <div class="card"><div class="row"><div><div class="name" style="font-size:19px;font-weight:800">${esc(s.name)}</div><div class="sub cap">${rt?rt.days.length+' días · '+esc(rt.name):'sin rutina'}</div></div><span class="pill ${st.c}">${st.t}</span></div>${ntag(s)}
+  <div class="card"><div class="row"><div><div class="name" style="font-size:19px;font-weight:800">${esc(s.name)}</div><div class="sub cap">${rt?rt.days.length+' días · '+esc(rt.name):'sin rutina'} · 🔑 código: <b>${codeOf(s).toUpperCase()}</b>${s.active===false?' · <b style="color:#C0392B">INACTIVO</b>':''}</div></div><span class="pill ${st.c}">${st.t}</span></div>${ntag(s)}
   <div class="row" style="margin-top:12px"><div><div class="big">${streak(s)}</div><div class="cap">semanas de racha</div></div><div style="text-align:right"><div class="big">${s.logs.length}</div><div class="cap">entrenos</div></div></div></div>
   <button class="btn sec" onclick="toggleMeta('${s.id}')">✎ Editar objetivo / nivel / días</button>${meta}
   <div class="card" style="margin-top:12px"><div class="h" style="margin:0 0 6px">Adherencia (4 semanas)</div>${barChart(weekly(s))}</div>
@@ -265,7 +268,8 @@ function vPtStudent(){
   <div class="card"><div class="h" style="margin:0 0 6px">🔒 Notas privadas de ${esc(fn(s.name))}</div><textarea class="in" rows="3" style="margin-top:0" placeholder="Lesiones, objetivos charlados, contexto… (solo las ves vos)" onchange="savePtNote('${s.id}',this.value)">${esc(s.ptNotes||'')}</textarea><div class="cap" style="margin-top:4px">Solo visibles para vos. El alumno no las ve.</div></div>
   <button class="btn" onclick="editRoutine('${s.routineId}')">📝 Editar rutina de ${esc(fn(s.name))}</button>
   <div class="flex" style="margin-top:10px"><button class="btn sec sm" onclick="fromTemplate('${s.id}')">📋 Desde plantilla</button><button class="btn sec sm" onclick="copyRoutine('${s.id}')">⧉ Copiar a otro</button><button class="btn sec sm" onclick="shareLink('${s.id}')">Compartir link</button></div>
-  <button class="btn g" style="margin-top:10px" onclick="ptMessage('${s.id}')">💬 Enviar mensaje a ${esc(fn(s.name))}</button>`;
+  <button class="btn g" style="margin-top:10px" onclick="ptMessage('${s.id}')">💬 Enviar mensaje a ${esc(fn(s.name))}</button>
+  <div class="card" style="margin-top:14px;border-color:#F3C9C4"><div class="h" style="margin:0 0 6px">Gestión del alumno</div>${s.active===false?`<button class="btn g sm" onclick="reactivateStudent('${s.id}')">▶ Reactivar — vuelve a activos con toda su historia</button>`:`<button class="btn sec sm" onclick="deactivateStudent('${s.id}')">⏸ Desactivar — pausa el servicio (vacaciones, freno) y guarda toda su historia</button>`}<button class="btn sm" style="background:#C0392B;margin-top:8px" onclick="deleteStudent('${s.id}')">🗑 Borrar definitivamente — se pierde toda la historia</button></div>`;
 }
 function vPtRoutines(){
   const tpls=S.routines.filter(r=>!r.owner);
@@ -301,7 +305,7 @@ function vPtWizard(){
   else if(step===3)body=`<div class="h">Edad</div><input class="in" id="wizEdad" type="number" inputmode="numeric" placeholder="Años" value="${w.edad||''}"/><button class="btn" onclick="wizEdad()">Siguiente →</button>`;
   else if(step===4)body=`<div class="h">¿Cuál es su objetivo?</div>`+[['Volumen','💪 Volumen'],['Adelgazar','🔥 Adelgazar'],['Fuerza','🏋️ Fuerza'],['Salud general','❤️ Salud general'],['Rendimiento','⚡ Rendimiento']].map(o=>`<button class="btn sec" style="text-align:left;margin-bottom:8px" onclick="wizChoose('objetivo','${o[0]}')">${o[1]}</button>`).join('');
   else if(step===5)body=`<div class="h">¿Qué nivel tiene?</div>`+[['Novato','Guiados y máquinas'],['Intermedio','Básicos con barra'],['Avanzado','Compuestos y variantes']].map(o=>`<button class="btn sec" style="text-align:left;margin-bottom:8px" onclick="wizChoose('nivel','${o[0]}')"><b>${o[0]}</b><br><span class="cap">${o[1]}</span></button>`).join('');
-  else body=`<div class="h">¿Cuántos días por semana?</div><div class="flex">`+[2,3,4,5].map(n=>`<button class="btn sec" onclick="wizDias(${n})">${n}</button>`).join('')+`</div><div class="cap" style="margin-top:12px">Después el alumno completa altura, peso y medidas al entrar por primera vez.</div>`;
+  else body=`<div class="h">¿Cuántos días por semana?</div><div class="flex">`+[2,3,4,5,6,7].map(n=>`<button class="btn sec" onclick="wizDias(${n})" style="padding:12px 0">${n}</button>`).join('')+`</div><div class="cap" style="margin-top:12px">Después el alumno completa altura, peso y medidas al entrar por primera vez.</div>`;
   return `${back}<div class="steps">${bars}</div><div class="cap" style="margin:0 4px 10px">Paso ${step} de 6</div><div class="card">${body}</div>`;
 }
 function wizBack(){const w=S.ui.wiz;if(w.step===1){S.ui.wiz=null;save();go('pt_home');return;}w.step--;save();render();}
@@ -385,7 +389,7 @@ function vAlProgress(){
   <div class="card"><div class="h" style="margin:0 0 6px">Entrenos por semana</div>${barChart(weekly(s))}</div>
   ${ex0?`<div class="card"><div class="h" style="margin:0 0 6px">${esc(ex0.name)} — peso (kg)</div>${lineChart(prog)}<div class="cap" style="text-align:center;margin-top:6px">${prog.length>=2?'¡Vas subiendo! 💪':'Registrá más entrenos para ver tu evolución.'}</div></div>`:'<div class="empty cap">Sin rutina asignada.</div>'}`;
 }
-function openLog(exId){S.ui.logExerciseId=exId;go('al_log');}
+function openLog(exId){const s=me(),rt=routineOf(s);const day=rt&&rt.days.find(d=>d.exercises.some(e=>e.id===exId));if(day&&!dayStarted(s,day)){toast('Primero tocá ▶ Iniciar rutina');return;}S.ui.logExerciseId=exId;go('al_log');}
 function saveLog(exId,nsets){const s=me();const prevBest=bestKg(s,exId,true);let log=s.logs.find(l=>l.date===today());if(!log){log={date:today(),entries:[]};s.logs.push(log);}const sets=[];for(let i=0;i<nsets;i++){sets.push({kg:+val('kg'+i)||0,reps:+val('rp'+i)||0});}let en=log.entries.find(e=>e.exerciseId===exId);if(!en){en={exerciseId:exId,sets:[]};log.entries.push(en);}en.sets=sets;const newMax=Math.max(0,...sets.map(x=>+x.kg||0));notify(s.id,fn(s.name)+' registró un entreno');if(prevBest>0&&newMax>prevBest){const rt=routineOf(s),ex=findEx(rt,exId);notify(s.id,fn(s.name)+' logró un récord personal 🏆 '+newMax+' kg'+(ex?' en '+ex.name:''));toast('🏆 ¡RÉCORD PERSONAL! '+newMax+' kg (antes '+prevBest+')');}else{toast('¡Entreno guardado! 💪');}save();go('al_day');}
 /* Perfil del alumno */
 function measFields(){return [['peso','Peso','kg'],['cintura','Cintura','cm'],['pecho','Pecho','cm'],['espalda','Espalda','cm'],['brazos','Brazos','cm'],['piernas','Piernas','cm']];}
@@ -480,7 +484,7 @@ function vAlHome(){
   <div class="card"><div class="row"><div><div class="big">${sk} 🔥</div><div class="cap">racha (sem)</div></div><div style="text-align:center"><div class="big">${tw}${s.dias?'<span style="font-size:16px;color:var(--muted)">/'+s.dias+'</span>':''}</div><div class="cap">esta semana</div></div><div style="text-align:right"><div class="big">${s.logs.length}</div><div class="cap">totales</div></div></div></div>
   ${habitsCard(s)}${checkinCard(s)}<div class="card"><div class="h" style="margin:0 0 8px">✨ Tu evolución</div>${ws.map(x=>`<div style="padding:6px 0;font-size:14px;border-bottom:1px solid var(--line)">${x}</div>`).join('')}</div>
   ${groupCard(s)}
-  ${rt&&rt.days.length?`<button class="btn g" style="padding:16px;font-size:17px" onclick="go('al_days')">💪 ¡Vamos a entrenar!</button>`:'<div class="empty"><div class="em">⏳</div><p>Tu profe todavía no te asignó una rutina.</p></div>'}`;
+  ${rt&&rt.days.length?`<button class="btn g" style="padding:16px;font-size:17px" onclick="go('al_days')">💪 ¡Vamos a entrenar!</button>`:(s.pending?'<div class="empty"><div class="em">📨</div><p><b>Tu solicitud fue enviada.</b><br>Cuando un entrenador te acepte, tu rutina aparece acá. Mientras, podés completar tu perfil.</p></div>':'<div class="empty"><div class="em">⏳</div><p>Tu profe todavía no te asignó una rutina.</p></div>')}`;
 }
 function readMsgs(){(me().msgs||[]).forEach(m=>m.read=true);save();render();}
 function ptMessage(id){const s=S.students.find(x=>x.id===id);const t=prompt('Mensaje para '+fn(s.name)+' (lo ve al entrar a la app):');if(!t||!t.trim())return;s.msgs=s.msgs||[];s.msgs.unshift({id:uid(),date:today(),text:t.trim(),read:false});save();toast('Mensaje enviado a '+fn(s.name)+' 💬');}
@@ -519,6 +523,85 @@ function applyBrand(){const b=S&&S.brand?S.brand:{};const h=document.querySelect
 function toggleBrand(){S.ui.brandEdit=!S.ui.brandEdit;save();render();}
 function brandCard(){if(!S.ui.brandEdit)return '';const b=S.brand||{};const colors=['#15427A','#2E7D32','#7B1FA2','#C0392B','#E0952B','#0F766E'];return `<div class="card"><div class="h" style="margin:0 0 6px">🎨 Tu marca en la app</div><div class="cap">Tus alumnos ven tu nombre y tu color al entrar.</div><input class="in" id="brName" placeholder="Nombre de tu negocio (ej: RG Training)" value="${esc(b.name||'')}"/><div class="flex" style="margin-top:10px">${colors.map(c=>`<button style="height:36px;border-radius:8px;border:${(b.color||'#15427A')===c?'3px solid #1A2230':'1px solid #ccc'};background:${c};cursor:pointer" onclick="setBrand(val('brName')||'${esc(b.name||'')}','${c}')"></button>`).join('')}</div><button class="btn sm" style="margin-top:10px" onclick="setBrand(val('brName'),(S.brand||{}).color)">Guardar</button></div>`;}
 function setBrand(name,color){S.brand={name:(name||'').trim(),color:color||(S.brand||{}).color||''};save();toast('Marca actualizada 🎨');render();}
+/* Ajustes 02-jul: gestión de alumnos, inicio bloqueado, onboarding PT/alumno */
+function activeStudents(){return S.students.filter(x=>x.active!==false&&!x.pending);}
+function codeOf(st){return st.id.slice(0,6);}
+function deactivateStudent(id){const st=S.students.find(x=>x.id===id);if(!confirm('¿Desactivar a '+fn(st.name)+'? No aparece más entre los activos, pero TODA su historia se guarda para cuando vuelva.'))return;st.active=false;save();toast(fn(st.name)+' desactivado ⏸ (historia guardada)');go('pt_home');}
+function reactivateStudent(id){const st=S.students.find(x=>x.id===id);st.active=true;save();toast(fn(st.name)+' reactivado ▶ ¡Bienvenido de vuelta!');render();}
+function deleteStudent(id){const st=S.students.find(x=>x.id===id);if(!confirm('¿BORRAR a '+fn(st.name)+' DEFINITIVAMENTE?\n\nSe pierde TODA su historia: rutinas, entrenos, medidas, fotos y mensajes. Esta acción no se puede deshacer.\n\nSi solo se va por un tiempo, usá "Desactivar".'))return;S.routines=S.routines.filter(r=>r.owner!==id);S.students=S.students.filter(x=>x.id!==id);S.notifs=(S.notifs||[]).filter(n=>n.studentId!==id);if(S.ui.studentId===id)S.ui.studentId=S.students[0]&&S.students[0].id;save();toast('Alumno borrado 🗑');go('pt_home');}
+function dayStarted(s,day){if(!day)return false;if(day.exercises.some(e=>loggedToday(s,e.id)))return true;const w=S.ui.workout;return !!(w&&w.sid===s.id&&w.dayId===day.id&&w.date===today());}
+function startWorkout(dayId){const s=me();S.ui.workout={sid:s.id,dayId,date:today()};save();toast('¡A entrenar! 💪');const rt=routineOf(s);const day=rt&&rt.days.find(d=>d.id===dayId);if(day&&day.exercises[0]){S.ui.logExerciseId=day.exercises[0].id;go('al_log');}else render();}
+function pendingCard(){const ps=S.students.filter(x=>x.pending);if(!ps.length)return '';return `<div class="card" style="border-color:#F3E2C4;background:#FDF8EE"><div class="h" style="margin:0 0 8px">📥 Solicitudes de alumnos nuevos (${ps.length})</div>${ps.map(p=>`<div style="padding:8px 0;border-bottom:1px solid #eadfc8"><b>${esc(p.name)}</b> <span class="cap">· ${esc(p.objetivo||'—')} · ${esc(p.nivel||'—')} · ${p.dias||'?'} días/sem${p.edad?' · '+p.edad+' años':''}</span><div class="flex" style="margin-top:6px"><button class="btn g sm" onclick="acceptStudent('${p.id}')">✓ Aceptar</button><button class="btn sec sm" onclick="rejectStudent('${p.id}')">Rechazar</button></div></div>`).join('')}</div>`;}
+function acceptStudent(id){const st=S.students.find(x=>x.id===id);st.pending=false;const rt=genRoutine(st.objetivo||'Salud general',st.nivel||'Novato',st.dias||3);rt.owner=st.id;S.routines.push(rt);st.routineId=rt.id;st.msgs=st.msgs||[];st.msgs.unshift({id:uid(),date:today(),text:'🎉 ¡Bienvenido! Tu entrenador aceptó tu solicitud y ya te armó tu primera rutina.',read:false});save();toast(fn(st.name)+' aceptado ✓ Rutina inicial generada');render();}
+function rejectStudent(id){if(!confirm('¿Rechazar esta solicitud? Se elimina.'))return;S.students=S.students.filter(x=>x.id!==id);save();toast('Solicitud rechazada');render();}
+function shareLink(id){const st=S.students.find(x=>x.id===id);toast('🔑 Código de '+fn(st.name)+': '+codeOf(st).toUpperCase()+' — con ese código entra por "Soy alumno" y se conecta solo');}
+function vPtHome(){
+  const foot=`${brandCard()}<div class="cap" style="text-align:center;margin-top:16px">Sesión: ${esc(S.user.email||S.user.name)} · <a onclick="toggleBrand()" style="color:var(--blue);cursor:pointer;font-weight:700">🎨 Mi marca</a> · <a onclick="logout()" style="color:var(--blue);cursor:pointer;font-weight:700">⏻ Cerrar sesión</a></div>`;
+  const act=activeStudents(),inact=S.students.filter(x=>x.active===false);
+  const inactSec=inact.length?`<div class="h" style="margin-top:16px">⏸ Inactivos (${inact.length})</div>`+inact.map(s=>`<div class="stu" style="opacity:.7" onclick="openStudent('${s.id}')"><span class="dot" style="background:#9aa4b2"></span><div style="flex:1"><div class="name">${esc(s.name)}</div><div class="sub">historia guardada · ${s.logs.length} entrenos</div></div><button class="btn sec sm" style="width:auto;margin:0" onclick="event.stopPropagation();reactivateStudent('${s.id}')">▶</button></div>`).join(''):'';
+  if(!act.length)return `<div class="h">Mis alumnos</div>${pendingCard()}<div class="empty"><div class="em">👥</div><p>Todavía no tenés alumnos activos.</p></div><button class="btn" onclick="startWizard()">＋ Agregar alumno</button>${inactSec}${foot}`;
+  const list=act.map(s=>{const st=statusOf(s),rt=routineOf(s);return `<div class="stu" onclick="openStudent('${s.id}')"><span class="dot ${st.c}"></span><div style="flex:1"><div class="name">${esc(s.name)}</div><div class="sub">${rt?rt.days.length+' días':'sin rutina'} · ${lastText(s)}</div></div><span class="pill ${st.c}">${st.t}</span></div>`;}).join('');
+  const alert=act.filter(s=>statusOf(s).c==='r').length;
+  return `<div class="h">Mis alumnos (${act.length})</div>${novedCard()}${pendingCard()}${alert?`<div class="card" style="border-color:#F3C9C4;background:#FCEEEC"><b style="color:#C0392B">⚠ ${alert} sin registrar</b><div class="cap">Escribiles para que no abandonen.</div></div>`:''}${list}<button class="btn sec" onclick="startWizard()">＋ Agregar alumno</button>${inactSec}${foot}`;
+}
+function vAlDay(){
+  const s=me(),rt=routineOf(s);if(!rt)return vAlHome();const day=rt.days.find(d=>d.id===S.ui.dayId)||rt.days[0];
+  const started=dayStarted(s,day);
+  const done=day.exercises.filter(e=>loggedToday(s,e.id)).length;
+  let groups='';
+  CATS.concat(['Otros']).forEach(cat=>{
+    const list=day.exercises.filter(e=>(e.category||'Otros')===cat);if(!list.length)return;
+    groups+=`<div class="h" style="margin:14px 4px 8px">${catEmoji(cat)} ${cat}</div>`+list.map(e=>`<div class="exrow" ${started?`onclick="openLog('${e.id}')"`:'style="opacity:.45;pointer-events:none"'}><div class="ico">${catEmoji(e.category)}</div><div style="flex:1"><div class="t">${esc(e.name)}</div><div class="m">${e.sets} x ${e.reps}${e.weight?' · '+e.weight+'kg':''}</div></div><div class="chk ${loggedToday(s,e.id)?'done':''}">${loggedToday(s,e.id)?'✓':(started?'':'🔒')}</div></div>`).join('');
+  });
+  return `<button class="back" onclick="go('al_days')">← Mis días</button>
+  <div class="card" style="background:linear-gradient(135deg,#15427A,#2E6BB0);color:#fff;border:none"><div style="font-size:20px;font-weight:800">${esc(day.name)}</div><div class="cap" style="color:#cfe0f5;margin-top:2px">${day.exercises.length} ejercicios · ${done}/${day.exercises.length} hechos hoy</div></div>
+  ${day.exercises.length?(started?`<div class="cap" style="text-align:center;margin:2px 0 4px">🏁 Entrenamiento en curso — tocá un ejercicio para registrarlo</div>`:`<button class="btn g" onclick="startWorkout('${day.id}')">▶ Iniciar rutina</button><div class="cap" style="text-align:center;margin-top:6px">🔒 Los ejercicios se habilitan cuando inicias el entrenamiento.</div>`):'<div class="cap" style="text-align:center">Este día no tiene ejercicios.</div>'}
+  ${feelCard(s)}
+  ${groups}`;
+}
+/* ONBOARDING */
+function startObPt(){S.ui.ob={kind:'pt',step:1,d:{}};save();render();}
+function startObAl(){S.ui.ob={kind:'al',step:1,d:{}};save();render();}
+function obBack(){const o=S.ui.ob;if(!o||o.step<=1){S.ui.ob=null;}else{o.step--;if(o.kind==='al'&&o.step===2&&o.d.path!=='code')o.step=1;}save();render();}
+function obNext(f,v){S.ui.ob.d[f]=v;S.ui.ob.step++;save();render();}
+function obBar(n,total){return `<div class="steps">${Array.from({length:total},(_,i)=>`<span class="${i<n?'on':''}"></span>`).join('')}</div>`;}
+function vObPt(){
+  const o=S.ui.ob,d=o.d;let body='';
+  if(o.step===1)body=`<div class="h">¿Cómo te llamás?</div><input class="in" id="obV" placeholder="Nombre y apellido" value="${esc(d.name||'')}"/><button class="btn" onclick="(function(){const v=val('obV').trim();if(!v){toast('Poné tu nombre');return;}obNext('name',v);})()">Siguiente →</button>`;
+  else if(o.step===2)body=`<div class="h">Tu email</div><input class="in" id="obV" type="email" placeholder="tu@email.com" value="${esc(d.email||'')}"/><button class="btn" onclick="(function(){const v=val('obV').trim();if(!v||v.indexOf('@')<1){toast('Poné un email válido');return;}obNext('email',v);})()">Siguiente →</button><div class="cap" style="margin-top:8px">En la versión online acá va el login con Google o un código al mail.</div>`;
+  else if(o.step===3){const colors=['#15427A','#2E7D32','#7B1FA2','#C0392B','#E0952B','#0F766E'];body=`<div class="h">Tu marca (opcional)</div><div class="cap" style="margin:0 0 8px">Tus alumnos van a ver tu nombre y color al entrar.</div><input class="in" id="obV" placeholder="Nombre de tu negocio (ej: RG Training)" value="${esc(d.negocio||'')}"/><div class="flex" style="margin-top:10px">${colors.map(c=>`<button style="height:36px;border-radius:8px;border:${(d.color||'')===c?'3px solid #1A2230':'1px solid #ccc'};background:${c};cursor:pointer" onclick="S.ui.ob.d.color='${c}';S.ui.ob.d.negocio=val('obV');save();render()"></button>`).join('')}</div><button class="btn" style="margin-top:12px" onclick="(function(){S.ui.ob.d.negocio=val('obV');S.ui.ob.step=4;save();render();})()">Siguiente →</button><button class="back" style="margin-top:10px" onclick="(function(){S.ui.ob.d.negocio='';S.ui.ob.d.color='';S.ui.ob.step=4;save();render();})()">Saltar este paso</button>`;}
+  else body=`<div class="h">¿Cómo querés arrancar?</div><button class="btn" onclick="finishObPt(true)">👀 Explorar con alumnos de ejemplo</button><button class="btn sec" style="margin-top:8px" onclick="finishObPt(false)">🧹 Empezar de cero (sin datos de ejemplo)</button>`;
+  return `<div class="login-wrap"><button class="back" onclick="obBack()">← ${o.step===1?'Volver':'Atrás'}</button>${obBar(o.step,4)}<div class="cap" style="margin:0 4px 10px">Crear cuenta de entrenador · paso ${o.step} de 4</div><div class="card">${body}</div></div>`;
+}
+function finishObPt(sample){const d=S.ui.ob.d;S.user={name:d.name,email:d.email,provider:'signup'};if(d.negocio||d.color)S.brand={name:d.negocio||'',color:d.color||''};if(!sample){S.students=[];S.routines=S.routines.filter(r=>!r.owner);S.notifs=[];}S.ui.ob=null;S.ui.role='pt';S.ui.view='pt_home';save();toast('¡Bienvenido, '+fn(d.name)+'! 🏋️ Agregá tu primer alumno cuando quieras.');render();}
+function vObAl(){
+  const o=S.ui.ob,d=o.d;let body='';const T=8;
+  if(o.step===1)body=`<div class="h">¿Ya entrenás con un profe que usa Universal Fit?</div><button class="btn" onclick="obNext('path','code')">🔑 Sí, tengo su código</button><button class="btn sec" style="margin-top:8px" onclick="(function(){S.ui.ob.d.path='new';S.ui.ob.step=3;save();render();})()">🔍 No, busco entrenador</button>`;
+  else if(o.step===2)body=`<div class="h">Ingresá el código que te pasó tu profe</div><input class="in" id="obV" placeholder="Ej: A1B2C3" maxlength="8" style="text-transform:uppercase;text-align:center;font-size:20px;letter-spacing:3px"/><button class="btn" onclick="claimByCode()">Conectarme con mi profe ✓</button>`;
+  else if(o.step===3)body=`<div class="h">¿Cómo te llamás?</div><input class="in" id="obV" placeholder="Nombre y apellido" value="${esc(d.name||'')}"/><button class="btn" onclick="(function(){const v=val('obV').trim();if(!v){toast('Poné tu nombre');return;}obNext('name',v);})()">Siguiente →</button>`;
+  else if(o.step===4)body=`<div class="h">Género</div>`+[['Masculino','👨 Masculino'],['Femenino','👩 Femenino'],['Otro','⚧ Otro']].map(x=>`<button class="btn sec" style="text-align:left;margin-bottom:8px" onclick="obNext('genero','${x[0]}')">${x[1]}</button>`).join('');
+  else if(o.step===5)body=`<div class="h">Edad</div><input class="in" id="obV" type="number" inputmode="numeric" placeholder="Años" value="${d.edad||''}"/><button class="btn" onclick="(function(){const v=+val('obV')||0;if(!v){toast('Poné tu edad');return;}obNext('edad',v);})()">Siguiente →</button>`;
+  else if(o.step===6)body=`<div class="h">¿Cuál es tu objetivo?</div>`+[['Volumen','💪 Volumen'],['Adelgazar','🔥 Adelgazar'],['Fuerza','🏋️ Fuerza'],['Salud general','❤️ Salud general'],['Rendimiento','⚡ Rendimiento']].map(x=>`<button class="btn sec" style="text-align:left;margin-bottom:8px" onclick="obNext('objetivo','${x[0]}')">${x[1]}</button>`).join('');
+  else if(o.step===7)body=`<div class="h">¿Qué nivel tenés?</div>`+[['Novato','Estoy arrancando'],['Intermedio','Entreno hace un tiempo'],['Avanzado','Años de fierros']].map(x=>`<button class="btn sec" style="text-align:left;margin-bottom:8px" onclick="obNext('nivel','${x[0]}')"><b>${x[0]}</b><br><span class="cap">${x[1]}</span></button>`).join('');
+  else body=`<div class="h">¿Cuántos días por semana querés entrenar?</div><div class="flex">`+[2,3,4,5,6,7].map(n=>`<button class="btn sec" style="padding:12px 0" onclick="finishObAlNew(${n})">${n}</button>`).join('')+`</div><div class="cap" style="margin-top:10px">Con esto un entrenador ya puede armarte la primera rutina.</div>`;
+  return `<div class="login-wrap"><button class="back" onclick="obBack()">← ${o.step===1?'Volver':'Atrás'}</button>${obBar(o.step,T)}<div class="cap" style="margin:0 4px 10px">Alta de alumno · paso ${o.step} de ${T}</div><div class="card">${body}</div></div>`;
+}
+function claimByCode(){const code=(val('obV')||'').trim().toLowerCase();if(!code){toast('Ingresá el código');return;}const st=S.students.find(x=>x.active!==false&&!x.claimed&&codeOf(x)===code);if(!st){toast('Código inválido o ya usado. Pedíselo de nuevo a tu profe.');return;}st.claimed=true;if(!S.user)S.user={name:st.name,email:'',provider:'alumno'};S.ui.ob=null;S.ui.role='al';S.ui.studentId=st.id;S.ui.view='al_home';save();toast('¡Hola, '+fn(st.name)+'! Quedaste conectado con tu profe 🎉');render();}
+function finishObAlNew(dias){const d=S.ui.ob.d;const st={id:uid(),name:d.name,genero:d.genero,edad:d.edad,objetivo:d.objetivo,nivel:d.nivel,dias,altura:null,profileDone:false,measures:[],logs:[],habits:defaultHabits(),habitLog:{},checkins:[],routineId:null,pending:true,active:true,claimed:true};S.students.push(st);notify(st.id,st.name+' quiere empezar a entrenar — nueva solicitud 📥');if(!S.user)S.user={name:st.name,email:'',provider:'alumno'};S.ui.ob=null;S.ui.role='al';S.ui.studentId=st.id;S.ui.view='al_home';save();toast('¡Solicitud enviada, '+fn(st.name)+'! 📨 Un entrenador te va a aceptar pronto.');render();}
+function vLogin(){
+  return `<div class="login-wrap">
+  <div class="card" style="text-align:center;border:none;background:var(--blue);color:#fff"><div style="font-size:44px">🏋️</div><div style="font-size:22px;font-weight:800">Universal Fit</div><div style="font-size:13px;opacity:.9;margin-top:4px">El sistema de trabajo del entrenador independiente</div></div>
+  <div class="card"><div class="h" style="margin:0 0 8px">¿Nuevo por acá? Creá tu cuenta</div>
+    <button class="btn" onclick="startObPt()">🏋️ Soy entrenador</button>
+    <button class="btn g" style="margin-top:8px" onclick="startObAl()">🙋 Soy alumno</button></div>
+  <div class="card"><div class="h" style="margin:0 0 8px">Ya tengo cuenta</div>
+    <button class="btn gg" onclick="loginGoogle()"><span style="font-weight:800;color:#4285F4">G</span> Continuar con Google</button>
+    <div style="text-align:center;color:var(--muted);font-size:12px;margin:14px 0">— o con tu email —</div>
+    <input class="in" id="loginEmail" type="email" placeholder="tu@email.com"/><input class="in" id="loginPass" type="password" placeholder="Contraseña"/>
+    <button class="btn" onclick="loginEmail()">Entrar</button>
+    <div class="cap" style="text-align:center;margin-top:12px">Demo: cualquier dato entra. Login real y Google SSO en la versión online.</div>
+  </div></div>`;
+}
 S=load();render();
 </script>
 </body>
