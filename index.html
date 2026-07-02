@@ -193,8 +193,8 @@ function videoBox(url,name){
   return `<div class="vph"><div class="in2"><div class="play">▶</div><a style="color:#cfe0f5;font-weight:700;text-decoration:underline" href="https://www.youtube.com/results?search_query=${encodeURIComponent((name||'ejercicio')+' técnica como hacer')}" target="_blank">🔎 Ver técnica en YouTube</a><div class="cap" style="color:#9fb3d4">Tu profe todavía no cargó su propio video</div></div></div>`;
 }
 /* auth */
-function loginEmail(){const e=(val('loginEmail')||'').trim();S.user={name:(e.split('@')[0]||'Entrenador'),email:e||'demo@universalfit.app',provider:'email'};save();toast('¡Bienvenido!');render();}
-function loginGoogle(){S.user={name:'Entrenador',email:'demo@gmail.com',provider:'google'};save();toast('Google SSO: demo. El login real se activa online.');render();}
+function loginEmail(){const e=(val('loginEmail')||'').trim();S.user={name:(e.split('@')[0]||'Entrenador'),email:e||'demo@universalfit.app',provider:'email',type:'pt'};if(!S.trainer)S.trainer={name:S.user.name};save();toast('¡Bienvenido!');render();}
+function loginGoogle(){S.user={name:'Entrenador',email:'demo@gmail.com',provider:'google',type:'pt'};if(!S.trainer)S.trainer={name:'Entrenador'};save();toast('Google SSO: demo. El login real se activa online.');render();}
 function logout(){S.user=null;S.ui.role='pt';S.ui.view='pt_home';save();render();}
 function setRole(r){S.ui.role=r;S.ui.view=r==='pt'?'pt_home':'al_home';save();render();}
 function setStudent(id){S.ui.studentId=id;S.ui.view='al_home';save();render();}
@@ -206,21 +206,21 @@ function render(){
   const roles=document.getElementById('roles');
   if(!S.user){roles.style.display='none';var hl0=document.getElementById('hLogout');if(hl0)hl0.style.display='none';document.getElementById('idbar').style.display='none';document.getElementById('nav').innerHTML='';document.getElementById('main').innerHTML=(S.ui&&S.ui.ob)?((S.ui.ob.kind==='pt')?vObPt():vObAl()):vLogin();return;}
   var hl1=document.getElementById('hLogout');if(hl1)hl1.style.display='inline-block';
-  roles.style.display='flex';
-  const r=S.ui.role;
+  roles.style.display='none';
+  const r=(S.user.type==='al')?'al':(S.ui.role||'pt');S.ui.role=r;
   document.getElementById('rpt').className=r==='pt'?'on':'';
   document.getElementById('ral').className=r==='al'?'on':'';
   const idbar=document.getElementById('idbar');
-  if(r==='al'){idbar.style.display='flex';const sel=document.getElementById('idsel');
+  if(r==='al'&&S.user.type!=='al'){idbar.style.display='flex';const sel=document.getElementById('idsel');
     const selList=S.students.filter(x=>x.active!==false);sel.innerHTML=selList.map(s=>`<option value="${s.id}">${esc(s.name)}</option>`).join('');
     if(!selList.find(s=>s.id===S.ui.studentId))S.ui.studentId=selList[0]&&selList[0].id;
     sel.value=S.ui.studentId;}
   else idbar.style.display='none';
   const m=document.getElementById('main'),v=S.ui.view;
-  const map={pt_routines:vPtRoutines,pt_redit:vPtEdit,pt_addex:vPtAddEx,pt_student:vPtStudent,pt_wizard:vPtWizard,al_checkin:vAlCheckin,al_days:vAlDays,al_day:vAlDay,al_log:vAlLog,al_progress:vAlProgress,al_profile:vAlProfile,al_measure:vAlMeasure,pt_notifs:vPtNotifs};
+  const map={pt_routines:vPtRoutines,pt_redit:vPtEdit,pt_addex:vPtAddEx,pt_student:vPtStudent,pt_wizard:vPtWizard,al_welcome:vAlWelcome,al_checkin:vAlCheckin,al_days:vAlDays,al_day:vAlDay,al_log:vAlLog,al_progress:vAlProgress,al_profile:vAlProfile,al_measure:vAlMeasure,pt_notifs:vPtNotifs};
   if(r==='pt')m.innerHTML=(map[v]&&['pt_routines','pt_redit','pt_addex','pt_student','pt_wizard','pt_notifs'].includes(v))?map[v]():vPtHome();
-  else if(me()&&!me().profileDone)m.innerHTML=vAlSetup();
-  else m.innerHTML=(map[v]&&['al_checkin','al_days','al_day','al_log','al_progress','al_profile','al_measure'].includes(v))?map[v]():vAlHome();
+  else if(me()&&!me().profileDone&&v!=='al_welcome')m.innerHTML=vAlSetup();
+  else m.innerHTML=(map[v]&&['al_welcome','al_checkin','al_days','al_day','al_log','al_progress','al_profile','al_measure'].includes(v))?map[v]():vAlHome();
   renderNav();m.scrollTop=0;
 }
 function renderNav(){
@@ -573,7 +573,7 @@ function vObPt(){
   else body=`<div class="h">¿Cómo querés arrancar?</div><button class="btn" onclick="finishObPt(true)">👀 Explorar con alumnos de ejemplo</button><button class="btn sec" style="margin-top:8px" onclick="finishObPt(false)">🧹 Empezar de cero (sin datos de ejemplo)</button>`;
   return `<div class="login-wrap"><button class="back" onclick="obBack()">← ${o.step===1?'Volver':'Atrás'}</button>${obBar(o.step,4)}<div class="cap" style="margin:0 4px 10px">Crear cuenta de entrenador · paso ${o.step} de 4</div><div class="card">${body}</div></div>`;
 }
-function finishObPt(sample){const d=S.ui.ob.d;S.user={name:d.name,email:d.email,provider:'signup'};if(d.negocio||d.color)S.brand={name:d.negocio||'',color:d.color||''};if(!sample){S.students=[];S.routines=S.routines.filter(r=>!r.owner);S.notifs=[];}S.ui.ob=null;S.ui.role='pt';S.ui.view='pt_home';save();toast('¡Bienvenido, '+fn(d.name)+'! 🏋️ Agregá tu primer alumno cuando quieras.');render();}
+function finishObPt(sample){const d=S.ui.ob.d;S.user={name:d.name,email:d.email,provider:'signup',type:'pt'};S.trainer={name:d.name};if(d.negocio||d.color)S.brand={name:d.negocio||'',color:d.color||''};if(!sample){S.students=[];S.routines=S.routines.filter(r=>!r.owner);S.notifs=[];}S.ui.ob=null;S.ui.role='pt';S.ui.view='pt_home';save();toast('¡Bienvenido, '+fn(d.name)+'! 🏋️ Agregá tu primer alumno cuando quieras.');render();}
 function vObAl(){
   const o=S.ui.ob,d=o.d;let body='';const T=8;
   if(o.step===1)body=`<div class="h">¿Ya entrenás con un profe que usa Universal Fit?</div><button class="btn" onclick="obNext('path','code')">🔑 Sí, tengo su código</button><button class="btn sec" style="margin-top:8px" onclick="(function(){S.ui.ob.d.path='new';S.ui.ob.step=3;save();render();})()">🔍 No, busco entrenador</button>`;
@@ -586,8 +586,8 @@ function vObAl(){
   else body=`<div class="h">¿Cuántos días por semana querés entrenar?</div><div class="flex">`+[2,3,4,5,6,7].map(n=>`<button class="btn sec" style="padding:12px 0" onclick="finishObAlNew(${n})">${n}</button>`).join('')+`</div><div class="cap" style="margin-top:10px">Con esto un entrenador ya puede armarte la primera rutina.</div>`;
   return `<div class="login-wrap"><button class="back" onclick="obBack()">← ${o.step===1?'Volver':'Atrás'}</button>${obBar(o.step,T)}<div class="cap" style="margin:0 4px 10px">Alta de alumno · paso ${o.step} de ${T}</div><div class="card">${body}</div></div>`;
 }
-function claimByCode(){const code=(val('obV')||'').trim().toLowerCase();if(!code){toast('Ingresá el código');return;}const st=S.students.find(x=>x.active!==false&&!x.claimed&&codeOf(x)===code);if(!st){toast('Código inválido o ya usado. Pedíselo de nuevo a tu profe.');return;}st.claimed=true;if(!S.user)S.user={name:st.name,email:'',provider:'alumno'};S.ui.ob=null;S.ui.role='al';S.ui.studentId=st.id;S.ui.view='al_home';save();toast('¡Hola, '+fn(st.name)+'! Quedaste conectado con tu profe 🎉');render();}
-function finishObAlNew(dias){const d=S.ui.ob.d;const st={id:uid(),name:d.name,genero:d.genero,edad:d.edad,objetivo:d.objetivo,nivel:d.nivel,dias,altura:null,profileDone:false,measures:[],logs:[],habits:defaultHabits(),habitLog:{},checkins:[],routineId:null,pending:true,active:true,claimed:true};S.students.push(st);notify(st.id,st.name+' quiere empezar a entrenar — nueva solicitud 📥');if(!S.user)S.user={name:st.name,email:'',provider:'alumno'};S.ui.ob=null;S.ui.role='al';S.ui.studentId=st.id;S.ui.view='al_home';save();toast('¡Solicitud enviada, '+fn(st.name)+'! 📨 Un entrenador te va a aceptar pronto.');render();}
+function claimByCode(){const code=(val('obV')||'').trim().toLowerCase();if(!code){toast('Ingresá el código');return;}const st=S.students.find(x=>x.active!==false&&!x.claimed&&codeOf(x)===code);if(!st){toast('Código inválido o ya usado. Pedíselo de nuevo a tu profe.');return;}st.claimed=true;S.user={name:st.name,email:'',provider:'alumno',type:'al'};S.ui.ob=null;S.ui.role='al';S.ui.studentId=st.id;S.ui.view='al_home';save();toast('¡Hola, '+fn(st.name)+'! Quedaste conectado con tu profe 🎉');render();}
+function finishObAlNew(dias){const d=S.ui.ob.d;const st={id:uid(),name:d.name,genero:d.genero,edad:d.edad,objetivo:d.objetivo,nivel:d.nivel,dias,altura:null,profileDone:false,measures:[],logs:[],habits:defaultHabits(),habitLog:{},checkins:[],routineId:null,pending:true,active:true,claimed:true};S.students.push(st);notify(st.id,st.name+' quiere empezar a entrenar — nueva solicitud 📥');S.user={name:st.name,email:'',provider:'alumno',type:'al'};S.ui.ob=null;S.ui.role='al';S.ui.studentId=st.id;S.ui.view='al_home';save();toast('¡Solicitud enviada, '+fn(st.name)+'! 📨 Un entrenador te va a aceptar pronto.');render();}
 function vLogin(){
   return `<div class="login-wrap">
   <div class="card" style="text-align:center;border:none;background:var(--blue);color:#fff"><div style="font-size:44px">🏋️</div><div style="font-size:22px;font-weight:800">Universal Fit</div><div style="font-size:13px;opacity:.9;margin-top:4px">El sistema de trabajo del entrenador independiente</div></div>
@@ -602,6 +602,18 @@ function vLogin(){
     <div class="cap" style="text-align:center;margin-top:12px">Demo: cualquier dato entra. Login real y Google SSO en la versión online.</div>
   </div></div>`;
 }
+/* Ajustes 02-jul (2): rol fijo por cuenta + bienvenida con nombre del profe */
+function trainerName(){return (S.trainer&&S.trainer.name)||'tu entrenador';}
+function trainerBrand(){return (S.brand&&S.brand.name)||'';}
+function claimByCode(){const code=(val('obV')||'').trim().toLowerCase();if(!code){toast('Ingresá el código');return;}const st=S.students.find(x=>x.active!==false&&codeOf(x)===code);if(!st){toast('Código inválido. Pedíselo de nuevo a tu profe.');return;}const yaEstaba=!!st.claimed;st.claimed=true;S.user={name:st.name,email:'',provider:'alumno',type:'al'};S.ui.ob=null;S.ui.role='al';S.ui.studentId=st.id;
+ if(yaEstaba){S.ui.view='al_home';save();toast('¡Hola de nuevo, '+fn(st.name)+'! 👋');}
+ else{st.msgs=st.msgs||[];st.msgs.unshift({id:uid(),date:today(),text:'👋 ¡Bienvenido/a al equipo! Soy '+trainerName()+', tu entrenador'+(trainerBrand()?' ('+trainerBrand()+')':'')+'. Completá tu perfil y arrancamos. ¡Vamos!',read:false});S.ui.view='al_welcome';save();}
+ render();}
+function vAlWelcome(){const s=me();if(!s)return vAlHome();const tn=trainerName(),tb=trainerBrand();
+ return `<div class="login-wrap">
+ <div class="card" style="text-align:center;border:none;background:linear-gradient(135deg,#15427A,#2E6BB0);color:#fff;padding:28px 16px"><div style="font-size:52px">🎉</div><div style="font-size:24px;font-weight:800;margin-top:8px">¡Bienvenido/a, ${esc(fn(s.name))}!</div><div style="font-size:15px;margin-top:12px;color:#dbe7f7">Ya sos parte del equipo de</div><div style="font-size:21px;font-weight:800;margin-top:2px">🏋️ ${esc(tn)}</div>${tb?`<div style="font-size:13px;color:#cfe0f5;margin-top:2px">${esc(tb)}</div>`:''}</div>
+ <div class="card"><div class="h" style="margin:0 0 8px">Qué sigue</div><div style="padding:5px 0">1️⃣ Completá tu perfil (medidas) — 2 minutos</div><div style="padding:5px 0">2️⃣ ${routineOf(s)?'Tu rutina ya está lista 💪':'Tu profe te arma la rutina'}</div><div style="padding:5px 0">3️⃣ Registrá cada entreno y mirá cómo progresás</div></div>
+ <button class="btn g" style="padding:16px;font-size:17px" onclick="go('al_home')">¡Empezar! →</button></div>`;}
 S=load();render();
 </script>
 </body>
