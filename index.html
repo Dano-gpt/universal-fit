@@ -208,7 +208,7 @@ async function loginEmail(){const e=(val('loginEmail')||'').trim(),p=val('loginP
   if(!ok){toast('Esa cuenta no tiene datos todavía — creá tu cuenta con "Soy entrenador" o "Soy alumno".');try{await sb.auth.signOut();}catch(x){}}}
 function demoLogin(){S.user={name:'Entrenador',email:'demo@universalfit.app',provider:'demo',type:'pt'};if(!S.trainer)S.trainer={name:'Entrenador'};save();toast('Modo demo: los datos quedan solo en este dispositivo.');render();}
 function loginGoogle(){if(sb){toast('Google llega en la próxima iteración — usá email y contraseña 👇');return;}S.user={name:'Entrenador',email:'demo@gmail.com',provider:'google',type:'pt'};if(!S.trainer)S.trainer={name:'Entrenador'};save();render();}
-function logout(){if(typeof cloudOn==='function'&&cloudOn()){try{sb.auth.signOut();}catch(e){}CLOUD={on:false,uid:null,kind:null,timer:null,hashes:{},pushing:false};S=load();}S.user=null;S.ui.role='pt';S.ui.view='pt_home';save();render();}
+function logout(){if(typeof cloudOn==='function'&&cloudOn()){try{sb.auth.signOut();}catch(e){}CLOUD={on:false,uid:null,kind:null,timer:null,hashes:{},pushing:false};S=load();}S.user=null;S.ui.ob=null;S.ui.wiz=null;S.ui.brandEdit=false;S.ui.ptProfEdit=false;S.ui.role='pt';S.ui.view='pt_home';save();render();}
 function setRole(r){S.ui.role=r;S.ui.view=r==='pt'?'pt_home':'al_home';save();render();}
 function setStudent(id){S.ui.studentId=id;S.ui.view='al_home';save();render();}
 function go(v){S.ui.view=v;save();render();}
@@ -548,7 +548,7 @@ function startWorkout(dayId){const s=me();S.ui.workout={sid:s.id,dayId,date:toda
 function pendingCard(){const ps=S.students.filter(x=>x.pending&&!x.ext);if(!ps.length)return '';return `<div class="card" style="border-color:#F3E2C4;background:#FDF8EE"><div class="h" style="margin:0 0 8px">📥 Solicitudes de alumnos nuevos (${ps.length})</div>${ps.map(p=>`<div style="padding:8px 0;border-bottom:1px solid #eadfc8"><b>${esc(p.name)}</b> <span class="cap">· ${esc(p.objetivo||'—')} · ${esc(p.nivel||'—')} · ${p.dias||'?'} días/sem${p.edad?' · '+p.edad+' años':''}</span><div class="flex" style="margin-top:6px"><button class="btn g sm" onclick="acceptStudent('${p.id}')">✓ Aceptar</button><button class="btn sec sm" onclick="rejectStudent('${p.id}')">Rechazar</button></div></div>`).join('')}</div>`;}
 function acceptStudent(id){const st=S.students.find(x=>x.id===id);st.pending=false;const rt=genRoutine(st.objetivo||'Salud general',st.nivel||'Novato',st.dias||3);rt.owner=st.id;S.routines.push(rt);st.routineId=rt.id;st.msgs=st.msgs||[];st.msgs.unshift({id:uid(),date:today(),text:'🎉 ¡Bienvenido! Tu entrenador aceptó tu solicitud y ya te armó tu primera rutina.',read:false});save();toast(fn(st.name)+' aceptado ✓ Rutina inicial generada');render();}
 function rejectStudent(id){if(!confirm('¿Rechazar esta solicitud? Se elimina.'))return;S.students=S.students.filter(x=>x.id!==id);save();toast('Solicitud rechazada');render();}
-function shareLink(id){const st=S.students.find(x=>x.id===id);toast('🔑 Código de '+fn(st.name)+': '+codeOf(st).toUpperCase()+' — con ese código entra por "Soy alumno" y se conecta solo');}
+function shareLink(id){const st=S.students.find(x=>x.id===id);const url=inviteUrl(codeOf(st).toUpperCase());try{navigator.clipboard.writeText(url);}catch(e){}toast('🔗 Link de invitación de '+fn(st.name)+' copiado — al abrirlo entra directo con su código');}
 function vPtHome(){
   const foot=`${brandCard()}${ptProfileCard()}<div class="cap" style="text-align:center;margin-top:16px">Sesión: ${esc(S.user.email||S.user.name)} · <a onclick="toggleBrand()" style="color:var(--blue);cursor:pointer;font-weight:700">🎨 Mi marca</a> · <a onclick="togglePtProfile()" style="color:var(--blue);cursor:pointer;font-weight:700">👤 Mi perfil</a> · <a onclick="logout()" style="color:var(--blue);cursor:pointer;font-weight:700">⏻ Cerrar sesión</a></div>`;
   const act=activeStudents(),inact=S.students.filter(x=>x.active===false);
@@ -597,10 +597,12 @@ function dirFoto(t,size){const st=`width:${size}px;height:${size}px;border-radiu
 function stars(r){if(r==null)return '<span class="pill g">Nuevo</span>';return `<span style="color:#ff9600;font-weight:800">★ ${r}</span>`;}
 
 /* ---- Código de equipo del PT ---- */
+const APP_URL=(function(){try{return (location.origin&&location.origin.indexOf('http')===0)?(location.origin+location.pathname):'https://dano-gpt.github.io/universal-fit/';}catch(e){return 'https://dano-gpt.github.io/universal-fit/';}})();
+function inviteUrl(code){return APP_URL+'?code='+encodeURIComponent(code);}
 function teamCode(){if(!S.trainer)return null;if(!S.trainer.code){S.trainer.code=('UF'+Math.random().toString(36).replace(/[^a-z0-9]/g,'').slice(0,4)).toUpperCase();save();}return S.trainer.code;}
-function teamCodeCard(){const c=teamCode();if(!c)return '';return `<div class="card" style="background:var(--blue);color:#fff;border:none"><div style="font-size:12px;font-weight:800;text-transform:uppercase;letter-spacing:.6px;color:rgba(255,255,255,.85)">🔑 Tu código de equipo</div><div style="font-size:30px;font-weight:900;letter-spacing:6px;text-align:center;margin:8px 0 4px">${c}</div><div class="cap" style="color:rgba(255,255,255,.88);text-align:center">Pasáselo a tus alumnos: entran por "Soy alumno → Tengo código" y quedan conectados con vos.</div><div class="flex" style="margin-top:10px"><button class="btn sec sm" style="margin:0" onclick="copyTeamCode()">⧉ Copiar</button><button class="btn sec sm" style="margin:0" onclick="waTeamCode()">📲 WhatsApp</button></div></div>`;}
-function copyTeamCode(){const c=teamCode();try{navigator.clipboard.writeText(c);}catch(e){}toast('Código copiado: '+c);}
-function waTeamCode(){const c=teamCode();const txt='¡Hola! Sumate a mi equipo en Universal Fit 💪 Entrá a https://dano-gpt.github.io/universal-fit/ tocá "Soy alumno" y usá mi código: '+c;try{window.open('https://wa.me/?text='+encodeURIComponent(txt),'_blank');}catch(e){}toast('Abriendo WhatsApp…');}
+function teamCodeCard(){const c=teamCode();if(!c)return '';return `<div class="card" style="background:var(--blue);color:#fff;border:none"><div style="font-size:12px;font-weight:800;text-transform:uppercase;letter-spacing:.6px;color:rgba(255,255,255,.85)">🔑 Tu código de equipo</div><div style="font-size:30px;font-weight:900;letter-spacing:6px;text-align:center;margin:8px 0 4px">${c}</div><div class="cap" style="color:rgba(255,255,255,.88);text-align:center">Compartí el link de invitación: se abre con tu código ya puesto y el alumno solo confirma.</div><div class="flex" style="margin-top:10px"><button class="btn sec sm" style="margin:0" onclick="copyTeamCode()">🔗 Copiar link</button><button class="btn sec sm" style="margin:0" onclick="waTeamCode()">📲 WhatsApp</button></div></div>`;}
+function copyTeamCode(){const c=teamCode();try{navigator.clipboard.writeText(inviteUrl(c));}catch(e){}toast('🔗 Link de invitación copiado — se abre con tu código puesto');}
+function waTeamCode(){const c=teamCode();const txt='¡Hola! Te invito a entrenar conmigo en Universal Fit 💪 Tocá el link y confirmá tu ingreso: '+inviteUrl(c);try{window.open('https://wa.me/?text='+encodeURIComponent(txt),'_blank');}catch(e){}toast('Abriendo WhatsApp…');}
 
 /* ---- Perfil público del PT ---- */
 function togglePtProfile(){S.ui.ptProfEdit=!S.ui.ptProfEdit;save();render();}
@@ -658,7 +660,7 @@ function vObAl(){
   let body='';
   if(o.step===1)body=`<div class="h">¿Ya entrenás con un profe que usa Universal Fit?</div><button class="btn" onclick="(function(){S.ui.ob.d.path='code';S.ui.ob.step=2;save();render();})()">🔑 Sí, tengo su código</button><button class="btn sec" style="margin-top:8px" onclick="(function(){S.ui.ob.d.path='new';S.ui.ob.step=21;save();render();})()">🔍 No, busco entrenador</button>`;
   else if(o.step===2)body=`<div class="h">Ingresá el código que te pasó tu profe</div><div class="cap" style="margin:0 0 8px">Puede ser el código de equipo (UF····) o tu código personal.</div><input class="in" id="obV" placeholder="Ej: UF3K9Z" maxlength="8" style="text-transform:uppercase;text-align:center;font-size:20px;letter-spacing:3px" value="${esc(d.code||'')}"/><button class="btn" onclick="checkCode()">Conectarme con mi profe ✓</button>`;
-  else if(o.step===3)body=`<div class="h">¿Cómo te llamás?</div>${d.mode==='claim'?'<div class="cap" style="margin:0 0 8px">Tu profe te cargó así — corregilo si hace falta.</div>':''}<input class="in" id="obV" placeholder="Nombre y apellido" value="${esc(d.name||'')}"/><button class="btn" onclick="(function(){const v=val('obV').trim();if(!v){toast('Poné tu nombre');return;}obNext('name',v);})()">Siguiente →</button>`;
+  else if(o.step===3)body=`${d.trainerName?`<div style="background:var(--blue);color:#fff;border-radius:12px;padding:10px 12px;margin:0 0 12px;font-weight:800;text-align:center">🎉 ${esc(d.trainerName)} te invitó a su equipo</div>`:''}<div class="h">¿Cómo te llamás?</div>${d.mode==='claim'?'<div class="cap" style="margin:0 0 8px">Tu profe te cargó así — corregilo si hace falta.</div>':''}<input class="in" id="obV" placeholder="Nombre y apellido" value="${esc(d.name||'')}"/><button class="btn" onclick="(function(){const v=val('obV').trim();if(!v){toast('Poné tu nombre');return;}obNext('name',v);})()">Siguiente →</button>`;
   else if(o.step===4)body=`<div class="h">Género</div>`+[['Masculino','👨 Masculino'],['Femenino','👩 Femenino'],['Otro','⚧ Otro']].map(x=>`<button class="btn sec" style="text-align:left;margin-bottom:8px" onclick="obNext('genero','${x[0]}')">${x[1]}</button>`).join('');
   else if(o.step===5)body=`<div class="h">Edad</div><input class="in" id="obV" type="number" inputmode="numeric" placeholder="Años" value="${d.edad||''}"/><button class="btn" onclick="(function(){const v=+val('obV')||0;if(!v){toast('Poné tu edad');return;}S.ui.ob.d.edad=v;S.ui.ob.step=(S.ui.ob.d.mode==='claim')?9:6;save();render();})()">Siguiente →</button>`;
   else if(o.step===6||o.step===26)body=`<div class="h">¿Cuál es tu objetivo?</div>`+[['Volumen','💪 Volumen'],['Adelgazar','🔥 Adelgazar'],['Fuerza','🏋️ Fuerza'],['Salud general','❤️ Salud general'],['Rendimiento','⚡ Rendimiento']].map(x=>`<button class="btn sec" style="text-align:left;margin-bottom:8px" onclick="(function(){S.ui.ob.d.objetivo='${x[0]}';S.ui.ob.step=${o.step===6?7:27};save();render();})()">${x[1]}</button>`).join('');
@@ -699,11 +701,11 @@ async function checkCode(){const raw=(val('obV')||'').trim();if(!raw){toast('Ing
   if(r.type==='team'){S.ui.ob.d.mode='team';S.ui.ob.d.trainerName=r.trainer_name;S.ui.ob.step=3;save();render();return;}
   if(r.claimed){toast('Esa ficha ya tiene cuenta. Entrá por "Ya tengo cuenta" con tu email.');return;}
   S.ui.ob.d.mode='claim';S.ui.ob.d.name=r.name||'';S.ui.ob.d.genero=r.genero||'';S.ui.ob.d.edad=+r.edad||'';S.ui.ob.d.trainerName=r.trainer_name;S.ui.ob.step=3;save();render();return;}
- if(S.trainer&&teamCode()&&raw.toUpperCase()===teamCode()){S.ui.ob.d.mode='team';S.ui.ob.step=3;save();render();return;}
+ if(S.trainer&&teamCode()&&raw.toUpperCase()===teamCode()){S.ui.ob.d.mode='team';S.ui.ob.d.trainerName=trainerName();S.ui.ob.step=3;save();render();return;}
  const st=S.students.find(x=>x.active!==false&&!x.ext&&codeOf(x)===raw.toLowerCase());
  if(!st){toast('Código inválido. Pedíselo de nuevo a tu profe.');return;}
  if(st.claimed){S.user={name:st.name,email:'',provider:'alumno',type:'al'};S.ui.ob=null;S.ui.role='al';S.ui.studentId=st.id;S.ui.view='al_home';save();toast('¡Hola de nuevo, '+fn(st.name)+'! 👋');render();return;}
- S.ui.ob.d.mode='claim';S.ui.ob.d.sid=st.id;S.ui.ob.d.name=st.name;S.ui.ob.d.genero=st.genero||'';S.ui.ob.d.edad=st.edad||'';S.ui.ob.step=3;save();render();}
+ S.ui.ob.d.mode='claim';S.ui.ob.d.sid=st.id;S.ui.ob.d.name=st.name;S.ui.ob.d.genero=st.genero||'';S.ui.ob.d.edad=st.edad||'';S.ui.ob.d.trainerName=trainerName();S.ui.ob.step=3;save();render();}
 function finishObCode(){const d=S.ui.ob.d;const altura=+val('cd_altura')||0,peso=+val('cd_peso')||0;
  if(!altura||!peso){toast('Cargá al menos altura y peso');return;}
  const m={date:today(),peso};['cintura','pecho','espalda','brazos','piernas'].forEach(k=>m[k]=+val('cd_'+k)||0);
@@ -861,7 +863,11 @@ async function finishObAlNewCloud(){const d=S.ui.ob.d;const e=(val('obEmail')||'
  const ok=await cloudBoot(data.user);
  if(!ok){toast('Cuenta creada pero no pude cargar tus datos — probá entrar de nuevo.');return;}
  S.ui.ob=null;S.ui.view='al_home';save();toast('¡Solicitud enviada a '+fn(t.name)+'! 📨');render();}
-S=load();render();
+S=load();
+const QCODE=(function(){try{return new URLSearchParams(location.search).get('code');}catch(e){return null;}})();
+if(QCODE&&!S.user){S.ui.ob={kind:'al',step:2,d:{path:'code',code:QCODE}};try{history.replaceState(null,'',location.pathname);}catch(e){}}
+render();
+if(QCODE&&!S.user&&S.ui.ob&&S.ui.ob.step===2){setTimeout(function(){if(S.ui.ob&&S.ui.ob.kind==='al'&&S.ui.ob.step===2)checkCode();},700);}
 if(sb){sb.auth.getSession().then(({data})=>{if(data&&data.session){cloudBoot(data.session.user);}}).catch(()=>{});}
 </script>
 </body>
