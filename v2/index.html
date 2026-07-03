@@ -98,10 +98,10 @@
 </style>
 </head>
 <body>
-<div id="gate"><div id="gateInner"><div class="gIco">🏋️</div><div class="gName">Universal Fit</div><div class="gSub">Entrená mejor. Progresá siempre.</div></div></div>
+<div id="gate"><div style="position:absolute;bottom:18px;left:0;right:0;text-align:center;color:rgba(255,255,255,.75);font-size:12px;font-weight:700">v2.0.0</div><div id="gateInner"><div class="gIco">🏋️</div><div class="gName">Universal Fit</div><div class="gSub">Entrená mejor. Progresá siempre.</div></div></div>
 <div class="app">
   <header>
-    <div class="brand"><h1>Universal Fit</h1><div style="display:flex;gap:8px;align-items:center"><span class="demo">MVP demo</span><button id="hSync" onclick="cloudRefresh()" style="display:none;background:rgba(255,255,255,.18);border:none;color:#fff;font-size:11px;font-weight:700;padding:4px 10px;border-radius:20px;cursor:pointer">🔄</button><button id="hLogout" onclick="logout()" style="display:none;background:rgba(255,255,255,.18);border:none;color:#fff;font-size:11px;font-weight:700;padding:4px 10px;border-radius:20px;cursor:pointer">⏻ Salir</button></div></div>
+    <div class="brand"><h1>Universal Fit</h1><div style="display:flex;gap:8px;align-items:center"><button id="hSync" onclick="cloudRefresh()" style="display:none;background:rgba(255,255,255,.18);border:none;color:#fff;font-size:11px;font-weight:700;padding:4px 10px;border-radius:20px;cursor:pointer">🔄</button><button id="hLogout" onclick="logout()" style="display:none;background:rgba(255,255,255,.18);border:none;color:#fff;font-size:11px;font-weight:700;padding:4px 10px;border-radius:20px;cursor:pointer">⏻ Salir</button></div></div>
     <div class="roles" id="roles">
       <button id="rpt" onclick="setRole('pt')">Entrenador</button>
       <button id="ral" onclick="setRole('al')">Alumno</button>
@@ -266,7 +266,7 @@ function vLogin(){
     <div style="text-align:center;color:var(--muted);font-size:12px;margin:14px 0">— o con tu email —</div>
     <input class="in" id="loginEmail" type="email" placeholder="tu@email.com"/><input class="in" id="loginPass" type="password" placeholder="Contraseña"/>
     <button class="btn" onclick="loginEmail()">Entrar</button>
-    ${sb?`<div class="cap" style="text-align:center;margin-top:12px">🔐 Registro y login reales — tus datos quedan guardados en la nube.</div>`:`<div class="cap" style="text-align:center;margin-top:12px">Demo sin conexión: cualquier dato entra.</div>`}<div class="cap" style="text-align:center;margin-top:8px"><a onclick="demoLogin()" style="color:var(--blue);cursor:pointer;font-weight:700">👀 Probar la demo sin cuenta</a></div>
+    ${sb?`<div class="cap" style="text-align:center;margin-top:12px">🔐 Registro y login reales — tus datos quedan guardados en la nube.</div>`:`<div class="cap" style="text-align:center;margin-top:12px">Demo sin conexión: cualquier dato entra.</div>`}
   </div></div>`;
 }
 /* PT */
@@ -564,7 +564,7 @@ function acceptStudent(id){const st=S.students.find(x=>x.id===id);st.pending=fal
 function rejectStudent(id){if(!confirm('¿Rechazar esta solicitud? Se elimina.'))return;S.students=S.students.filter(x=>x.id!==id);save();toast('Solicitud rechazada');render();}
 function shareLink(id){const st=S.students.find(x=>x.id===id);const url=inviteUrl(codeOf(st).toUpperCase());try{navigator.clipboard.writeText(url);}catch(e){}toast('🔗 Link de invitación de '+fn(st.name)+' copiado — al abrirlo entra directo con su código');}
 function vPtHome(){
-  const foot=`${brandCard()}${ptProfileCard()}<div class="cap" style="text-align:center;margin-top:16px">Sesión: ${esc(S.user.email||S.user.name)} · <a onclick="toggleBrand()" style="color:var(--blue);cursor:pointer;font-weight:700">🎨 Mi marca</a> · <a onclick="togglePtProfile()" style="color:var(--blue);cursor:pointer;font-weight:700">👤 Mi perfil</a> · <a onclick="logout()" style="color:var(--blue);cursor:pointer;font-weight:700">⏻ Cerrar sesión</a></div>`;
+  const foot=`${brandCard()}${ptProfileCard()}<div class="cap" style="text-align:center;margin-top:16px">Sesión: ${esc(S.user.email||S.user.name)} · ${UF_VERSION} · <a onclick="toggleBrand()" style="color:var(--blue);cursor:pointer;font-weight:700">🎨 Mi marca</a> · <a onclick="togglePtProfile()" style="color:var(--blue);cursor:pointer;font-weight:700">👤 Mi perfil</a> · <a onclick="logout()" style="color:var(--blue);cursor:pointer;font-weight:700">⏻ Cerrar sesión</a></div>`;
   const act=activeStudents(),inact=S.students.filter(x=>x.active===false);
   const inactSec=inact.length?`<div class="h" style="margin-top:16px">⏸ Inactivos (${inact.length})</div>`+inact.map(s=>`<div class="stu" style="opacity:.7" onclick="openStudent('${s.id}')"><span class="dot" style="background:#9aa4b2"></span><div style="flex:1"><div class="name">${esc(s.name)}</div><div class="sub">historia guardada · ${s.logs.length} entrenos</div></div><button class="btn sec sm" style="width:auto;margin:0" onclick="event.stopPropagation();reactivateStudent('${s.id}')">▶</button></div>`).join(''):'';
   if(!act.length)return `<div class="h">Mis alumnos</div>${teamCodeCard()}${pendingCard()}<div class="empty"><div class="em">👥</div><p>Todavía no tenés alumnos.<br>Compartí tu <b>link de invitación</b> 👆 — tus alumnos entran solos con tu código.</p></div>${inactSec}${foot}`;
@@ -611,6 +611,7 @@ function dirFoto(t,size){const st=`width:${size}px;height:${size}px;border-radiu
 function stars(r){if(r==null)return '<span class="pill g">Nuevo</span>';return `<span style="color:#ff9600;font-weight:800">★ ${r}</span>`;}
 
 /* ---- Código de equipo del PT ---- */
+const UF_VERSION='v2.0.0';
 const APP_URL=(function(){try{return (location.origin&&location.origin.indexOf('http')===0)?(location.origin+location.pathname):'https://dano-gpt.github.io/universal-fit/v2/';}catch(e){return 'https://dano-gpt.github.io/universal-fit/v2/';}})();
 function inviteUrl(code){return APP_URL+'?code='+encodeURIComponent(code);}
 function teamCode(){if(!S.trainer)return null;if(!S.trainer.code){S.trainer.code=('UF'+Math.random().toString(36).replace(/[^a-z0-9]/g,'').slice(0,4)).toUpperCase();save();}return S.trainer.code;}
@@ -749,8 +750,8 @@ function vLogin(){
     <div style="text-align:center;color:var(--muted);font-size:12px;margin:14px 0">— o con tu email —</div>
     <input class="in" id="loginEmail" type="email" placeholder="tu@email.com"/><input class="in" id="loginPass" type="password" placeholder="Contraseña"/>
     <button class="btn" onclick="loginEmail()">Entrar</button>
-    ${sb?`<div class="cap" style="text-align:center;margin-top:12px">🔐 Registro y login reales — tus datos quedan guardados en la nube.</div>`:`<div class="cap" style="text-align:center;margin-top:12px">Demo sin conexión: cualquier dato entra.</div>`}<div class="cap" style="text-align:center;margin-top:8px"><a onclick="demoLogin()" style="color:var(--blue);cursor:pointer;font-weight:700">👀 Probar la demo sin cuenta</a></div>
-  </div></div>`;
+    ${sb?`<div class="cap" style="text-align:center;margin-top:12px">🔐 Registro y login reales — tus datos quedan guardados en la nube.</div>`:`<div class="cap" style="text-align:center;margin-top:12px">Demo sin conexión: cualquier dato entra.</div>`}
+  </div><div class="cap" style="text-align:center;margin-top:14px">Universal Fit · ${UF_VERSION}</div></div>`;
 }
 function vAlWelcome(){const s=me();if(!s)return vAlHome();const tn=trainerName(s),tb=trainerBrand(s);
  return `<div class="login-wrap">

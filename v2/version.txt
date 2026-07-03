@@ -1,1 +1,1 @@
-build 2026-07-03 splash+gate
+v2.0.0
