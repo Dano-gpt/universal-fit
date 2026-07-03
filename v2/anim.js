@@ -76,11 +76,15 @@
 
   function esc2(s){return String(s==null?'':s).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];});}
 
-  window.exerciseAnim=function(name){
+  var VIDMAP={"Sentadilla":"sentadilla","Prensa de piernas":"prensa-de-piernas","Zancadas":"zancadas","Peso muerto":"peso-muerto","Peso muerto rumano":"peso-muerto-rumano","Hip thrust":"hip-thrust","Extensión de cuádriceps":"extension-de-cuadriceps","Curl femoral":"curl-femoral","Elevación de gemelos":"elevacion-de-gemelos","Press banca":"press-banca","Press inclinado con mancuernas":"press-inclinado-con-mancuernas","Aperturas":"aperturas","Máquina de pecho":"maquina-de-pecho","Flexiones":"flexiones","Fondos en paralelas":"fondos-en-paralelas","Dominadas":"dominadas","Jalón al pecho":"jalon-al-pecho","Remo con barra":"remo-con-barra","Remo con mancuerna":"remo-con-mancuerna","Remo en polea baja":"remo-en-polea-baja","Press militar":"press-militar","Elevaciones laterales":"elevaciones-laterales","Elevaciones frontales":"elevaciones-frontales","Pájaros (deltoide posterior)":"pajaros-deltoide-posterior","Face pull":"face-pull","Curl con barra":"curl-con-barra","Curl con mancuernas":"curl-con-mancuernas","Curl martillo":"curl-martillo","Extensión de tríceps en polea":"extension-de-triceps-en-polea","Press francés":"press-frances","Fondos de tríceps":"fondos-de-triceps","Plancha":"plancha","Abdominales crunch":"abdominales-crunch","Elevación de piernas colgado":"elevacion-de-piernas-colgado","Russian twist":"russian-twist","Rueda abdominal":"rueda-abdominal","Cinta (caminata inclinada)":"cinta-caminata-inclinada","Bicicleta":"bicicleta","Elíptico":"eliptico","Remo (máquina)":"remo-maquina","Salto a la soga":"salto-a-la-soga"};
+  window.exerciseVideoUrl=function(name){return VIDMAP[name]?("videos/"+VIDMAP[name]+".mp4"):"";};
+  window.exerciseAnim=function(name,videoUrl){
     var key=MAP[name]||'generic';
     var p=P[key]||P.generic;
     var cues=CUES[name]||['Controlá el movimiento en toda su amplitud','Respiración: exhalá en el esfuerzo','Priorizá la técnica antes que el peso'];
-    var box='<div class="vph" style="background:#37464f">'+svg(p.svg)+'<div style="position:absolute;left:8px;top:6px;background:rgba(0,0,0,.35);color:#eef4f2;font-size:10px;font-weight:800;padding:3px 8px;border-radius:20px">🎬 Demo de técnica</div></div>';
+    var inner=videoUrl?('<video src="'+videoUrl+'" controls playsinline preload="metadata" style="position:absolute;inset:0;width:100%;height:100%;object-fit:contain;background:#000"></video>'):svg(p.svg);
+    var badge=videoUrl?'🎬 Técnica':'🎬 Demo de técnica';
+    var box='<div class="vph" style="background:#37464f">'+inner+'<div style="position:absolute;left:8px;top:6px;background:rgba(0,0,0,.35);color:#eef4f2;font-size:10px;font-weight:800;padding:3px 8px;border-radius:20px">'+badge+'</div></div>';
     var list=cues.map(function(c){return '<li style="margin:0 0 5px 0">'+esc2(c)+'</li>';}).join('');
     var guide='<div class="card" style="margin-top:8px;border-color:#dfeccb;background:#f6fbef"><div class="h" style="margin:0 0 6px;color:#4aa002">✅ Guía de técnica · '+esc2(p.t)+'</div><ul style="margin:0;padding-left:18px;font-size:13px;font-weight:600;color:#3c3c3c">'+list+'</ul><div class="cap" style="margin-top:8px">Apta para todos los niveles · figura guía. Cuando tu profe suba su propio video, aparece acá.</div></div>';
     return box+guide;
