@@ -98,7 +98,7 @@
 </style>
 </head>
 <body>
-<div id="gate"><div style="position:absolute;bottom:18px;left:0;right:0;text-align:center;color:rgba(255,255,255,.75);font-size:12px;font-weight:700">v2.1.0</div><div id="gateInner"><div class="gIco">🏋️</div><div class="gName">Universal Fit</div><div class="gSub">Entrená mejor. Progresá siempre.</div></div></div>
+<div id="gate"><div style="position:absolute;bottom:18px;left:0;right:0;text-align:center;color:rgba(255,255,255,.75);font-size:12px;font-weight:700">v2.2.0</div><div id="gateInner"><div class="gIco">🏋️</div><div class="gName">Universal Fit</div><div class="gSub">Entrená mejor. Progresá siempre.</div></div></div>
 <div class="app">
   <header>
     <div class="brand"><h1>Universal Fit</h1><div style="display:flex;gap:8px;align-items:center"><button id="hSync" onclick="cloudRefresh()" style="display:none;background:rgba(255,255,255,.18);border:none;color:#fff;font-size:11px;font-weight:700;padding:4px 10px;border-radius:20px;cursor:pointer">🔄</button><button id="hLogout" onclick="logout()" style="display:none;background:rgba(255,255,255,.18);border:none;color:#fff;font-size:11px;font-weight:700;padding:4px 10px;border-radius:20px;cursor:pointer">⏻ Salir</button></div></div>
@@ -242,11 +242,12 @@ async function loginEmail(){const e=(val('loginEmail')||'').trim(),p=val('loginP
   toast('Entrando…');
   const {data,error}=await sb.auth.signInWithPassword({email:e,password:p});
   if(error){toast(/invalid/i.test(error.message)?'Email o contraseña incorrectos':'Error: '+error.message);return;}
+  if(isAdminEmail(e)){ADMIN={on:true,otp:false,data:null,view:null};S.user=null;render();return;}
   const ok=await cloudBoot(data.user);
   if(!ok){toast('Esa cuenta no tiene datos todavía — creá tu cuenta con "Soy entrenador" o "Soy alumno".');try{await sb.auth.signOut();}catch(x){}}}
 function demoLogin(){S.user={name:'Entrenador',email:'demo@universalfit.app',provider:'demo',type:'pt'};if(!S.trainer)S.trainer={name:'Entrenador'};save();toast('Modo demo: los datos quedan solo en este dispositivo.');render();}
 function loginGoogle(){if(sb){toast('Google llega en la próxima iteración — usá email y contraseña 👇');return;}S.user={name:'Entrenador',email:'demo@gmail.com',provider:'google',type:'pt'};if(!S.trainer)S.trainer={name:'Entrenador'};save();render();}
-function logout(){if(typeof cloudOn==='function'&&cloudOn()){try{sb.auth.signOut();}catch(e){}CLOUD={on:false,uid:null,kind:null,timer:null,hashes:{},pushing:false};S=load();}S.user=null;S.ui.ob=null;S.ui.wiz=null;S.ui.brandEdit=false;S.ui.ptProfEdit=false;S.ui.role='pt';S.ui.view='pt_home';save();render();}
+function logout(){if(typeof ADMIN!=='undefined'&&ADMIN.on){try{sb.auth.signOut();}catch(e){}ADMIN={on:false,otp:false,data:null,view:null};}if(typeof cloudOn==='function'&&cloudOn()){try{sb.auth.signOut();}catch(e){}CLOUD={on:false,uid:null,kind:null,timer:null,hashes:{},pushing:false};S=load();}S.user=null;S.ui.ob=null;S.ui.wiz=null;S.ui.brandEdit=false;S.ui.ptProfEdit=false;S.ui.role='pt';S.ui.view='pt_home';save();render();}
 function setRole(r){S.ui.role=r;S.ui.view=r==='pt'?'pt_home':'al_home';save();render();}
 function setStudent(id){S.ui.studentId=id;S.ui.view='al_home';save();render();}
 function go(v){S.ui.view=v;save();render();}
@@ -254,6 +255,15 @@ function cur(){return S.routines.find(x=>x.id===S.ui.editRoutineId);}
 
 function render(){
   applyBrand();
+  if(typeof ADMIN!=='undefined'&&ADMIN.on){
+    const roles0=document.getElementById('roles');if(roles0)roles0.style.display='none';
+    const ib=document.getElementById('idbar');if(ib)ib.style.display='none';
+    const hlA=document.getElementById('hLogout');if(hlA)hlA.style.display='inline-block';
+    const hsA=document.getElementById('hSync');if(hsA)hsA.style.display='none';
+    document.getElementById('nav').innerHTML='';
+    document.getElementById('main').innerHTML=ADMIN.otp?(ADMIN.data?vAdminHome():'<div class="empty"><div class="em">⏳</div><p>Cargando datos…</p></div>'):vAdminOtp();
+    document.getElementById('main').scrollTop=0;return;
+  }
   const roles=document.getElementById('roles');
   if(!S.user){roles.style.display='none';var hl0=document.getElementById('hLogout');if(hl0)hl0.style.display='none';var hs0=document.getElementById('hSync');if(hs0)hs0.style.display='none';document.getElementById('idbar').style.display='none';document.getElementById('nav').innerHTML='';document.getElementById('main').innerHTML=(S.ui&&S.ui.ob)?((S.ui.ob.kind==='pt')?vObPt():vObAl()):vLogin();return;}
   var hl1=document.getElementById('hLogout');if(hl1)hl1.style.display='inline-block';var hs1=document.getElementById('hSync');if(hs1)hs1.style.display=(typeof cloudOn==='function'&&cloudOn())?'inline-block':'none';
@@ -636,7 +646,7 @@ function dirFoto(t,size){const st=`width:${size}px;height:${size}px;border-radiu
 function stars(r){if(r==null)return '<span class="pill g">Nuevo</span>';return `<span style="color:#ff9600;font-weight:800">★ ${r}</span>`;}
 
 /* ---- Código de equipo del PT ---- */
-const UF_VERSION='v2.1.0';
+const UF_VERSION='v2.2.0';
 const APP_URL=(function(){try{return (location.origin&&location.origin.indexOf('http')===0)?(location.origin+location.pathname):'https://dano-gpt.github.io/universal-fit/v2/';}catch(e){return 'https://dano-gpt.github.io/universal-fit/v2/';}})();
 function inviteUrl(code){return APP_URL+'?code='+encodeURIComponent(code);}
 function teamCode(){if(!S.trainer)return null;if(!S.trainer.code){S.trainer.code=('UF'+Math.random().toString(36).replace(/[^a-z0-9]/g,'').slice(0,4)).toUpperCase();save();}return S.trainer.code;}
@@ -914,13 +924,47 @@ function tryGate(){const v=(document.getElementById('gateCode')?document.getElem
  if(v==='2246'){try{localStorage.setItem('uf_gate','1');}catch(e){}hideGate();}
  else{const e=document.getElementById('gateErr');if(e)e.textContent='Código incorrecto — probá de nuevo';const i=document.getElementById('gateCode');if(i){i.value='';i.focus();}}}
 try{if(new URLSearchParams(location.search).get('gate')==='reset'){localStorage.removeItem('uf_gate');history.replaceState(null,'',location.pathname);}}catch(e){}
+/* ---- ADMIN (v2.2.0) ---- */
+let ADMIN={on:false,otp:false,data:null,view:null};
+function isAdminEmail(e){return (e||'').trim().toLowerCase()==='adm@fit.com';}
+function vAdminOtp(){return `<div class="login-wrap"><div class="card" style="text-align:center;border:none;background:#3c3c3c;color:#fff;padding:24px 16px"><div style="font-size:40px">🛡</div><div style="font-size:20px;font-weight:900;margin-top:6px">Administración</div><div class="cap" style="color:rgba(255,255,255,.85);margin-top:4px">Segundo factor: ingresá el código de acceso.</div></div><div class="card"><input class="in" id="admOtp" type="tel" inputmode="numeric" maxlength="4" placeholder="····" style="text-align:center;font-size:24px;letter-spacing:10px" onkeydown="if(event.key==='Enter')tryAdminOtp()"/><button class="btn" style="margin-top:10px" onclick="tryAdminOtp()">Verificar →</button><button class="back" style="margin-top:10px" onclick="logout()">Cancelar</button></div></div>`;}
+function tryAdminOtp(){if((val('admOtp')||'').trim()==='0602'){ADMIN.otp=true;render();adminLoad();}else{toast('Código de acceso incorrecto');const i=document.getElementById('admOtp');if(i){i.value='';i.focus();}}}
+async function adminLoad(){if(!sb)return;const {data,error}=await sb.rpc('admin_overview');
+ if(error||!data||!data.ok){toast('Error cargando datos: '+((data&&data.error)||(error&&error.message)||''));return;}
+ ADMIN.data=data;render();}
+function admStat(st){if(!st)return '';const logs=(st.logs||[]);const last=logs.length?logs.map(l=>l.date).sort().slice(-1)[0]:null;return logs.length+' entrenos'+(last?' · último '+fmt(last):'');}
+function vAdminHome(){
+ const D=ADMIN.data;
+ if(ADMIN.view&&ADMIN.view.s)return vAdminStudent();
+ const ts=(D.trainers||[]).map(t=>`<div class="stu"><div class="ico" style="width:38px;height:38px;font-size:18px;background:#f3f7ee;border-radius:50%;display:flex;align-items:center;justify-content:center">🏋️</div><div style="flex:1"><div class="name">${esc(t.name)} ${t.disabled?'<span class="pill r">desactivado</span>':''}</div><div class="sub">${esc(t.email||'sin email')}</div><div class="sub">🔑 ${esc(t.code||'—')} · 👥 ${t.alumnos} alumno(s) · 📍 ${esc((t.publico&&t.publico.zona)||'—')}</div></div><div style="display:flex;flex-direction:column;gap:5px"><button class="btn sec sm" style="width:auto;margin:0;padding:6px 9px" onclick="adminToggleTrainer('${t.uid}',${t.disabled?'false':'true'})">${t.disabled?'▶ Activar':'⏸ Desactivar'}</button><button class="btn sec sm" style="width:auto;margin:0;padding:6px 9px;color:var(--red)" onclick="adminDelTrainer('${t.uid}','${esc(t.name)}')">🗑 Borrar</button></div></div>`).join('')||'<div class="empty cap">Sin entrenadores registrados.</div>';
+ const ss=(D.students||[]).map(r=>{const st=r.student||{};const act=st.active!==false;return `<div class="stu" onclick="ADMIN.view={s:'${r.id}'};render()"><span class="dot ${act?(r.pending?'y':'g'):'r'}"></span><div style="flex:1"><div class="name">${esc(st.name||'—')} ${r.pending?'<span class="pill y">pendiente</span>':''} ${!act?'<span class="pill r">inactivo</span>':''}</div><div class="sub">${esc(r.email||'sin email')}</div><div class="sub">Profe: ${esc(r.trainer||st.trainerName||'—')} · ${admStat(st)}</div></div><span class="cap">ver →</span></div>`;}).join('')||'<div class="empty cap">Sin alumnos registrados.</div>';
+ return `<div class="card" style="background:#3c3c3c;color:#fff;border:none"><div style="font-size:18px;font-weight:900">🛡 Panel de administración</div><div class="cap" style="color:rgba(255,255,255,.85);margin-top:4px">${(D.trainers||[]).length} entrenador(es) · ${(D.students||[]).length} alumno(s)</div><button class="btn sec sm" style="margin-top:10px" onclick="adminLoad()">🔄 Actualizar datos</button></div>
+ <div class="h">Entrenadores (${(D.trainers||[]).length})</div>${ts}
+ <div class="h" style="margin-top:16px">Alumnos (${(D.students||[]).length})</div>${ss}`;
+}
+function vAdminStudent(){
+ const D=ADMIN.data;const r=(D.students||[]).find(x=>x.id===ADMIN.view.s);if(!r){ADMIN.view=null;return vAdminHome();}
+ const st=r.student||{};const act=st.active!==false;const ms=st.measures||[];const m0=ms[0],m1=ms[ms.length-1];
+ const logs=(st.logs||[]);const last=logs.length?logs.map(l=>l.date).sort().slice(-1)[0]:null;
+ const row=(k,v)=>`<div class="row" style="padding:6px 0;border-bottom:1px solid var(--line)"><span class="cap">${k}</span><b style="font-size:14px">${v}</b></div>`;
+ return `<button class="back" onclick="ADMIN.view=null;render()">← Panel</button>
+ <div class="card"><div class="row"><div><div style="font-size:18px;font-weight:900">${esc(st.name||'—')}</div><div class="sub">${esc(r.email||'sin email')}</div></div>${act?'<span class="pill g">activo</span>':'<span class="pill r">inactivo</span>'}</div></div>
+ <div class="card"><div class="h" style="margin:0 0 6px">Perfil</div>${row('Profe',esc(r.trainer||st.trainerName||'—'))}${row('Género / Edad',esc(st.genero||'—')+' / '+(st.edad||'—'))}${row('Objetivo',esc(st.objetivo||'—')+' · '+esc(st.nivel||'—')+' · '+(st.dias||'—')+' días/sem')}${row('Zona',esc(st.zona||'—'))}${row('Estado',r.pending?'📨 solicitud pendiente':'conectado')}</div>
+ <div class="card"><div class="h" style="margin:0 0 6px">Avances</div>${row('Entrenos totales',logs.length)}${row('Último entreno',last?fmt(last):'nunca')}${row('Check-ins',(st.checkins||[]).length)}${row('Peso',(m0&&m0.peso?m0.peso+' kg':'—')+' → '+(m1&&m1.peso?m1.peso+' kg':'—'))}${row('Mediciones',ms.length)}${row('Fotos',(st.photos||[]).length)}</div>
+ <div class="card"><div class="h" style="margin:0 0 6px">Acciones</div><button class="btn sec sm" onclick="adminRenameStudent('${r.id}','${esc(st.name||'')}')">✏️ Cambiar nombre</button><button class="btn sec sm" style="margin-top:6px" onclick="adminToggleStudent('${r.id}',${act?'false':'true'})">${act?'⏸ Desactivar':'▶ Activar'}</button><button class="btn sec sm" style="margin-top:6px;color:var(--red)" onclick="adminDelStudent('${r.id}','${esc(st.name||'')}')">🗑 Borrar usuario</button></div>`;
+}
+async function adminToggleStudent(id,act){const {data}=await sb.rpc('admin_set_student_active',{p_id:id,p_active:act});if(data&&data.ok){toast(act?'Alumno activado ▶':'Alumno desactivado ⏸');adminLoad();}else toast('Error');}
+async function adminDelStudent(id,name){if(!confirm('¿Borrar DEFINITIVAMENTE a '+name+'? Se elimina su ficha, su historia y su cuenta de acceso.'))return;const {data}=await sb.rpc('admin_delete_student',{p_id:id});if(data&&data.ok){toast('Usuario borrado 🗑');ADMIN.view=null;adminLoad();}else toast('Error');}
+async function adminToggleTrainer(uid,dis){const {data}=await sb.rpc('admin_set_trainer_disabled',{p_uid:uid,p_disabled:dis});if(data&&data.ok){toast(dis?'Profe desactivado ⏸ (sale del directorio)':'Profe activado ▶');adminLoad();}else toast('Error');}
+async function adminDelTrainer(uid,name){if(!confirm('¿Borrar DEFINITIVAMENTE a '+name+'? Se elimina su cuenta, su perfil y TODOS sus alumnos.'))return;const {data}=await sb.rpc('admin_delete_trainer',{p_uid:uid});if(data&&data.ok){toast('Entrenador borrado 🗑');adminLoad();}else toast('Error');}
+async function adminRenameStudent(id,cur){const v=prompt('Nuevo nombre:',cur);if(!v||!v.trim())return;const {data}=await sb.rpc('admin_rename',{p_kind:'al',p_id:id,p_name:v.trim()});if(data&&data.ok){toast('Nombre actualizado ✏️');adminLoad();}else toast('Error');}
 S=load();
 const QCODE=(function(){try{return new URLSearchParams(location.search).get('code');}catch(e){return null;}})();
 if(QCODE&&!S.user){S.ui.ob={kind:'al',step:2,d:{path:'code',code:QCODE}};try{history.replaceState(null,'',location.pathname);}catch(e){}}
 render();
 initGate();
 if(QCODE&&!S.user&&S.ui.ob&&S.ui.ob.step===2){setTimeout(function(){if(S.ui.ob&&S.ui.ob.kind==='al'&&S.ui.ob.step===2)checkCode();},700);}
-if(sb){sb.auth.getSession().then(({data})=>{if(data&&data.session){cloudBoot(data.session.user);}}).catch(()=>{});}
+if(sb){sb.auth.getSession().then(({data})=>{if(data&&data.session){if(isAdminEmail(data.session.user.email)){ADMIN={on:true,otp:false,data:null,view:null};render();}else{cloudBoot(data.session.user);}}}).catch(()=>{});}
 </script>
 </body>
 </html>
