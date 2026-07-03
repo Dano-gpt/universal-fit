@@ -82,9 +82,23 @@
   .toast.show{opacity:.97;}
   svg{display:block;width:100%;}
   .login-wrap{padding:20px 4px;}
+  #gate{position:fixed;inset:0;background:var(--blue);z-index:100;display:flex;align-items:center;justify-content:center;text-align:center;transition:opacity .5s;padding:24px;}
+  #gate.bye{opacity:0;pointer-events:none;}
+  .gName{font-size:40px;font-weight:900;color:#fff;letter-spacing:1px;animation:gPop .9s ease-out both,gFloat 2.4s ease-in-out 1s infinite;}
+  .gIco{font-size:54px;animation:gPop .7s ease-out both,gFloat 2.4s ease-in-out 1s infinite;}
+  .gSub{color:rgba(255,255,255,.92);font-size:13px;font-weight:800;margin-top:12px;letter-spacing:.6px;text-transform:uppercase;animation:gPop 1.6s ease-out both;}
+  .gCard{max-width:340px;margin:0 auto;color:#fff;animation:gPop .6s ease-out both;}
+  .gCard p{font-size:14px;line-height:1.5;color:rgba(255,255,255,.95);font-weight:600;}
+  .gIn{width:100%;border:none;border-radius:14px;padding:14px;font-size:26px;font-weight:900;text-align:center;letter-spacing:10px;margin-top:12px;font-family:inherit;}
+  .gBtn{display:block;width:100%;background:#fff;color:var(--blue2);border:none;border-radius:16px;padding:14px;font-size:14px;font-weight:800;text-transform:uppercase;letter-spacing:.6px;cursor:pointer;margin-top:12px;box-shadow:0 4px 0 rgba(0,0,0,.22);}
+  .gBtn:active{transform:translateY(3px);box-shadow:0 1px 0 rgba(0,0,0,.22);}
+  .gErr{color:#fff;background:rgba(0,0,0,.25);border-radius:10px;padding:6px 10px;font-size:13px;font-weight:800;margin-top:10px;min-height:18px;}
+  @keyframes gPop{0%{opacity:0;transform:scale(.7) translateY(24px)}60%{opacity:1;transform:scale(1.06)}100%{opacity:1;transform:scale(1) translateY(0)}}
+  @keyframes gFloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
 </style>
 </head>
 <body>
+<div id="gate"><div id="gateInner"><div class="gIco">🏋️</div><div class="gName">Universal Fit</div><div class="gSub">Entrená mejor. Progresá siempre.</div></div></div>
 <div class="app">
   <header>
     <div class="brand"><h1>Universal Fit</h1><div style="display:flex;gap:8px;align-items:center"><span class="demo">MVP demo</span><button id="hSync" onclick="cloudRefresh()" style="display:none;background:rgba(255,255,255,.18);border:none;color:#fff;font-size:11px;font-weight:700;padding:4px 10px;border-radius:20px;cursor:pointer">🔄</button><button id="hLogout" onclick="logout()" style="display:none;background:rgba(255,255,255,.18);border:none;color:#fff;font-size:11px;font-weight:700;padding:4px 10px;border-radius:20px;cursor:pointer">⏻ Salir</button></div></div>
@@ -553,10 +567,10 @@ function vPtHome(){
   const foot=`${brandCard()}${ptProfileCard()}<div class="cap" style="text-align:center;margin-top:16px">Sesión: ${esc(S.user.email||S.user.name)} · <a onclick="toggleBrand()" style="color:var(--blue);cursor:pointer;font-weight:700">🎨 Mi marca</a> · <a onclick="togglePtProfile()" style="color:var(--blue);cursor:pointer;font-weight:700">👤 Mi perfil</a> · <a onclick="logout()" style="color:var(--blue);cursor:pointer;font-weight:700">⏻ Cerrar sesión</a></div>`;
   const act=activeStudents(),inact=S.students.filter(x=>x.active===false);
   const inactSec=inact.length?`<div class="h" style="margin-top:16px">⏸ Inactivos (${inact.length})</div>`+inact.map(s=>`<div class="stu" style="opacity:.7" onclick="openStudent('${s.id}')"><span class="dot" style="background:#9aa4b2"></span><div style="flex:1"><div class="name">${esc(s.name)}</div><div class="sub">historia guardada · ${s.logs.length} entrenos</div></div><button class="btn sec sm" style="width:auto;margin:0" onclick="event.stopPropagation();reactivateStudent('${s.id}')">▶</button></div>`).join(''):'';
-  if(!act.length)return `<div class="h">Mis alumnos</div>${teamCodeCard()}${pendingCard()}<div class="empty"><div class="em">👥</div><p>Todavía no tenés alumnos activos.</p></div><button class="btn" onclick="startWizard()">＋ Agregar alumno</button>${inactSec}${foot}`;
+  if(!act.length)return `<div class="h">Mis alumnos</div>${teamCodeCard()}${pendingCard()}<div class="empty"><div class="em">👥</div><p>Todavía no tenés alumnos.<br>Compartí tu <b>link de invitación</b> 👆 — tus alumnos entran solos con tu código.</p></div>${inactSec}${foot}`;
   const list=act.map(s=>{const st=statusOf(s),rt=routineOf(s);return `<div class="stu" onclick="openStudent('${s.id}')"><span class="dot ${st.c}"></span><div style="flex:1"><div class="name">${esc(s.name)}</div><div class="sub">${rt?rt.days.length+' días':'sin rutina'} · ${lastText(s)}</div></div><span class="pill ${st.c}">${st.t}</span></div>`;}).join('');
   const alert=act.filter(s=>statusOf(s).c==='r').length;
-  return `<div class="h">Mis alumnos (${act.length})</div>${teamCodeCard()}${novedCard()}${pendingCard()}${alert?`<div class="card" style="border-color:#F3C9C4;background:#FCEEEC"><b style="color:#C0392B">⚠ ${alert} sin registrar</b><div class="cap">Escribiles para que no abandonen.</div></div>`:''}${list}<button class="btn sec" onclick="startWizard()">＋ Agregar alumno</button>${inactSec}${foot}`;
+  return `<div class="h">Mis alumnos (${act.length})</div>${teamCodeCard()}${novedCard()}${pendingCard()}${alert?`<div class="card" style="border-color:#F3C9C4;background:#FCEEEC"><b style="color:#C0392B">⚠ ${alert} sin registrar</b><div class="cap">Escribiles para que no abandonen.</div></div>`:''}${list}${inactSec}${foot}`;
 }
 function vAlDay(){
   const s=me(),rt=routineOf(s);if(!rt)return vAlHome();const day=rt.days.find(d=>d.id===S.ui.dayId)||rt.days[0];
@@ -863,10 +877,21 @@ async function finishObAlNewCloud(){const d=S.ui.ob.d;const e=(val('obEmail')||'
  const ok=await cloudBoot(data.user);
  if(!ok){toast('Cuenta creada pero no pude cargar tus datos — probá entrar de nuevo.');return;}
  S.ui.ob=null;S.ui.view='al_home';save();toast('¡Solicitud enviada a '+fn(t.name)+'! 📨');render();}
+function initGate(){const g=document.getElementById('gate');if(!g)return;
+ let unlocked=false;try{unlocked=localStorage.getItem('uf_gate')==='1';}catch(e){}
+ setTimeout(function(){if(unlocked)hideGate();else showGateCode();},3000);}
+function hideGate(){const g=document.getElementById('gate');if(!g)return;g.classList.add('bye');setTimeout(function(){g.style.display='none';},600);}
+function showGateCode(){const i=document.getElementById('gateInner');if(!i)return;
+ i.innerHTML=`<div class="gCard"><div class="gIco" style="font-size:44px">🔑</div><div class="gName" style="font-size:26px;animation:none">Acceso anticipado</div><p style="margin-top:12px">Estás entrando a una <b>versión anticipada</b> de Universal Fit. Si tenés este acceso es porque fuiste elegido/a como alguien especial 💚.</p><p>Ingresá el <b>código de apertura</b> para continuar:</p><input class="gIn" id="gateCode" type="tel" inputmode="numeric" maxlength="4" placeholder="····" onkeydown="if(event.key==='Enter')tryGate()"/><div class="gErr" id="gateErr"></div><button class="gBtn" onclick="tryGate()">Entrar →</button></div>`;
+ const inp=document.getElementById('gateCode');if(inp)setTimeout(function(){inp.focus();},100);}
+function tryGate(){const v=(document.getElementById('gateCode')?document.getElementById('gateCode').value:'').trim();
+ if(v==='2246'){try{localStorage.setItem('uf_gate','1');}catch(e){}hideGate();}
+ else{const e=document.getElementById('gateErr');if(e)e.textContent='Código incorrecto — probá de nuevo';const i=document.getElementById('gateCode');if(i){i.value='';i.focus();}}}
 S=load();
 const QCODE=(function(){try{return new URLSearchParams(location.search).get('code');}catch(e){return null;}})();
 if(QCODE&&!S.user){S.ui.ob={kind:'al',step:2,d:{path:'code',code:QCODE}};try{history.replaceState(null,'',location.pathname);}catch(e){}}
 render();
+initGate();
 if(QCODE&&!S.user&&S.ui.ob&&S.ui.ob.step===2){setTimeout(function(){if(S.ui.ob&&S.ui.ob.kind==='al'&&S.ui.ob.step===2)checkCode();},700);}
 if(sb){sb.auth.getSession().then(({data})=>{if(data&&data.session){cloudBoot(data.session.user);}}).catch(()=>{});}
 </script>
