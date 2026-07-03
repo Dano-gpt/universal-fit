@@ -5,6 +5,15 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
 <meta name="theme-color" content="#58cc02"/>
 <title>Universal Fit — MVP</title>
+<!-- PWA / instalar como app -->
+<link rel="manifest" href="manifest.json"/>
+<link rel="apple-touch-icon" href="apple-touch-icon.png"/>
+<link rel="icon" type="image/png" href="icon-192.png"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="default"/>
+<meta name="apple-mobile-web-app-title" content="Universal Fit"/>
+<meta name="application-name" content="Universal Fit"/>
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
 <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet"/>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
@@ -95,10 +104,24 @@
   .gErr{color:#fff;background:rgba(0,0,0,.25);border-radius:10px;padding:6px 10px;font-size:13px;font-weight:800;margin-top:10px;min-height:18px;}
   @keyframes gPop{0%{opacity:0;transform:scale(.7) translateY(24px)}60%{opacity:1;transform:scale(1.06)}100%{opacity:1;transform:scale(1) translateY(0)}}
   @keyframes gFloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
+  /* ---- Instalar como app (A2HS) ---- */
+  #a2hs{position:fixed;inset:0;z-index:120;display:none;align-items:flex-end;justify-content:center;background:rgba(0,0,0,.45);opacity:0;transition:opacity .3s;}
+  #a2hs.show{display:flex;opacity:1;}
+  .a2card{background:#fff;width:100%;max-width:460px;border-radius:22px 22px 0 0;padding:22px 20px calc(20px + env(safe-area-inset-bottom));box-shadow:0 -8px 30px rgba(0,0,0,.2);transform:translateY(100%);transition:transform .32s cubic-bezier(.2,.8,.2,1);}
+  #a2hs.show .a2card{transform:translateY(0);}
+  .a2ico{width:66px;height:66px;border-radius:20px;margin:0 auto 10px;display:block;box-shadow:0 4px 0 rgba(0,0,0,.12);}
+  .a2t{font-size:20px;font-weight:900;text-align:center;color:var(--ink);}
+  .a2s{font-size:14px;font-weight:600;color:var(--muted);text-align:center;margin-top:6px;line-height:1.5;}
+  .a2steps{margin:16px 0 4px;padding:0;list-style:none;}
+  .a2steps li{display:flex;align-items:center;gap:12px;padding:10px 12px;border:2px solid var(--line);border-bottom-width:3px;border-radius:14px;margin-bottom:8px;font-size:14px;font-weight:700;color:var(--ink);}
+  .a2steps li .n{width:26px;height:26px;border-radius:50%;background:var(--blue);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:13px;flex:none;}
+  .a2steps li .bi{font-size:22px;flex:none;}
+  .a2dismiss{display:block;width:100%;background:none;border:none;color:var(--muted);font-weight:800;font-size:13px;padding:12px 0 2px;cursor:pointer;text-align:center;}
 </style>
 </head>
 <body>
-<div id="gate"><div style="position:absolute;bottom:18px;left:0;right:0;text-align:center;color:rgba(255,255,255,.75);font-size:12px;font-weight:700">v2.4.0</div><div id="gateInner"><div class="gIco">🏋️</div><div class="gName">Universal Fit</div><div class="gSub">Entrená mejor. Progresá siempre.</div></div></div>
+<div id="gate"><div style="position:absolute;bottom:18px;left:0;right:0;text-align:center;color:rgba(255,255,255,.75);font-size:12px;font-weight:700">v2.5.0</div><div id="gateInner"><div class="gIco">🏋️</div><div class="gName">Universal Fit</div><div class="gSub">Entrená mejor. Progresá siempre.</div></div></div>
+<div id="a2hs"><div class="a2card" id="a2card"></div></div>
 <div class="app">
   <header>
     <div class="brand"><h1>Universal Fit</h1><div style="display:flex;gap:8px;align-items:center"><button id="hSync" onclick="cloudRefresh()" style="display:none;background:rgba(255,255,255,.18);border:none;color:#fff;font-size:11px;font-weight:700;padding:4px 10px;border-radius:20px;cursor:pointer">🔄</button><button id="hLogout" onclick="logout()" style="display:none;background:rgba(255,255,255,.18);border:none;color:#fff;font-size:11px;font-weight:700;padding:4px 10px;border-radius:20px;cursor:pointer">⏻ Salir</button></div></div>
@@ -692,7 +715,7 @@ function dirFoto(t,size){const st=`width:${size}px;height:${size}px;border-radiu
 function stars(r){if(r==null)return '<span class="pill g">Nuevo</span>';return `<span style="color:#ff9600;font-weight:800">★ ${r}</span>`;}
 
 /* ---- Código de equipo del PT ---- */
-const UF_VERSION='v2.4.0';
+const UF_VERSION='v2.5.0';
 const APP_URL=(function(){try{return (location.origin&&location.origin.indexOf('http')===0)?(location.origin+location.pathname):'https://dano-gpt.github.io/universal-fit/v2/';}catch(e){return 'https://dano-gpt.github.io/universal-fit/v2/';}})();
 function inviteUrl(code){return APP_URL+'?code='+encodeURIComponent(code);}
 function teamCode(){if(!S.trainer)return null;if(!S.trainer.code){S.trainer.code=('UF'+Math.random().toString(36).replace(/[^a-z0-9]/g,'').slice(0,4)).toUpperCase();save();}return S.trainer.code;}
@@ -836,7 +859,7 @@ function vLogin(){
     <input class="in" id="loginEmail" type="email" placeholder="tu@email.com"/><input class="in" id="loginPass" type="password" placeholder="Contraseña"/>
     <button class="btn" onclick="loginEmail()">Entrar</button>
     ${sb?`<div class="cap" style="text-align:center;margin-top:12px">🔐 Registro y login reales — tus datos quedan guardados en la nube.</div>`:`<div class="cap" style="text-align:center;margin-top:12px">Demo sin conexión: cualquier dato entra.</div>`}
-  </div><div class="cap" style="text-align:center;margin-top:14px">Universal Fit · ${UF_VERSION}</div></div>`;
+  </div><div class="cap" style="text-align:center;margin-top:14px">Universal Fit · ${UF_VERSION} · <a onclick="openInstallManual()" style="color:var(--blue);cursor:pointer;font-weight:700">📲 Instalar app</a></div></div>`;
 }
 function vAlWelcome(){const s=me();if(!s)return vAlHome();const tn=trainerName(s),tb=trainerBrand(s);
  return `<div class="login-wrap">
@@ -1014,7 +1037,70 @@ async function finishObAlNewCloud(){const d=S.ui.ob.d;let gUser=null;
 function initGate(){const g=document.getElementById('gate');if(!g)return;
  let unlocked=false;try{unlocked=localStorage.getItem('uf_gate')==='1';}catch(e){}
  setTimeout(function(){if(unlocked)hideGate();else showGateCode();},3000);}
-function hideGate(){const g=document.getElementById('gate');if(!g)return;g.classList.add('bye');setTimeout(function(){g.style.display='none';},600);}
+function hideGate(){const g=document.getElementById('gate');if(!g)return;g.classList.add('bye');setTimeout(function(){g.style.display='none';maybeOfferInstall();},600);}
+/* ---- Instalar como app / acceso directo (A2HS) ---- */
+let A2HS_DEFERRED=null;
+window.addEventListener('beforeinstallprompt',function(e){e.preventDefault();A2HS_DEFERRED=e;});
+window.addEventListener('appinstalled',function(){A2HS_DEFERRED=null;try{localStorage.setItem('uf_a2hs','installed');}catch(e){}closeA2hs();toast('¡Listo! Universal Fit quedó en tu teléfono 📲');});
+function isStandalone(){return window.matchMedia&&window.matchMedia('(display-mode: standalone)').matches||window.navigator.standalone===true;}
+function isIOS(){return /iphone|ipad|ipod/i.test(navigator.userAgent)&&!window.MSStream;}
+function isAndroid(){return /android/i.test(navigator.userAgent);}
+function a2hsSeen(){try{return localStorage.getItem('uf_a2hs');}catch(e){return null;}}
+function maybeOfferInstall(){
+ if(isStandalone()){try{localStorage.setItem('uf_a2hs','installed');}catch(e){}return;}
+ if(a2hsSeen())return;                 // ya la vio / la instaló / la descartó
+ setTimeout(function(){openInstall(true);},900);
+}
+function openInstall(firstTime){
+ const el=document.getElementById('a2hs'),card=document.getElementById('a2card');if(!el||!card)return;
+ const ios=isIOS(), canNative=!!A2HS_DEFERRED;
+ let body='';
+ if(canNative){
+  body=`<button class="btn g" onclick="doNativeInstall()">📲 Instalar Universal Fit</button>
+   <p class="a2s" style="margin-top:10px">Se agrega a tu pantalla de inicio y se abre como una app, a pantalla completa.</p>`;
+ }else if(ios){
+  body=`<ul class="a2steps">
+    <li><span class="n">1</span><span class="bi">⬆️</span><span>Tocá el botón <b>Compartir</b> abajo en Safari</span></li>
+    <li><span class="n">2</span><span class="bi">➕</span><span>Elegí <b>"Agregar a inicio"</b></span></li>
+    <li><span class="n">3</span><span class="bi">✅</span><span>Tocá <b>Agregar</b> — ¡listo!</span></li>
+   </ul>
+   <p class="a2s">Va a quedar como una app más, con su ícono, y se abre a pantalla completa.</p>`;
+ }else if(isAndroid()){
+  body=`<ul class="a2steps">
+    <li><span class="n">1</span><span class="bi">⋮</span><span>Tocá el <b>menú</b> (arriba a la derecha) en Chrome</span></li>
+    <li><span class="n">2</span><span class="bi">📲</span><span>Elegí <b>"Instalar app"</b> o "Agregar a inicio"</span></li>
+    <li><span class="n">3</span><span class="bi">✅</span><span>Confirmá — ¡listo!</span></li>
+   </ul>
+   <p class="a2s">Va a quedar como una app más y se abre a pantalla completa.</p>`;
+ }else{
+  body=`<ul class="a2steps">
+    <li><span class="n">1</span><span class="bi">⋮</span><span>Abrí el <b>menú</b> del navegador</span></li>
+    <li><span class="n">2</span><span class="bi">📲</span><span>Elegí <b>"Instalar Universal Fit"</b> / "Crear acceso directo"</span></li>
+   </ul>
+   <p class="a2s">Consejo: en el celular la experiencia es a pantalla completa, como una app.</p>`;
+ }
+ card.innerHTML=`<img class="a2ico" src="icon-192.png" alt="Universal Fit"/>
+  <div class="a2t">Tené Universal Fit a mano 📲</div>
+  <div class="a2s">${firstTime?'Sumá un acceso directo en tu teléfono para entrar de una, como si fuera una app.':'Instalá Universal Fit en tu teléfono como una app.'}</div>
+  ${body}
+  <button class="a2dismiss" onclick="dismissA2hs()">Ahora no</button>`;
+ el.classList.add('show');
+}
+async function doNativeInstall(){
+ if(!A2HS_DEFERRED){toast('Usá el menú del navegador para instalar');return;}
+ const e=A2HS_DEFERRED;A2HS_DEFERRED=null;
+ try{e.prompt();const r=await e.userChoice;
+  if(r&&r.outcome==='accepted'){try{localStorage.setItem('uf_a2hs','installed');}catch(_){}}
+  else{try{localStorage.setItem('uf_a2hs','dismissed');}catch(_){}}
+ }catch(err){}
+ closeA2hs();
+}
+function dismissA2hs(){try{localStorage.setItem('uf_a2hs','dismissed');}catch(e){}closeA2hs();}
+function closeA2hs(){const el=document.getElementById('a2hs');if(el)el.classList.remove('show');}
+/* Entrada manual: permite reabrir la oferta aunque se haya descartado */
+function openInstallManual(){if(isStandalone()){toast('Ya la estás usando como app ✅');return;}openInstall(false);}
+/* Registro del service worker (habilita instalación en Android + arranque offline) */
+if('serviceWorker' in navigator){window.addEventListener('load',function(){navigator.serviceWorker.register('sw.js').catch(function(){});});}
 function showGateCode(){const i=document.getElementById('gateInner');if(!i)return;
  i.innerHTML=`<div class="gCard"><div class="gIco" style="font-size:44px">🔑</div><div class="gName" style="font-size:26px;animation:none">Acceso anticipado</div><p style="margin-top:12px">Estás entrando a una <b>versión anticipada</b> de Universal Fit. Si tenés este acceso es porque fuiste elegido/a como alguien especial 💚.</p><p>Ingresá el <b>código de apertura</b> para continuar:</p><input class="gIn" id="gateCode" type="tel" inputmode="numeric" maxlength="4" placeholder="····" oninput="if(this.value.length===4)tryGate()" onkeydown="if(event.key==='Enter')tryGate()"/><div class="gErr" id="gateErr"></div><button class="gBtn" onclick="tryGate()">Entrar →</button></div>`;
  const inp=document.getElementById('gateCode');if(inp)setTimeout(function(){inp.focus();},100);}
