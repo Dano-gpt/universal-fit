@@ -98,7 +98,7 @@
 </style>
 </head>
 <body>
-<div id="gate"><div style="position:absolute;bottom:18px;left:0;right:0;text-align:center;color:rgba(255,255,255,.75);font-size:12px;font-weight:700">v2.0.0</div><div id="gateInner"><div class="gIco">🏋️</div><div class="gName">Universal Fit</div><div class="gSub">Entrená mejor. Progresá siempre.</div></div></div>
+<div id="gate"><div style="position:absolute;bottom:18px;left:0;right:0;text-align:center;color:rgba(255,255,255,.75);font-size:12px;font-weight:700">v2.1.0</div><div id="gateInner"><div class="gIco">🏋️</div><div class="gName">Universal Fit</div><div class="gSub">Entrená mejor. Progresá siempre.</div></div></div>
 <div class="app">
   <header>
     <div class="brand"><h1>Universal Fit</h1><div style="display:flex;gap:8px;align-items:center"><button id="hSync" onclick="cloudRefresh()" style="display:none;background:rgba(255,255,255,.18);border:none;color:#fff;font-size:11px;font-weight:700;padding:4px 10px;border-radius:20px;cursor:pointer">🔄</button><button id="hLogout" onclick="logout()" style="display:none;background:rgba(255,255,255,.18);border:none;color:#fff;font-size:11px;font-weight:700;padding:4px 10px;border-radius:20px;cursor:pointer">⏻ Salir</button></div></div>
@@ -208,9 +208,33 @@ function barChart(data){
   return `<svg viewBox="0 0 ${W} ${H}">${bars}</svg>`;
 }
 function videoBox(url,name){
+  if(url&&(url.indexOf('blob:')===0||url.indexOf('/storage/v1/object/public/')>=0||/\.(mp4|webm|mov|m4v)(\?|$)/i.test(url)))return `<div class="vph"><video src="${esc(url)}" controls playsinline preload="metadata" style="position:absolute;inset:0;width:100%;height:100%;object-fit:contain;background:#000"></video></div>`;
   if(url){const m=url.match(/(?:youtu\.be\/|v=|shorts\/)([\w-]{11})/);if(m)return `<div class="vph"><iframe src="https://www.youtube.com/embed/${m[1]}" allowfullscreen></iframe></div>`;return `<div class="vph"><div class="in2"><div class="play">▶</div><a class="link" style="color:rgba(255,255,255,.88)" href="${esc(url)}" target="_blank">Ver video de técnica</a></div></div>`;}
   return `<div class="vph"><div class="in2"><div class="play">▶</div><a style="color:rgba(255,255,255,.88);font-weight:700;text-decoration:underline" href="https://www.youtube.com/results?search_query=${encodeURIComponent((name||'ejercicio')+' técnica como hacer')}" target="_blank">🔎 Ver técnica en YouTube</a><div class="cap" style="color:#b8c6cf">Tu profe todavía no cargó su propio video</div></div></div>`;
 }
+function videoDuration(file,cb){try{const u=URL.createObjectURL(file);const v=document.createElement('video');v.preload='metadata';v.onloadedmetadata=function(){const d=v.duration;URL.revokeObjectURL(u);cb(d);};v.onerror=function(){try{URL.revokeObjectURL(u);}catch(e){}cb(null);};v.src=u;}catch(e){cb(null);}}
+function uploadExVideo(input,exId){const f=input.files&&input.files[0];if(!f)return;
+ if(f.size>62914560){toast('El video pesa demasiado (máx 60 MB). Grabalo más corto o en menor calidad.');input.value='';return;}
+ videoDuration(f,async function(d){
+  if(d==null){toast('No pude leer el video — probá con otro formato (MP4).');input.value='';return;}
+  if(d>40.5){toast('⏱ El video dura '+Math.round(d)+'s — el máximo es 40 segundos. Grabá una versión más corta.');input.value='';return;}
+  const r=cur();let ex=null;for(const day of r.days){ex=day.exercises.find(x=>x.id===exId);if(ex)break;}
+  if(!ex)return;
+  if(typeof cloudOn==='function'&&cloudOn()&&CLOUD.kind==='pt'&&sb){
+    toast('Subiendo video… ⏳');
+    try{
+      const ext=(f.name.split('.').pop()||'mp4').toLowerCase().replace(/[^a-z0-9]/g,'')||'mp4';
+      const path='ex/'+CLOUD.uid+'/'+exId+'-'+Date.now()+'.'+ext;
+      const {error}=await sb.storage.from('exvideos').upload(path,f,{upsert:true,contentType:f.type||'video/mp4'});
+      if(error){toast('Error subiendo: '+error.message);return;}
+      const {data:pu}=sb.storage.from('exvideos').getPublicUrl(path);
+      ex.video=pu.publicUrl;save();toast('🎬 Video subido ('+Math.round(d)+'s) — tus alumnos ya lo ven');render();
+    }catch(e){toast('Error subiendo el video: '+(e.message||e));}
+  }else{
+    try{ex.video=URL.createObjectURL(f);}catch(e){toast('No pude cargar el video');return;}
+    save();toast('🎬 Video cargado ('+Math.round(d)+'s) — solo en este dispositivo (sin cuenta no sube a la nube)');render();
+  }
+ });}
 /* auth */
 async function loginEmail(){const e=(val('loginEmail')||'').trim(),p=val('loginPass')||'';
   if(!sb){S.user={name:(e.split('@')[0]||'Entrenador'),email:e||'demo@universalfit.app',provider:'email',type:'pt'};if(!S.trainer)S.trainer={name:S.user.name};save();toast('¡Bienvenido! (demo sin conexión)');render();return;}
@@ -313,7 +337,8 @@ function vPtEdit(){
       <div style="margin-top:6px"><span class="catchip">${esc(e.category||'General')}</span></div>
       <div class="flex" style="margin-top:8px"><div><div class="cap">Series</div><input class="in" type="number" value="${e.sets}" onchange="editExField('${e.id}','sets',this.value)"/></div><div><div class="cap">Reps</div><input class="in" type="number" value="${e.reps}" onchange="editExField('${e.id}','reps',this.value)"/></div><div><div class="cap">Kg</div><input class="in" type="number" value="${e.weight}" onchange="editExField('${e.id}','weight',this.value)"/></div></div>
       <input class="in" placeholder="Nota de técnica" value="${esc(e.note||'')}" onchange="editExField('${e.id}','note',this.value)"/>
-      <input class="in" placeholder="Link de video (YouTube, opcional)" value="${esc(e.video||'')}" onchange="editExField('${e.id}','video',this.value)"/>
+      <div class="flex" style="margin-top:6px;align-items:center"><label class="btn sec sm" style="cursor:pointer;margin:0">🎬 ${e.video&&(e.video.indexOf('blob:')===0||e.video.indexOf('/storage/')>=0)?'Cambiar video':'Subir video'} (máx 40s)<input type="file" accept="video/*" capture="environment" style="display:none" onchange="uploadExVideo(this,'${e.id}')"/></label>${e.video?`<span class="pill g">✓ video</span>`:''}</div>
+      <input class="in" placeholder="…o pegá un link de YouTube (opcional)" value="${esc((e.video&&e.video.indexOf('blob:')!==0&&e.video.indexOf('/storage/')<0)?e.video:'')}" onchange="editExField('${e.id}','video',this.value)"/>
       <button class="back" style="color:#C0392B;margin:8px 0 0" onclick="delEx('${e.id}')">Quitar ejercicio</button></div>`).join('');
     return `<div class="card"><div class="row"><input class="in" style="font-weight:800;margin-top:0;flex:1" value="${esc(day.name)}" onchange="renameDay('${day.id}',this.value)"/><button class="back" style="color:#C0392B;margin:0 0 0 8px" onclick="delDay('${day.id}')">✕</button></div>
       <div class="h" style="margin:12px 4px 8px">Día ${di+1} · ejercicios</div>${exs||'<div class="cap" style="margin:0 4px 8px">Sin ejercicios.</div>'}
@@ -611,7 +636,7 @@ function dirFoto(t,size){const st=`width:${size}px;height:${size}px;border-radiu
 function stars(r){if(r==null)return '<span class="pill g">Nuevo</span>';return `<span style="color:#ff9600;font-weight:800">★ ${r}</span>`;}
 
 /* ---- Código de equipo del PT ---- */
-const UF_VERSION='v2.0.0';
+const UF_VERSION='v2.1.0';
 const APP_URL=(function(){try{return (location.origin&&location.origin.indexOf('http')===0)?(location.origin+location.pathname):'https://dano-gpt.github.io/universal-fit/v2/';}catch(e){return 'https://dano-gpt.github.io/universal-fit/v2/';}})();
 function inviteUrl(code){return APP_URL+'?code='+encodeURIComponent(code);}
 function teamCode(){if(!S.trainer)return null;if(!S.trainer.code){S.trainer.code=('UF'+Math.random().toString(36).replace(/[^a-z0-9]/g,'').slice(0,4)).toUpperCase();save();}return S.trainer.code;}
