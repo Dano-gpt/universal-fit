@@ -887,6 +887,7 @@ function showGateCode(){const i=document.getElementById('gateInner');if(!i)retur
 function tryGate(){const v=(document.getElementById('gateCode')?document.getElementById('gateCode').value:'').trim();
  if(v==='2246'){try{localStorage.setItem('uf_gate','1');}catch(e){}hideGate();}
  else{const e=document.getElementById('gateErr');if(e)e.textContent='Código incorrecto — probá de nuevo';const i=document.getElementById('gateCode');if(i){i.value='';i.focus();}}}
+try{if(new URLSearchParams(location.search).get('gate')==='reset'){localStorage.removeItem('uf_gate');history.replaceState(null,'',location.pathname);}}catch(e){}
 S=load();
 const QCODE=(function(){try{return new URLSearchParams(location.search).get('code');}catch(e){return null;}})();
 if(QCODE&&!S.user){S.ui.ob={kind:'al',step:2,d:{path:'code',code:QCODE}};try{history.replaceState(null,'',location.pathname);}catch(e){}}
