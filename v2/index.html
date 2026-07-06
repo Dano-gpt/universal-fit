@@ -121,7 +121,7 @@
 </style>
 <style id="dk">
 html,body,.app{background:var(--bg);color:var(--ink);}
-header{background:var(--headerbg);}
+header{background:var(--headerbg)!important;}
 nav{background:var(--headerbg);border-top:1px solid var(--line);}
 nav button.on{color:var(--blue);}
 .card,.stu,.ex,.exrow,.daycard,.a2card{background:var(--card);color:var(--ink);}
@@ -687,7 +687,7 @@ function groupCard(s){const others=S.students.filter(x=>x.id!==s.id&&x.logs.leng
  const feed=others.map(x=>({x,l:[...x.logs].sort((a,b)=>a.date<b.date?1:-1)[0]})).sort((a,b)=>a.l.date<b.l.date?1:-1).slice(0,4);
  return `<div class="card"><div class="h" style="margin:0 0 8px">👥 Tu grupo</div><div class="cap" style="margin:0 0 6px">Ranking del mes</div>${rank.map((r,i)=>`<div class="row" style="padding:4px 0"><span>${medals[i]||'·'} ${esc(r.n)}${r.me?' <b>(vos)</b>':''}</span><span class="cap">${r.c} entrenos</span></div>`).join('')}<div class="cap" style="margin:10px 0 6px">Actividad de tus compañeros</div>${feed.map(f=>`<div class="row" style="padding:6px 0;border-top:1px solid var(--line)"><div><b>${esc(fn(f.x.name))}</b> entrenó ${fmt(f.l.date)} ${f.l.feel||''}<div class="cap">${f.l.entries.length} ejercicio(s)${f.l.claps?' · 👏 '+f.l.claps:''}</div></div><button class="btn sec sm" style="width:auto;margin:0" onclick="clap('${f.x.id}','${f.l.date}')">👏</button></div>`).join('')}</div>`;}
 function clap(sid,date){const t=S.students.find(x=>x.id===sid);const l=t.logs.find(x=>x.date===date);if(!l)return;l.claps=(l.claps||0)+1;t.msgs=t.msgs||[];t.msgs.unshift({id:uid(),date:today(),text:'👏 '+fn(me().name)+' te aplaudió por tu entreno del '+fmt(date)+'. ¡Seguí así!',read:false});save();toast('👏 enviado');render();}
-function applyBrand(){const b=S&&S.brand?S.brand:{};const h=document.querySelector('.brand h1');if(h)h.textContent=b.name||'Universal Fit';document.documentElement.style.setProperty('--blue',b.color||'#58cc02');const hd=document.querySelector('header');if(hd)hd.style.background=b.color||'#58cc02';}
+function applyBrand(){const b=S&&S.brand?S.brand:{};const h=document.querySelector('.brand h1');if(h)h.textContent=b.name||'Universal Fit';document.documentElement.style.setProperty('--blue',b.color||'#9EFF3D');const hd=document.querySelector('header');if(hd)hd.style.background='';}
 function toggleBrand(){S.ui.brandEdit=!S.ui.brandEdit;save();render();}
 function brandCard(){if(!S.ui.brandEdit)return '';const b=S.brand||{};const colors=['#58cc02','#1cb0f6','#ce82ff','#ff4b4b','#ff9600','#00cd9c'];return `<div class="card"><div class="h" style="margin:0 0 6px">🎨 Tu marca en la app</div><div class="cap">Tus alumnos ven tu nombre y tu color al entrar.</div><input class="in" id="brName" placeholder="Nombre de tu negocio (ej: RG Training)" value="${esc(b.name||'')}"/><div class="flex" style="margin-top:10px">${colors.map(c=>`<button style="height:36px;border-radius:8px;border:${(b.color||'#58cc02')===c?'3px solid #1A2230':'1px solid #ccc'};background:${c};cursor:pointer" onclick="setBrand(val('brName')||'${esc(b.name||'')}','${c}')"></button>`).join('')}</div><button class="btn sm" style="margin-top:10px" onclick="setBrand(val('brName'),(S.brand||{}).color)">Guardar</button></div>`;}
 function setBrand(name,color){S.brand={name:(name||'').trim(),color:color||(S.brand||{}).color||''};save();toast('Marca actualizada 🎨');render();}
