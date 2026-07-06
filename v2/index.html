@@ -149,7 +149,7 @@ nav button.on{color:var(--blue);}
 </style>
 </head>
 <body>
-<div id="gate"><div style="position:absolute;bottom:18px;left:0;right:0;text-align:center;color:rgba(255,255,255,.75);font-size:12px;font-weight:700">v2.8.4</div><div id="gateInner"><div class="gIco">🏋️</div><div class="gName">Universal Fit</div><div class="gSub">Entrená mejor. Progresá siempre.</div></div></div>
+<div id="gate"><div style="position:absolute;bottom:18px;left:0;right:0;text-align:center;color:rgba(255,255,255,.75);font-size:12px;font-weight:700">v2.9.0</div><div id="gateInner"><div class="gIco">🏋️</div><div class="gName">Universal Fit</div><div class="gSub">Entrená mejor. Progresá siempre.</div></div></div>
 <div id="a2hs"><div class="a2card" id="a2card"></div></div>
 <div class="app">
   <header>
@@ -751,7 +751,7 @@ function dirFoto(t,size){const st=`width:${size}px;height:${size}px;border-radiu
 function stars(r){if(r==null)return '<span class="pill g">Nuevo</span>';return `<span style="color:#ff9600;font-weight:800">★ ${r}</span>`;}
 
 /* ---- Código de equipo del PT ---- */
-const UF_VERSION='v2.8.4';
+const UF_VERSION='v2.9.0';
 const APP_URL=(function(){try{return (location.origin&&location.origin.indexOf('http')===0)?(location.origin+location.pathname):'https://dano-gpt.github.io/universal-fit/v2/';}catch(e){return 'https://dano-gpt.github.io/universal-fit/v2/';}})();
 function inviteUrl(code){return APP_URL+'?code='+encodeURIComponent(code);}
 function teamCode(){if(!S.trainer)return null;if(!S.trainer.code){S.trainer.code=('UF'+Math.random().toString(36).replace(/[^a-z0-9]/g,'').slice(0,4)).toUpperCase();save();}return S.trainer.code;}
@@ -1070,9 +1070,12 @@ async function finishObAlNewCloud(){const d=S.ui.ob.d;let gUser=null;
  const ok=await cloudBoot(gUser);
  if(!ok){toast('Cuenta creada pero no pude cargar tus datos — probá entrar de nuevo.');return;}
  S.ui.ob=null;S.ui.view='al_home';save();toast('¡Solicitud enviada a '+fn(t.name)+'! 📨');render();}
+let GATE_EXPIRED=null;
+function fmtDMY(x){try{return new Date(x).toLocaleDateString('es-AR');}catch(e){return (''+x).slice(0,10);}}
 function initGate(){const g=document.getElementById('gate');if(!g)return;
- let unlocked=false;try{unlocked=localStorage.getItem('uf_gate')==='1';}catch(e){}
- setTimeout(function(){if(unlocked)hideGate();else showGateCode();},3000);}
+ let unlocked=false,exp=null;try{unlocked=localStorage.getItem('uf_gate')==='1';exp=localStorage.getItem('uf_gate_exp');}catch(e){}
+ if(unlocked&&exp&&Date.now()>Date.parse(exp)){unlocked=false;GATE_EXPIRED=exp;try{localStorage.removeItem('uf_gate');localStorage.removeItem('uf_gate_exp');}catch(e){}}
+ setTimeout(function(){if(unlocked){hideGate();if(exp){setTimeout(function(){toast('Acceso anticipado · vence el '+fmtDMY(exp));},1400);}}else showGateCode();},3000);}
 function hideGate(){const g=document.getElementById('gate');if(!g)return;g.classList.add('bye');setTimeout(function(){g.style.display='none';maybeOfferInstall();},600);}
 /* ---- Instalar como app / acceso directo (A2HS) ---- */
 let A2HS_DEFERRED=null;
@@ -1138,11 +1141,20 @@ function openInstallManual(){if(isStandalone()){toast('Ya la estás usando como 
 /* Registro del service worker (habilita instalación en Android + arranque offline) */
 if('serviceWorker' in navigator){window.addEventListener('load',function(){navigator.serviceWorker.register('sw.js').catch(function(){});});}
 function showGateCode(){const i=document.getElementById('gateInner');if(!i)return;
- i.innerHTML=`<div class="gCard"><div class="gIco" style="font-size:44px">🔑</div><div class="gName" style="font-size:26px;animation:none">Acceso anticipado</div><p style="margin-top:12px">Estás entrando a una <b>versión anticipada</b> de Universal Fit. Si tenés este acceso es porque fuiste elegido/a como alguien especial 💚.</p><p>Ingresá el <b>código de apertura</b> para continuar:</p><input class="gIn" id="gateCode" type="tel" inputmode="numeric" maxlength="4" placeholder="····" oninput="if(this.value.length===4)tryGate()" onkeydown="if(event.key==='Enter')tryGate()"/><div class="gErr" id="gateErr"></div><button class="gBtn" onclick="tryGate()">Entrar →</button></div>`;
+ const expMsg=(GATE_EXPIRED)?`<div class="gErr" style="background:rgba(0,0,0,.28)">Tu acceso anticipado venció el ${fmtDMY(GATE_EXPIRED)}. Pedile un código nuevo al administrador.</div>`:'';
+ i.innerHTML=`<div class="gCard"><div class="gIco" style="font-size:44px">🔑</div><div class="gName" style="font-size:26px;animation:none">Acceso anticipado</div><p style="margin-top:12px">Estás entrando a una <b>versión anticipada</b> de Universal Fit, por <b>tiempo limitado</b>. Si tenés este acceso es porque fuiste elegido/a como alguien especial 💚.</p><p>Ingresá tu <b>código de acceso anticipado</b>:</p><input class="gIn" id="gateCode" type="text" autocapitalize="characters" autocomplete="off" maxlength="16" placeholder="TU CÓDIGO" style="text-transform:uppercase" onkeydown="if(event.key===\'Enter\')tryGate()"/><div class="gErr" id="gateErr"></div>${expMsg}<button class="gBtn" onclick="tryGate()">Entrar →</button></div>`;
  const inp=document.getElementById('gateCode');if(inp)setTimeout(function(){inp.focus();},100);}
-function tryGate(){const v=(document.getElementById('gateCode')?document.getElementById('gateCode').value:'').trim();
- if(v==='2246'){try{localStorage.setItem('uf_gate','1');}catch(e){}hideGate();}
- else{const e=document.getElementById('gateErr');if(e)e.textContent='Código incorrecto — probá de nuevo';const i=document.getElementById('gateCode');if(i){i.value='';i.focus();}}}
+async function tryGate(){
+ const el=document.getElementById('gateCode');const v=(el?el.value:'').trim().toUpperCase();const err=document.getElementById('gateErr');
+ if(!v)return; if(err)err.textContent='Verificando…';
+ let res=null;
+ try{if(sb){const r=await sb.rpc('v1_redeem_access_code',{p_code:v});res=r&&r.data;}}catch(e){res=null;}
+ if(res&&res.ok){try{localStorage.setItem('uf_gate','1');if(res.expires_at)localStorage.setItem('uf_gate_exp',res.expires_at);}catch(e){}gateWelcome(res.expires_at);return;}
+ if(res&&!res.ok){const m={invalid:'Código inválido.',inactive:'Ese código está desactivado.',expired:'Ese código ya venció.',full:'Ese código llegó a su límite de usos.'}[res.reason]||'Código no válido.';if(err)err.textContent=m;if(el){el.value='';el.focus();}return;}
+ if(v==='2246'){try{localStorage.setItem('uf_gate','1');}catch(e){}hideGate();return;}
+ if(err)err.textContent='No pude validar el código (sin conexión). Reintentá.';if(el){el.value='';el.focus();}}
+function gateWelcome(exp){const i=document.getElementById('gateInner');const f=exp?fmtDMY(exp):null;if(!i){hideGate();return;}
+ i.innerHTML=`<div class="gCard"><div class="gIco" style="font-size:44px">✅</div><div class="gName" style="font-size:24px;animation:none">Acceso anticipado activado</div><p style="margin-top:12px">Estás usando una <b>versión anticipada</b> de Universal Fit, por <b>tiempo limitado</b>.</p>${f?`<p style="font-size:20px;font-weight:900;margin-top:8px">Tu acceso vence el ${f}</p>`:''}<p class="cap" style="margin-top:8px">Aprovechá estos días 💪</p><button class="gBtn" onclick="hideGate()">Comenzar</button></div>`;}
 try{if(new URLSearchParams(location.search).get('gate')==='reset'){localStorage.removeItem('uf_gate');history.replaceState(null,'',location.pathname);}}catch(e){}
 /* ---- Cuenta desactivada por el administrador ---- */
 const ADMIN_UID='ac05eb3e-5679-4ac2-9dae-3c54fac2cdf6';
@@ -1173,9 +1185,14 @@ function tryAdminOtp(){if((val('admOtp')||'').trim()==='0602'){ADMIN.otp=true;re
 async function adminLoad(){if(!sb)return;const {data,error}=await sb.rpc('admin_overview');
  if(error||!data||!data.ok){toast('Error cargando datos: '+((data&&data.error)||(error&&error.message)||''));return;}
  ADMIN.data=data;
+ try{const {data:cc}=await sb.rpc('admin_list_access_codes');ADMIN.codes=(cc&&cc.codes)||[];}catch(e){ADMIN.codes=[];}
  try{const {data:rq}=await sb.from('v1_notifs').select('*').eq('trainer_uid',ADMIN_UID).order('id',{ascending:false}).limit(30);ADMIN.reqs=rq||[];}catch(e){ADMIN.reqs=[];}
  render();}
 async function adminReqDone(id){try{await sb.from('v1_notifs').update({read:true}).eq('id',id);}catch(e){}adminLoad();}
+async function adminCreateCode(){const code=(val('acCode')||'').trim().toUpperCase();const days=+val('acDays')||30;const maxu=+val('acMax')||0;const vence=(val('acVence')||'').trim();if(!code){toast('Poné un código');return;}const redeem_by=vence?vence+'T23:59:59':null;const {data,error}=await sb.rpc('admin_create_access_code',{p_code:code,p_lifetime_days:days,p_redeem_by:redeem_by,p_max_uses:(maxu||null),p_note:null});if(error||!data||!data.ok){const rz=(data&&(data.reason||data.error))||(error&&error.message)||'';toast(rz==='dup'?'Ese código ya existe':('No se pudo crear: '+rz));return;}toast('Código creado ✅');adminLoad();}
+async function adminToggleCode(id,act){const {data,error}=await sb.rpc('admin_set_access_code_active',{p_id:id,p_active:act});if(error||!data||!data.ok){toast('Error al actualizar');return;}adminLoad();}
+async function adminDelCode(id){if(!confirm('¿Borrar este código de acceso?'))return;const {data,error}=await sb.rpc('admin_delete_access_code',{p_id:id});if(error||!data||!data.ok){toast('Error al borrar');return;}toast('Código borrado 🗑');adminLoad();}
+
 function admStat(st){if(!st)return '';const logs=(st.logs||[]);const last=logs.length?logs.map(l=>l.date).sort().slice(-1)[0]:null;return logs.length+' entrenos'+(last?' · último '+fmt(last):'');}
 function vAdminHome(){
  const D=ADMIN.data;
@@ -1184,7 +1201,9 @@ function vAdminHome(){
  const ss=(D.students||[]).map(r=>{const st=r.student||{};const act=st.active!==false;return `<div class="stu" onclick="ADMIN.view={s:'${r.id}'};render()"><span class="dot ${act?(r.pending?'y':'g'):'r'}"></span><div style="flex:1"><div class="name">${esc(st.name||'—')} ${r.pending?'<span class="pill y">pendiente</span>':''} ${!act?'<span class="pill r">inactivo</span>':''}</div><div class="sub">${esc(r.email||'sin email')}</div><div class="sub">Profe: ${esc(r.trainer||st.trainerName||'—')} · ${admStat(st)}</div></div><span class="cap">ver →</span></div>`;}).join('')||'<div class="empty cap">Sin alumnos registrados.</div>';
  const reqs=(ADMIN.reqs||[]).filter(r=>!r.read);
  const rqs=reqs.length?`<div class="card" style="border-color:#6B5A1E;background:#211C10"><div class="h" style="margin:0 0 8px">📨 Solicitudes de activación (${reqs.length})</div>${reqs.map(r=>`<div style="padding:7px 0;border-bottom:1px solid #eadfc8"><div style="font-size:13px;font-weight:700">${esc(r.text)}</div><div class="cap">${(r.created_at||'').slice(0,10)}</div><button class="btn sec sm" style="margin-top:5px;width:auto;padding:6px 10px" onclick="adminReqDone(${r.id})">✓ Resuelto</button></div>`).join('')}</div>`:'';
- return `<div class="card" style="background:#3c3c3c;color:#fff;border:none"><div style="font-size:18px;font-weight:900">🛡 Panel de administración</div><div class="cap" style="color:rgba(255,255,255,.85);margin-top:4px">${(D.trainers||[]).length} entrenador(es) · ${(D.students||[]).length} alumno(s)</div><button class="btn sec sm" style="margin-top:10px" onclick="adminLoad()">🔄 Actualizar datos</button></div>${rqs}
+ const _codes=(ADMIN.codes||[]).map(c=>{const est=c.active?'<span class="pill g">activo</span>':'<span class="pill r">inactivo</span>';const us=(c.max_uses?c.uses+'/'+c.max_uses:c.uses+'/∞');const ven=c.redeem_by?fmtDMY(c.redeem_by):'sin límite';return `<div class="stu"><div style="flex:1"><div class="name">${esc(c.code)} ${est}</div><div class="sub">Dura ${c.lifetime_days} días · usos ${us} · vence ${ven}</div></div><button class="btn sec sm" style="width:auto;margin:0 6px 0 0;padding:6px 9px" onclick="adminToggleCode(${c.id},${c.active?'false':'true'})">${c.active?'⏸':'▶'}</button><button class="btn sec sm" style="width:auto;margin:0;padding:6px 9px;color:var(--red)" onclick="adminDelCode(${c.id})">🗑</button></div>`;}).join('')||'<div class="empty cap">Todavía no hay códigos. Creá el primero arriba.</div>';
+ const codesCard=`<div class="card"><div class="h" style="margin:0 0 8px">🎟️ Códigos de acceso anticipado</div><div class="cap" style="margin-bottom:8px">Creá códigos para los primeros que entran. Cada alumno que lo activa tiene acceso por los días que definas; el código sirve hasta su fecha de vencimiento o su límite de usos.</div><input class="in" id="acCode" placeholder="CÓDIGO (ej. VERANO26)" style="text-transform:uppercase"/><div class="flex" style="gap:8px;margin-top:6px"><div style="flex:1"><div class="cap">Dura (días)</div><input class="in" id="acDays" type="number" value="30"/></div><div style="flex:1"><div class="cap">Máx. usos (vacío=∞)</div><input class="in" id="acMax" type="number" placeholder="∞"/></div></div><div class="cap" style="margin-top:6px">Vence (último día para usarlo)</div><input class="in" id="acVence" type="date"/><button class="btn" onclick="adminCreateCode()" style="margin-top:8px">Crear código</button><div style="margin-top:12px">${_codes}</div></div>`;
+  return `<div class="card" style="background:#3c3c3c;color:#fff;border:none"><div style="font-size:18px;font-weight:900">🛡 Panel de administración</div><div class="cap" style="color:rgba(255,255,255,.85);margin-top:4px">${(D.trainers||[]).length} entrenador(es) · ${(D.students||[]).length} alumno(s)</div><button class="btn sec sm" style="margin-top:10px" onclick="adminLoad()">🔄 Actualizar datos</button></div>${rqs}${codesCard}
  <div class="h">Entrenadores (${(D.trainers||[]).length})</div>${ts}
  <div class="h" style="margin-top:16px">Alumnos (${(D.students||[]).length})</div>${ss}`;
 }
