@@ -149,7 +149,7 @@ nav button.on{color:var(--blue);}
 </style>
 </head>
 <body>
-<div id="gate"><div style="position:absolute;bottom:18px;left:0;right:0;text-align:center;color:rgba(255,255,255,.75);font-size:12px;font-weight:700">v2.8.1</div><div id="gateInner"><div class="gIco">🏋️</div><div class="gName">Universal Fit</div><div class="gSub">Entrená mejor. Progresá siempre.</div></div></div>
+<div id="gate"><div style="position:absolute;bottom:18px;left:0;right:0;text-align:center;color:rgba(255,255,255,.75);font-size:12px;font-weight:700">v2.8.2</div><div id="gateInner"><div class="gIco">🏋️</div><div class="gName">Universal Fit</div><div class="gSub">Entrená mejor. Progresá siempre.</div></div></div>
 <div id="a2hs"><div class="a2card" id="a2card"></div></div>
 <div class="app">
   <header>
@@ -591,7 +591,7 @@ function setEquip(exId,val){const s=me();s.equip=s.equip||{};s.equip[exId]=val;s
 function equipCard(e){const v=exVariants(e);if(!v)return '';const cur=equipFor(e);const btns=v.map(function(o){const on=(o===cur);return '<button class="btn sec sm" style="flex:1;margin:0;'+(on?'border-color:var(--blue);color:var(--blue);background:rgba(158,255,61,.10)':'')+'" onclick="setEquip(\''+e.id+'\',\''+o+'\')">'+o+'</button>';}).join('');return '<div class="card"><div class="h" style="margin:0 0 8px">¿Con qué lo hacés?</div><div class="flex" style="gap:8px">'+btns+'</div><div class="cap" style="margin-top:8px">Elegí el equipo disponible — tu profe ve tu elección.</div></div>';}
 function notify(studentId,text){S.notifs=S.notifs||[];S.notifs.unshift({id:uid(),date:today(),ts:Date.now(),studentId,text,read:false});if(typeof cloudOn==='function'&&cloudOn()&&CLOUD.kind==='al'&&CLOUD.trainerUid){try{sb.from('v1_notifs').insert({trainer_uid:CLOUD.trainerUid,student_id:studentId,text}).then(function(){});}catch(e){}}save();}
 function unread(){return (S.notifs||[]).filter(n=>!n.read).length;}
-function novedCard(){const u=unread();return u?`<div class="card" style="border-color:var(--blue);background:#131C33;cursor:pointer" onclick="go('pt_notifs')"><b>🔔 ${u} novedad(es) de tus alumnos</b><div class="cap">Actividad reciente — tocá para ver.</div></div>`:'';}
+function novedCard(){const u=unread();const n=(S.notifs||[]).length;if(u>0)return `<div class="card" style="border-color:var(--blue);background:#131C33;cursor:pointer" onclick="go('pt_notifs')"><b>🔔 ${u} novedad(es) nueva(s)</b><div class="cap">Actividad de tus alumnos — tocá para ver el historial.</div></div>`;return `<div class="card" style="cursor:pointer" onclick="go('pt_notifs')"><div class="row" style="align-items:center"><b>🔔 Novedades</b><span class="cap">${n?n+' guardadas':'sin novedades'}</span></div><div class="cap" style="margin-top:2px">${n?'Ver el historial de actividad de tus alumnos (videos, check-ins, récords…).':'Acá vas a ver la actividad de tus alumnos.'}</div></div>`;}
 function vPtNotifs(){const list=(S.notifs||[]).slice(0,50);(S.notifs||[]).forEach(n=>n.read=true);save();if(typeof cloudOn==='function'&&cloudOn()&&CLOUD.kind==='pt'){try{sb.from('v1_notifs').update({read:true}).eq('trainer_uid',CLOUD.uid).eq('read',false).then(function(){});}catch(e){}}return `<button class="back" onclick="go('pt_home')">← Alumnos</button><div class="h">Novedades</div>${list.length?list.map(n=>`<div class="stu" onclick="openStudent('${n.studentId}')"><div class="ico" style="width:36px;height:36px;font-size:16px;background:#131C33;border-radius:50%;display:flex;align-items:center;justify-content:center">🔔</div><div style="flex:1"><div class="name" style="font-size:14px">${esc(n.text)}</div><div class="sub">${fmt(n.date)}</div></div><button class="btn sec sm" style="width:auto;margin:0;padding:7px 10px" onclick="event.stopPropagation();ptMessage('${n.studentId}')">💬</button></div>`).join(''):'<div class="empty cap">Sin novedades.</div>'}`;}
 function bodyEvoCard(s){
   if(!s.measures||!s.measures.length)return `<div class="card"><div class="h" style="margin:0 0 4px">Evolución del cuerpo</div><div class="cap">El alumno todavía no cargó medidas.</div></div>`;
@@ -751,7 +751,7 @@ function dirFoto(t,size){const st=`width:${size}px;height:${size}px;border-radiu
 function stars(r){if(r==null)return '<span class="pill g">Nuevo</span>';return `<span style="color:#ff9600;font-weight:800">★ ${r}</span>`;}
 
 /* ---- Código de equipo del PT ---- */
-const UF_VERSION='v2.8.1';
+const UF_VERSION='v2.8.2';
 const APP_URL=(function(){try{return (location.origin&&location.origin.indexOf('http')===0)?(location.origin+location.pathname):'https://dano-gpt.github.io/universal-fit/v2/';}catch(e){return 'https://dano-gpt.github.io/universal-fit/v2/';}})();
 function inviteUrl(code){return APP_URL+'?code='+encodeURIComponent(code);}
 function teamCode(){if(!S.trainer)return null;if(!S.trainer.code){S.trainer.code=('UF'+Math.random().toString(36).replace(/[^a-z0-9]/g,'').slice(0,4)).toUpperCase();save();}return S.trainer.code;}
