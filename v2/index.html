@@ -161,7 +161,7 @@ nav button.on{color:var(--blue);}
 </style>
 </head>
 <body>
-<div id="gate"><div style="position:absolute;bottom:18px;left:0;right:0;text-align:center;color:rgba(255,255,255,.75);font-size:12px;font-weight:700">v2.14.3</div><div id="gateInner"><svg class="gIco" width="82" height="82" viewBox="0 0 120 120" style="overflow:visible"><g fill="none" stroke-width="11" stroke-linecap="round" stroke-linejoin="round"><path d="M22 34 L22 68 A18 18 0 0 0 58 68 L58 34" stroke="#9EFF3D"/><path d="M72 34 L72 86 M72 34 L98 34 M72 60 L93 60" stroke="#B98CFF"/></g></svg><div class="gName">Universal Fit</div><div class="gSub">Entrená mejor. Progresá siempre.</div></div></div>
+<div id="gate"><div style="position:absolute;bottom:18px;left:0;right:0;text-align:center;color:rgba(255,255,255,.75);font-size:12px;font-weight:700">v2.14.4</div><div id="gateInner"><svg class="gIco" width="82" height="82" viewBox="0 0 120 120" style="overflow:visible"><g fill="none" stroke-width="11" stroke-linecap="round" stroke-linejoin="round"><path d="M22 34 L22 68 A18 18 0 0 0 58 68 L58 34" stroke="#9EFF3D"/><path d="M72 34 L72 86 M72 34 L98 34 M72 60 L93 60" stroke="#B98CFF"/></g></svg><div class="gName">Universal Fit</div><div class="gSub">Entrená mejor. Progresá siempre.</div></div></div>
 <div id="a2hs"><div class="a2card" id="a2card"></div></div>
 <div class="app">
   <header>
@@ -764,7 +764,7 @@ function dirFoto(t,size){const st=`width:${size}px;height:${size}px;border-radiu
 function stars(r){if(r==null)return '<span class="pill g">Nuevo</span>';return `<span style="color:#ff9600;font-weight:800">★ ${r}</span>`;}
 
 /* ---- Código de equipo del PT ---- */
-const UF_VERSION='v2.14.3';
+const UF_VERSION='v2.14.4';
 const APP_URL=(function(){try{return (location.origin&&location.origin.indexOf('http')===0)?(location.origin+location.pathname):'https://dano-gpt.github.io/universal-fit/v2/';}catch(e){return 'https://dano-gpt.github.io/universal-fit/v2/';}})();
 function inviteUrl(code){return APP_URL+'?code='+encodeURIComponent(code);}
 function teamCode(){if(!S.trainer)return null;if(!S.trainer.code){S.trainer.code=('UF'+Math.random().toString(36).replace(/[^a-z0-9]/g,'').slice(0,4)).toUpperCase();save();}return S.trainer.code;}
@@ -1083,7 +1083,7 @@ async function finishObAlNewCloud(){const d=S.ui.ob.d;let gUser=null;
  const ok=await cloudBoot(gUser);
  if(!ok){toast('Cuenta creada pero no pude cargar tus datos — probá entrar de nuevo.');return;}
  S.ui.ob=null;S.ui.view='al_home';save();toast('¡Solicitud enviada a '+fn(t.name)+'! 📨');render();}
-const APP_VER='v2.14.3';
+const APP_VER='v2.14.4';
 function _who(){try{if(typeof ADMIN!=='undefined'&&ADMIN&&ADMIN.otp)return{role:'admin',uid:'admin'};const r=(typeof S!=='undefined'&&S&&S.ui&&S.ui.role)||'anon';let uid=null;if(r==='pt'){uid=(typeof CLOUD!=='undefined'&&CLOUD&&CLOUD.uid)||((S.trainer&&S.trainer.code)||'pt');}else if(r==='al'){const m=(typeof me==='function')&&me();uid=(m&&m.id)||null;}return{role:r,uid:uid};}catch(e){return{role:'anon',uid:null};}}
 function logEvent(cat,name,meta){try{if(typeof sb==='undefined'||!sb)return;const w=_who();sb.rpc('v1_log_event',{p_cat:cat,p_name:name,p_uid:w.uid,p_role:w.role,p_view:(typeof S!=='undefined'&&S&&S.ui&&S.ui.view)||null,p_ver:APP_VER,p_meta:meta||null,p_ua:(navigator.userAgent||'').slice(0,180)}).then(function(){},function(){});}catch(e){}}
 window.addEventListener('error',function(e){logEvent('error','js_error',{msg:((e&&e.message)||'')+'',src:((e&&e.filename)||'').slice(0,120),line:(e&&e.lineno)||0});});
@@ -1200,6 +1200,7 @@ async function adminCreateAd(){const texto=(val('adTexto')||'').trim();const url
 async function adminToggleAd(id,act){const {data,error}=await sb.rpc('admin_set_ad_active',{p_id:id,p_active:act});if(error||!data||!data.ok){toast('Error');return;}adminLoad();}
 async function adminDelAd(id){if(!confirm('¿Borrar este anuncio?'))return;const {data,error}=await sb.rpc('admin_del_ad',{p_id:id});if(error||!data||!data.ok){toast('Error');return;}toast('Anuncio borrado 🗑');adminLoad();}
 async function adminSavePlanCfg(plan){const price=+val('pc_'+plan+'_price')||0;const link=(val('pc_'+plan+'_link')||'').trim();const {data,error}=await sb.rpc('admin_set_plan_cfg',{p_plan:plan,p_price:price,p_link:link});if(error||!data||!data.ok){toast('No se pudo guardar (¿corriste schema_plans.sql?)');return;}toast('Plan '+plan+' actualizado ✅');adminLoad();}
+async function adminSetGate(req){const {data,error}=await sb.rpc('admin_set_gate',{p_required:req});if(error||!data||!data.ok){toast('No se pudo cambiar (¿corriste schema_settings.sql?)');return;}toast(req?'Acceso: ahora pide código 🔒':'Acceso: abierto, sin código 🔓');adminLoad();}
 let MYADQ=null,MYADS=[];
 function toggleMyAd(){S.ui.myAdEdit=!S.ui.myAdEdit;save();if(S.ui.myAdEdit){loadMyAd();}else{render();}}
 async function loadMyAd(){if(typeof sb==='undefined'||!sb){render();return;}try{const q=await sb.rpc('v1_my_ad_quota');MYADQ=(q&&q.data)||null;}catch(e){MYADQ=null;}try{const a=await sb.rpc('v1_my_ads');MYADS=(a&&a.data&&a.data.ads)||[];}catch(e){MYADS=[];}render();}
@@ -1242,10 +1243,13 @@ function maybeTour(){try{if(TOUR||window.__tourArmed)return;if(typeof ADMIN!=='u
 function maybeTourFire(role){try{if(TOUR||_tourDone(role))return;if(typeof ADMIN!=='undefined'&&ADMIN.on)return;const g=document.getElementById('gate');if(g&&getComputedStyle(g).display!=='none')return;const v=S.ui.view;if((role==='pt'&&v==='pt_home')||(role==='al'&&v==='al_home'))tourStart(role);}catch(e){}}
 let GATE_EXPIRED=null;
 function fmtDMY(x){try{return new Date(x).toLocaleDateString('es-AR');}catch(e){return (''+x).slice(0,10);}}
+let GATE_REQUIRED=true;
+async function loadGateSetting(){if(typeof sb==='undefined'||!sb)return;try{const r=await sb.rpc('v1_gate');if(r&&r.data&&r.data.ok)GATE_REQUIRED=(r.data.required!==false);}catch(e){}if(!GATE_REQUIRED&&window.__gateShown){hideGate();}}
 function initGate(){const g=document.getElementById('gate');if(!g)return;
  let unlocked=false,exp=null;try{unlocked=localStorage.getItem('uf_gate')==='1';exp=localStorage.getItem('uf_gate_exp');}catch(e){}
  if(unlocked&&exp&&Date.now()>Date.parse(exp)){unlocked=false;GATE_EXPIRED=exp;try{localStorage.removeItem('uf_gate');localStorage.removeItem('uf_gate_exp');}catch(e){}}
- setTimeout(function(){if(unlocked){hideGate();if(exp){setTimeout(function(){toast('Acceso anticipado · vence el '+fmtDMY(exp));},1400);}}else showGateCode();},3000);}
+ loadGateSetting();
+ setTimeout(function(){if(unlocked||!GATE_REQUIRED){hideGate();if(unlocked&&exp){setTimeout(function(){toast('Acceso anticipado · vence el '+fmtDMY(exp));},1400);}}else showGateCode();},3000);}
 function hideGate(){const g=document.getElementById('gate');if(!g)return;g.classList.add('bye');setTimeout(function(){g.style.display='none';maybeOfferInstall();},600);}
 /* ---- Instalar como app / acceso directo (A2HS) ---- */
 let A2HS_DEFERRED=null;
@@ -1310,7 +1314,7 @@ function closeA2hs(){const el=document.getElementById('a2hs');if(el)el.classList
 function openInstallManual(){if(isStandalone()){toast('Ya la estás usando como app ✅');return;}openInstall(false);}
 /* Registro del service worker (habilita instalación en Android + arranque offline) */
 if('serviceWorker' in navigator){window.addEventListener('load',function(){navigator.serviceWorker.register('sw.js').catch(function(){});});}
-function showGateCode(){const i=document.getElementById('gateInner');if(!i)return;
+function showGateCode(){const i=document.getElementById('gateInner');if(!i)return;window.__gateShown=true;
  const expMsg=(GATE_EXPIRED)?`<div class="gErr" style="background:rgba(0,0,0,.28)">Tu acceso anticipado venció el ${fmtDMY(GATE_EXPIRED)}. Pedile un código nuevo al administrador.</div>`:'';
  i.innerHTML=`<div class="gCard"><div class="gIco" style="font-size:44px">🔑</div><div class="gName" style="font-size:26px;animation:none">Acceso anticipado</div><p style="margin-top:12px">Estás entrando a una <b>versión anticipada</b> de Universal Fit, por <b>tiempo limitado</b>. Si tenés este acceso es porque fuiste elegido/a como alguien especial 💚.</p><p>Ingresá tu <b>código de acceso anticipado</b>:</p><input class="gIn" id="gateCode" type="text" autocapitalize="characters" autocomplete="off" maxlength="16" placeholder="TU CÓDIGO" style="text-transform:uppercase" onkeydown="if(event.key===\'Enter\')tryGate()"/><div class="gErr" id="gateErr"></div>${expMsg}<button class="gBtn" onclick="tryGate()">Entrar →</button></div>`;
  const inp=document.getElementById('gateCode');if(inp)setTimeout(function(){inp.focus();},100);}
@@ -1358,6 +1362,7 @@ async function adminLoad(){if(!sb)return;const {data,error}=await sb.rpc('admin_
  try{const {data:cc}=await sb.rpc('admin_list_access_codes');ADMIN.codes=(cc&&cc.codes)||[];}catch(e){ADMIN.codes=[];}
  try{const {data:adx}=await sb.rpc('admin_list_ads');ADMIN.ads=(adx&&adx.ads)||[];}catch(e){ADMIN.ads=[];}
  try{const {data:pl}=await sb.rpc('v1_plans');ADMIN.plans=(pl&&pl.ok)?(pl.plans||[]):[];}catch(e){ADMIN.plans=[];}
+ try{const {data:gt}=await sb.rpc('v1_gate');ADMIN.gateRequired=(gt&&gt.ok)?(gt.required!==false):true;}catch(e){ADMIN.gateRequired=true;}
  try{const {data:rq}=await sb.from('v1_notifs').select('*').eq('trainer_uid',ADMIN_UID).order('id',{ascending:false}).limit(30);ADMIN.reqs=rq||[];}catch(e){ADMIN.reqs=[];}
  render();}
 async function adminReqDone(id){try{await sb.from('v1_notifs').update({read:true}).eq('id',id);}catch(e){}adminLoad();}
@@ -1403,7 +1408,9 @@ function vAdminHome(){
  const adsCard=`<div class="card"><div class="h" style="margin:0 0 8px">📣 Publicidad (banner)</div><div class="cap" style="margin-bottom:8px">Se muestra chico y no intrusivo en el inicio de alumnos y profes.</div><input class="in" id="adTexto" placeholder="Texto del banner"/><input class="in" id="adUrl" placeholder="Link (opcional)" style="margin-top:6px"/><div class="flex" style="gap:8px;margin-top:6px"><div style="flex:1"><div class="cap">Color</div><input class="in" id="adColor" placeholder="#B98CFF"/></div><div style="flex:1"><div class="cap">Vence</div><input class="in" id="adVence" type="date"/></div></div><button class="btn" style="margin-top:8px" onclick="adminCreateAd()">Crear anuncio</button><div style="margin-top:12px">${_ads}</div></div>`;
  const _plansCfg=Object.keys(PLANS).map(function(k){var c=(ADMIN.plans||[]).find(function(p){return p.plan===k;})||{price:(k==='Pro'?9900:0),mp_link:''};return '<div style="padding:10px 0;border-bottom:1px solid var(--line)"><div class="name" style="font-size:14px">Plan '+esc(k)+' <span class="cap">('+PLANS[k].cap+' alumnos)</span></div><div style="margin-top:6px"><div class="cap">Precio $/mes (0 = gratis)</div><input class="in" id="pc_'+k+'_price" type="number" value="'+(c.price||0)+'"/></div><div class="cap" style="margin-top:6px">Link de pago MercadoPago</div><input class="in" id="pc_'+k+'_link" placeholder="https://mpago.la/..." value="'+esc(c.mp_link||'')+'"/><button class="btn sm" style="margin-top:8px" onclick="adminSavePlanCfg(\''+k+'\')">Guardar Plan '+esc(k)+'</button></div>';}).join('');
  const plansCfgCard=`<div class="card"><div class="h" style="margin:0 0 8px">💳 Planes y precios</div><div class="cap" style="margin-bottom:8px">Precio y link de cobro de MercadoPago por plan. El profe los ve al pedir upgrade; cuando paga, activás su plan desde su ficha.</div>${_plansCfg}</div>`;
- return `<div class="card" style="background:#3c3c3c;color:#fff;border:none"><div style="font-size:18px;font-weight:900">🛡 Panel de administración</div><div class="cap" style="color:rgba(255,255,255,.85);margin-top:4px">${(D.trainers||[]).length} entrenador(es) · ${(D.students||[]).length} alumno(s)</div><button class="btn sec sm" style="margin-top:10px" onclick="adminLoad()">🔄 Actualizar datos</button> <button class="btn sec sm" style="margin-top:10px" onclick="openAdminDash()">📊 Tablero</button></div>${rqs}${codesCard}${adsCard}${plansCfgCard}
+ const gateOn=ADMIN.gateRequired!==false;
+ const gateCard=`<div class="card"><div class="h" style="margin:0 0 8px">🚪 Puerta de acceso anticipado</div><div class="cap" style="margin-bottom:8px">${gateOn?'Estado: <b>Requiere código</b> al entrar (invite-only).':'Estado: <b style="color:#9bef6e">Abierta</b> — cualquiera entra sin código.'}</div><button class="btn${gateOn?'':' sec'}" style="margin:0" onclick="adminSetGate(${gateOn?'false':'true'})">${gateOn?'🔓 Abrir acceso (sin código)':'🔒 Volver a requerir código'}</button></div>`;
+ return `<div class="card" style="background:#3c3c3c;color:#fff;border:none"><div style="font-size:18px;font-weight:900">🛡 Panel de administración</div><div class="cap" style="color:rgba(255,255,255,.85);margin-top:4px">${(D.trainers||[]).length} entrenador(es) · ${(D.students||[]).length} alumno(s)</div><button class="btn sec sm" style="margin-top:10px" onclick="adminLoad()">🔄 Actualizar datos</button> <button class="btn sec sm" style="margin-top:10px" onclick="openAdminDash()">📊 Tablero</button></div>${rqs}${codesCard}${adsCard}${plansCfgCard}${gateCard}
  <div class="h">Entrenadores (${(D.trainers||[]).length})</div>${ts}
  <div class="h" style="margin-top:16px">Alumnos (${(D.students||[]).length})</div>${ss}`;
 }
