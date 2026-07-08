@@ -161,7 +161,7 @@ nav button.on{color:var(--blue);}
 </style>
 </head>
 <body>
-<div id="gate"><div style="position:absolute;bottom:18px;left:0;right:0;text-align:center;color:rgba(255,255,255,.75);font-size:12px;font-weight:700">v2.14.5</div><div id="gateInner"><svg class="gIco" width="82" height="82" viewBox="0 0 120 120" style="overflow:visible"><g fill="none" stroke-width="11" stroke-linecap="round" stroke-linejoin="round"><path d="M22 34 L22 68 A18 18 0 0 0 58 68 L58 34" stroke="#9EFF3D"/><path d="M72 34 L72 86 M72 34 L98 34 M72 60 L93 60" stroke="#B98CFF"/></g></svg><div class="gName">Universal Fit</div><div class="gSub">Entrená mejor. Progresá siempre.</div></div></div>
+<div id="gate"><div style="position:absolute;bottom:18px;left:0;right:0;text-align:center;color:rgba(255,255,255,.75);font-size:12px;font-weight:700">v2.15.0</div><div id="gateInner"><svg class="gIco" width="82" height="82" viewBox="0 0 120 120" style="overflow:visible"><g fill="none" stroke-width="11" stroke-linecap="round" stroke-linejoin="round"><path d="M22 34 L22 68 A18 18 0 0 0 58 68 L58 34" stroke="#9EFF3D"/><path d="M72 34 L72 86 M72 34 L98 34 M72 60 L93 60" stroke="#B98CFF"/></g></svg><div class="gName">Universal Fit</div><div class="gSub">Entrená mejor. Progresá siempre.</div></div></div>
 <div id="a2hs"><div class="a2card" id="a2card"></div></div>
 <div class="app">
   <header>
@@ -764,7 +764,7 @@ function dirFoto(t,size){const st=`width:${size}px;height:${size}px;border-radiu
 function stars(r){if(r==null)return '<span class="pill g">Nuevo</span>';return `<span style="color:#ff9600;font-weight:800">★ ${r}</span>`;}
 
 /* ---- Código de equipo del PT ---- */
-const UF_VERSION='v2.14.5';
+const UF_VERSION='v2.15.0';
 const APP_URL=(function(){try{return (location.origin&&location.origin.indexOf('http')===0)?(location.origin+location.pathname):'https://dano-gpt.github.io/universal-fit/v2/';}catch(e){return 'https://dano-gpt.github.io/universal-fit/v2/';}})();
 function inviteUrl(code){return APP_URL+'?code='+encodeURIComponent(code);}
 function teamCode(){if(!S.trainer)return null;if(!S.trainer.code){S.trainer.code=('UF'+Math.random().toString(36).replace(/[^a-z0-9]/g,'').slice(0,4)).toUpperCase();save();}return S.trainer.code;}
@@ -839,7 +839,7 @@ function vObAl(){
   else if(o.step===8)body=`<div class="h">¿Cuántos días por semana querés entrenar?</div><div class="flex">`+[2,3,4,5,6,7].map(n=>`<button class="btn sec" style="padding:12px 0" onclick="S.ui.ob.d.dias=${n};obGoto(9)">${n}</button>`).join('')+`</div>`;
   else if(o.step===28)body=`<div class="h">¿Cuántos días por semana querés entrenar?</div><div class="flex">`+[2,3,4,5,6,7].map(n=>`<button class="btn sec" style="padding:12px 0" onclick="alDias(${n})">${n}</button>`).join('')+`</div><div class="cap" style="margin-top:10px">Con esto ${esc((dirAll().find(t=>t.id===d.trainerId)||{}).name||'el entrenador')} ya puede armarte la primera rutina.</div>`;
   else if(o.step===9){const mf=[['altura','Altura','cm']].concat(measFields());body=`<div class="h">Tus datos físicos</div><div class="cap" style="margin:0 0 8px">Son el punto de partida para medir tu evolución. Altura y peso son obligatorios; el resto lo podés completar después. 📏 Ideal: medirse temprano a la mañana y con poca ropa.</div>${mf.map(([k,l,u])=>`<div class="setrow"><span class="lbl">${l}</span><input id="cd_${k}" type="number" inputmode="decimal" placeholder="${u}"/><span class="u">${u}</span></div>`).join('')}<button class="btn" style="margin-top:10px" onclick="obMedNext()">${sb?'Siguiente →':'Guardar y entrar 💪'}</button>`;}
-  else if(o.step===10||o.step===29)body=`<div class="h">Creá tu cuenta</div><div class="cap" style="margin:0 0 8px">🔐 Con tu cuenta entrás desde cualquier celu y tus datos quedan guardados en la nube.</div><input class="in" id="obEmail" type="email" placeholder="tu@email.com" value="${esc(d.email||'')}"/><input class="in" id="obPass" type="password" placeholder="Elegí una contraseña (mín. 6)"/><button class="btn" onclick="${o.step===10?'finishObCodeCloud()':'finishObAlNewCloud()'}">Crear mi cuenta ✓</button>`;
+  else if(o.step===10||o.step===29)body=`<div class="h">Creá tu cuenta</div><div class="cap" style="margin:0 0 8px">🔐 Con tu cuenta entrás desde cualquier celu y tus datos quedan guardados en la nube.</div><button class="btn gg" onclick="obGoogleAl()"><span style="font-weight:800;color:#4285F4">G</span> Registrarme con Google</button><div style="text-align:center;color:var(--muted);font-size:12px;margin:12px 0">— o con tu email —</div><input class="in" id="obEmail" type="email" placeholder="tu@email.com" value="${esc(d.email||'')}"/><input class="in" id="obPass" type="password" placeholder="Elegí una contraseña (mín. 6)"/><button class="btn" onclick="${o.step===10?'finishObCodeCloud()':'finishObAlNewCloud()'}">Crear mi cuenta ✓</button>`;
   else if(o.step===21)body=`<div class="h">¿Cómo te llamás?</div><input class="in" id="obV" placeholder="Nombre y apellido" value="${esc(d.name||'')}"/><button class="btn" onclick="(function(){const v=val('obV').trim();if(!v){toast('Poné tu nombre');return;}S.ui.ob.d.name=v;S.ui.ob.step=22;save();render();})()">Siguiente →</button>`;
   else if(o.step===22)body=`<div class="h">¿En qué zona vivís?</div><div class="cap" style="margin:0 0 8px">Te mostramos los entrenadores cerca tuyo.</div>`+ZONAS.map(z=>`<button class="btn sec" style="text-align:left;margin-bottom:8px" onclick="obZona('${z}')">📍 ${z}</button>`).join('');
   return `<div class="login-wrap"><button class="back" onclick="obAlBack()">← ${o.step===1?'Volver':'Atrás'}</button>${obBar(idx+1,T)}<div class="cap" style="margin:0 4px 10px">Alta de alumno</div><div class="card">${body}</div></div>`;
@@ -993,9 +993,13 @@ function rtStart(){if(!cloudOn()||RT.ch||!sb.channel)return;
     const st=me();
     if(st)ch.on('postgres_changes',{event:'UPDATE',schema:'public',table:'v1_students',filter:'id=eq.'+st.id},function(p){rtMergeSelf(p.new);});
   }
-  ch.subscribe();RT.ch=ch;
+  ch.subscribe();RT.ch=ch;ptPollStart();
  }catch(e){console.warn('rt',e);}}
-function rtStop(){try{if(RT.ch&&sb)sb.removeChannel(RT.ch);}catch(e){}RT.ch=null;}
+function rtStop(){try{if(RT.ch&&sb)sb.removeChannel(RT.ch);}catch(e){}RT.ch=null;ptPollStop();}
+let PPOLL=null;
+function ptPollStart(){if(PPOLL||!cloudOn()||CLOUD.kind!=='pt')return;PPOLL=setInterval(ptPollTick,25000);}
+function ptPollStop(){if(PPOLL){clearInterval(PPOLL);PPOLL=null;}}
+async function ptPollTick(){try{if(!cloudOn()||CLOUD.kind!=='pt'||document.hidden)return;const {data:nts}=await sb.from('v1_notifs').select('*').eq('trainer_uid',CLOUD.uid).order('id',{ascending:false}).limit(20);if(!nts||!nts.length)return;let added=0;nts.slice().reverse().forEach(function(n){if(!S.notifs.some(function(x){return x.cid===n.id;})){S.notifs.unshift({id:'c'+n.id,cid:n.id,date:(n.created_at||'').slice(0,10),ts:Date.now(),studentId:n.student_id,text:n.text,read:!!n.read});added++;}});if(added){const {data:sts}=await sb.from('v1_students').select('*').eq('trainer_uid',CLOUD.uid);(sts||[]).forEach(function(r){if(r&&r.data&&r.data.student&&!S.students.some(function(x){return x.id===r.id;}))rtMergeStudent(r);});toast('🔔 '+(added===1?'Nueva novedad':added+' novedades nuevas'));save();render();}}catch(e){}}
 function rtMergeStudent(row){if(!row||!row.data||!row.data.student)return;
  if(row.updated_at&&CLOUD.pushMark&&CLOUD.pushMark[row.id]&&Date.parse(row.updated_at)===Date.parse(CLOUD.pushMark[row.id]))return; /* eco propio */
  const st=row.data.student;st.pending=row.pending;const rt=row.data.routine;
@@ -1058,6 +1062,7 @@ async function finishObCodeCloud(){const d=S.ui.ob.d;let gUser=null;
  if(res.error||!out||!out.ok){toast('No pude conectarte: '+((out&&out.error==='ya_reclamado')?'esa ficha ya tiene cuenta':(out&&out.error)||(res.error&&res.error.message)||'error'));return;}
  const ok=await cloudBoot(gUser);
  if(!ok){toast('Cuenta creada pero no pude cargar tus datos — probá entrar de nuevo.');return;}
+ try{if(CLOUD.trainerUid)sb.from('v1_notifs').insert({trainer_uid:CLOUD.trainerUid,student_id:(me()&&me().id)||null,text:fn(d.name)+' se sumó a tu equipo 🎉'}).then(function(){},function(){});}catch(e){}
  const stz=me();
  if(stz){stz.msgs=stz.msgs||[];stz.msgs.unshift({id:uid(),date:today(),text:'👋 ¡Bienvenido/a al equipo! Soy '+(out.trainer_name||'tu entrenador')+'. Ya está todo listo para arrancar. ¡Vamos!',read:false});}
  S.ui.ob=null;S.ui.view='al_welcome';save();render();}
@@ -1083,7 +1088,8 @@ async function finishObAlNewCloud(){const d=S.ui.ob.d;let gUser=null;
  const ok=await cloudBoot(gUser);
  if(!ok){toast('Cuenta creada pero no pude cargar tus datos — probá entrar de nuevo.');return;}
  S.ui.ob=null;S.ui.view='al_home';save();toast('¡Solicitud enviada a '+fn(t.name)+'! 📨');render();}
-const APP_VER='v2.14.5';
+async function obGoogleAl(){try{if(!sb){toast('Necesitás conexión para usar Google');return;}S.ui.ob.d.oauthWait=true;save();await sb.auth.signInWithOAuth({provider:'google',options:{redirectTo:APP_URL}});}catch(e){toast('No pude iniciar Google: '+((e&&e.message)||e));}}
+const APP_VER='v2.15.0';
 function _who(){try{if(typeof ADMIN!=='undefined'&&ADMIN&&ADMIN.otp)return{role:'admin',uid:'admin'};const r=(typeof S!=='undefined'&&S&&S.ui&&S.ui.role)||'anon';let uid=null;if(r==='pt'){uid=(typeof CLOUD!=='undefined'&&CLOUD&&CLOUD.uid)||((S.trainer&&S.trainer.code)||'pt');}else if(r==='al'){const m=(typeof me==='function')&&me();uid=(m&&m.id)||null;}return{role:r,uid:uid};}catch(e){return{role:'anon',uid:null};}}
 function logEvent(cat,name,meta){try{if(typeof sb==='undefined'||!sb)return;const w=_who();sb.rpc('v1_log_event',{p_cat:cat,p_name:name,p_uid:w.uid,p_role:w.role,p_view:(typeof S!=='undefined'&&S&&S.ui&&S.ui.view)||null,p_ver:APP_VER,p_meta:meta||null,p_ua:(navigator.userAgent||'').slice(0,180)}).then(function(){},function(){});}catch(e){}}
 window.addEventListener('error',function(e){logEvent('error','js_error',{msg:((e&&e.message)||'')+'',src:((e&&e.filename)||'').slice(0,120),line:(e&&e.lineno)||0});});
@@ -1399,7 +1405,7 @@ function vAdminHome(){
  if(ADMIN.view&&ADMIN.view.dash)return vAdminDash();
  if(ADMIN.view&&ADMIN.view.s)return vAdminStudent();
  const ts=(D.trainers||[]).map(t=>`<div class="stu"><div class="ico" style="width:38px;height:38px;font-size:18px;background:#20203A;border-radius:50%;display:flex;align-items:center;justify-content:center">🏋️</div><div style="flex:1;cursor:pointer" onclick="openAdminTrainer('${t.uid}')"><div class="name">${esc(t.name)} ${t.disabled?'<span class="pill r">desactivado</span>':''}</div><div class="sub">${esc(t.email||'sin email')}</div><div class="sub">🔑 ${esc(t.code||'—')} · 👥 ${t.alumnos} alumno(s) · 📍 ${esc((t.publico&&t.publico.zona)||'—')}</div></div><div style="display:flex;flex-direction:column;gap:5px"><button class="btn sec sm" style="width:auto;margin:0;padding:6px 9px" onclick="adminToggleTrainer('${t.uid}',${t.disabled?'false':'true'})">${t.disabled?'▶ Activar':'⏸ Desactivar'}</button><button class="btn sec sm" style="width:auto;margin:0;padding:6px 9px;color:var(--red)" onclick="adminDelTrainer('${t.uid}','${esc(t.name)}')">🗑 Borrar</button></div></div>`).join('')||'<div class="empty cap">Sin entrenadores registrados.</div>';
- const ss=(D.students||[]).map(r=>{const st=r.student||{};const act=st.active!==false;return `<div class="stu" onclick="ADMIN.view={s:'${r.id}'};render()"><span class="dot ${act?(r.pending?'y':'g'):'r'}"></span><div style="flex:1"><div class="name">${esc(st.name||'—')} ${r.pending?'<span class="pill y">pendiente</span>':''} ${!act?'<span class="pill r">inactivo</span>':''}</div><div class="sub">${esc(r.email||'sin email')}</div><div class="sub">Profe: ${esc(r.trainer||st.trainerName||'—')} · ${admStat(st)}</div></div><span class="cap">ver →</span></div>`;}).join('')||'<div class="empty cap">Sin alumnos registrados.</div>';
+ const _allstu=(D.students||[]);const _trs=[...new Set(_allstu.map(function(r){return r.trainer||(r.student&&r.student.trainerName)||'—';}))].sort();const _flt=ADMIN.stuFilter||'';const _fstu=_flt?_allstu.filter(function(r){return (r.trainer||(r.student&&r.student.trainerName)||'—')===_flt;}):_allstu;const stuFilterSel='<select class="in" style="margin:0 0 10px;text-align:left" onchange="ADMIN.stuFilter=this.value;render()"><option value=""'+(_flt?'':' selected')+'>Todos los profes ('+_allstu.length+')</option>'+_trs.map(function(n){return '<option value="'+esc(n)+'"'+(_flt===n?' selected':'')+'>'+esc(n)+' ('+_allstu.filter(function(r){return (r.trainer||(r.student&&r.student.trainerName)||'—')===n;}).length+')</option>';}).join('')+'</select>';const ss=_fstu.map(r=>{const st=r.student||{};const act=st.active!==false;return `<div class="stu" onclick="ADMIN.view={s:'${r.id}'};render()"><span class="dot ${act?(r.pending?'y':'g'):'r'}"></span><div style="flex:1"><div class="name">${esc(st.name||'—')} ${r.pending?'<span class="pill y">pendiente</span>':''} ${!act?'<span class="pill r">inactivo</span>':''}</div><div class="sub">${esc(r.email||'sin email')}</div><div class="sub">Profe: ${esc(r.trainer||st.trainerName||'—')} · ${admStat(st)}</div></div><span class="cap">ver →</span></div>`;}).join('')||('<div class="empty cap">Sin alumnos'+(_flt?' de '+esc(_flt):' registrados')+'.</div>');
  const reqs=(ADMIN.reqs||[]).filter(r=>!r.read);
  const rqs=reqs.length?`<div class="card" style="border-color:#6B5A1E;background:#211C10"><div class="h" style="margin:0 0 8px">📨 Solicitudes de activación (${reqs.length})</div>${reqs.map(r=>`<div style="padding:7px 0;border-bottom:1px solid #eadfc8"><div style="font-size:13px;font-weight:700">${esc(r.text)}</div><div class="cap">${(r.created_at||'').slice(0,10)}</div><button class="btn sec sm" style="margin-top:5px;width:auto;padding:6px 10px" onclick="adminReqDone(${r.id})">✓ Resuelto</button></div>`).join('')}</div>`:'';
  const _codes=(ADMIN.codes||[]).map(c=>{const est=c.active?'<span class="pill g">activo</span>':'<span class="pill r">inactivo</span>';const us=(c.max_uses?c.uses+'/'+c.max_uses:c.uses+'/∞');const ven=c.redeem_by?fmtDMY(c.redeem_by):'sin límite';return `<div class="stu"><div style="flex:1"><div class="name">${esc(c.code)} ${est}</div><div class="sub">Dura ${c.lifetime_days} días · usos ${us} · vence ${ven}</div></div><button class="btn sec sm" style="width:auto;margin:0 6px 0 0;padding:6px 9px" onclick="adminToggleCode(${c.id},${c.active?'false':'true'})">${c.active?'⏸':'▶'}</button><button class="btn sec sm" style="width:auto;margin:0;padding:6px 9px;color:var(--red)" onclick="adminDelCode(${c.id})">🗑</button></div>`;}).join('')||'<div class="empty cap">Todavía no hay códigos. Creá el primero arriba.</div>';
@@ -1412,7 +1418,7 @@ function vAdminHome(){
  const gateCard=`<div class="card"><div class="h" style="margin:0 0 8px">🚪 Puerta de acceso anticipado</div><div class="cap" style="margin-bottom:8px">${gateOn?'Estado: <b>Requiere código</b> al entrar (invite-only).':'Estado: <b style="color:#9bef6e">Abierta</b> — cualquiera entra sin código.'}</div><button class="btn${gateOn?'':' sec'}" style="margin:0" onclick="adminSetGate(${gateOn?'false':'true'})">${gateOn?'🔓 Abrir acceso (sin código)':'🔒 Volver a requerir código'}</button></div>`;
  return `<div class="card" style="background:#3c3c3c;color:#fff;border:none"><div style="font-size:18px;font-weight:900">🛡 Panel de administración</div><div class="cap" style="color:rgba(255,255,255,.85);margin-top:4px">${(D.trainers||[]).length} entrenador(es) · ${(D.students||[]).length} alumno(s)</div><button class="btn sec sm" style="margin-top:10px" onclick="adminLoad()">🔄 Actualizar datos</button> <button class="btn sec sm" style="margin-top:10px" onclick="openAdminDash()">📊 Tablero</button></div>${rqs}${codesCard}${adsCard}${plansCfgCard}${gateCard}
  <div class="h">Entrenadores (${(D.trainers||[]).length})</div>${ts}
- <div class="h" style="margin-top:16px">Alumnos (${(D.students||[]).length})</div>${ss}`;
+ <div class="h" style="margin-top:16px">Alumnos (${_fstu.length}${_flt?' de '+_allstu.length:''})</div>${stuFilterSel}${ss}`;
 }
 function vAdminStudent(){
  const D=ADMIN.data;const r=(D.students||[]).find(x=>x.id===ADMIN.view.s);if(!r){ADMIN.view=null;return vAdminHome();}
@@ -1431,14 +1437,14 @@ async function adminToggleTrainer(uid,dis){const {data}=await sb.rpc('admin_set_
 async function adminDelTrainer(uid,name){if(!confirm('¿Borrar DEFINITIVAMENTE a '+name+'? Se elimina su cuenta, su perfil y TODOS sus alumnos.'))return;const {data}=await sb.rpc('admin_delete_trainer',{p_uid:uid});if(data&&data.ok){toast('Entrenador borrado 🗑');adminLoad();}else toast('Error');}
 async function adminRenameStudent(id,cur){const v=prompt('Nuevo nombre:',cur);if(!v||!v.trim())return;const {data}=await sb.rpc('admin_rename',{p_kind:'al',p_id:id,p_name:v.trim()});if(data&&data.ok){toast('Nombre actualizado ✏️');adminLoad();}else toast('Error');}
 S=load();
-const QCODE=(function(){try{return new URLSearchParams(location.search).get('code');}catch(e){return null;}})();
+const QCODE=(function(){try{var c=new URLSearchParams(location.search).get('code');return (c&&c.length<=8)?c:null;}catch(e){return null;}})();
 if(QCODE&&!S.user){S.ui.ob={kind:'al',step:2,d:{path:'code',code:QCODE}};try{history.replaceState(null,'',location.pathname);}catch(e){}}
 render();
 initGate();
 if(QCODE&&!S.user&&S.ui.ob&&S.ui.ob.step===2){setTimeout(function(){if(S.ui.ob&&S.ui.ob.kind==='al'&&S.ui.ob.step===2)checkCode();},700);}
 if(sb){sb.auth.getSession().then(({data})=>{if(data&&data.session){const u=data.session.user;
  if(isAdminEmail(u.email)){ADMIN={on:true,otp:false,data:null,view:null};render();}
- else{cloudBoot(u).then(ok=>{if(!ok){S.user=null;S.ui.ob=null;S.ui.grole={name:(u.user_metadata&&(u.user_metadata.full_name||u.user_metadata.name))||'',email:u.email||''};save();render();}});}
+ else{cloudBoot(u).then(ok=>{if(!ok){var ob=S.ui&&S.ui.ob;if(ob&&ob.kind==='al'&&ob.d&&ob.d.oauthWait){S.user=null;S.ui.grole=null;ob.d.oauth=true;ob.d.oauthWait=false;ob.d.email=u.email||ob.d.email||'';save();render();if(ob.d.path==='code')finishObCodeCloud();else if(ob.d.path==='new')finishObAlNewCloud();}else{S.user=null;S.ui.ob=null;S.ui.grole={name:(u.user_metadata&&(u.user_metadata.full_name||u.user_metadata.name))||'',email:u.email||''};save();render();}}});}
 }}).catch(()=>{});}
 </script>
 </body>
