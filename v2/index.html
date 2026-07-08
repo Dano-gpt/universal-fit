@@ -161,7 +161,7 @@ nav button.on{color:var(--blue);}
 </style>
 </head>
 <body>
-<div id="gate"><div style="position:absolute;bottom:18px;left:0;right:0;text-align:center;color:rgba(255,255,255,.75);font-size:12px;font-weight:700">v2.14.4</div><div id="gateInner"><svg class="gIco" width="82" height="82" viewBox="0 0 120 120" style="overflow:visible"><g fill="none" stroke-width="11" stroke-linecap="round" stroke-linejoin="round"><path d="M22 34 L22 68 A18 18 0 0 0 58 68 L58 34" stroke="#9EFF3D"/><path d="M72 34 L72 86 M72 34 L98 34 M72 60 L93 60" stroke="#B98CFF"/></g></svg><div class="gName">Universal Fit</div><div class="gSub">Entrená mejor. Progresá siempre.</div></div></div>
+<div id="gate"><div style="position:absolute;bottom:18px;left:0;right:0;text-align:center;color:rgba(255,255,255,.75);font-size:12px;font-weight:700">v2.14.5</div><div id="gateInner"><svg class="gIco" width="82" height="82" viewBox="0 0 120 120" style="overflow:visible"><g fill="none" stroke-width="11" stroke-linecap="round" stroke-linejoin="round"><path d="M22 34 L22 68 A18 18 0 0 0 58 68 L58 34" stroke="#9EFF3D"/><path d="M72 34 L72 86 M72 34 L98 34 M72 60 L93 60" stroke="#B98CFF"/></g></svg><div class="gName">Universal Fit</div><div class="gSub">Entrená mejor. Progresá siempre.</div></div></div>
 <div id="a2hs"><div class="a2card" id="a2card"></div></div>
 <div class="app">
   <header>
@@ -764,7 +764,7 @@ function dirFoto(t,size){const st=`width:${size}px;height:${size}px;border-radiu
 function stars(r){if(r==null)return '<span class="pill g">Nuevo</span>';return `<span style="color:#ff9600;font-weight:800">★ ${r}</span>`;}
 
 /* ---- Código de equipo del PT ---- */
-const UF_VERSION='v2.14.4';
+const UF_VERSION='v2.14.5';
 const APP_URL=(function(){try{return (location.origin&&location.origin.indexOf('http')===0)?(location.origin+location.pathname):'https://dano-gpt.github.io/universal-fit/v2/';}catch(e){return 'https://dano-gpt.github.io/universal-fit/v2/';}})();
 function inviteUrl(code){return APP_URL+'?code='+encodeURIComponent(code);}
 function teamCode(){if(!S.trainer)return null;if(!S.trainer.code){S.trainer.code=('UF'+Math.random().toString(36).replace(/[^a-z0-9]/g,'').slice(0,4)).toUpperCase();save();}return S.trainer.code;}
