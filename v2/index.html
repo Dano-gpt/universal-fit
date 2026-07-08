@@ -17,6 +17,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
 <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet"/>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js" crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" crossorigin="anonymous"></script>
 <script src="anim.js?v=271"></script>
 <style>
   :root{--blue:#9EFF3D;--blue2:#B7FF6E;--green:#6EE23A;--amber:#FFC24B;--red:#FF5A6E;--bg:#0A0A16;--card:#151528;--ink:#ECEBFF;--muted:#8A88B8;--line:#2A2A4D;--hero:#2A1145;--headerbg:#10102A;--accink:#0A0A16;}
@@ -161,7 +162,7 @@ nav button.on{color:var(--blue);}
 </style>
 </head>
 <body>
-<div id="gate"><div style="position:absolute;bottom:18px;left:0;right:0;text-align:center;color:rgba(255,255,255,.75);font-size:12px;font-weight:700">v2.15.0</div><div id="gateInner"><svg class="gIco" width="82" height="82" viewBox="0 0 120 120" style="overflow:visible"><g fill="none" stroke-width="11" stroke-linecap="round" stroke-linejoin="round"><path d="M22 34 L22 68 A18 18 0 0 0 58 68 L58 34" stroke="#9EFF3D"/><path d="M72 34 L72 86 M72 34 L98 34 M72 60 L93 60" stroke="#B98CFF"/></g></svg><div class="gName">Universal Fit</div><div class="gSub">Entrená mejor. Progresá siempre.</div></div></div>
+<div id="gate"><div style="position:absolute;bottom:18px;left:0;right:0;text-align:center;color:rgba(255,255,255,.75);font-size:12px;font-weight:700">v2.16.0</div><div id="gateInner"><svg class="gIco" width="82" height="82" viewBox="0 0 120 120" style="overflow:visible"><g fill="none" stroke-width="11" stroke-linecap="round" stroke-linejoin="round"><path d="M22 34 L22 68 A18 18 0 0 0 58 68 L58 34" stroke="#9EFF3D"/><path d="M72 34 L72 86 M72 34 L98 34 M72 60 L93 60" stroke="#B98CFF"/></g></svg><div class="gName">Universal Fit</div><div class="gSub">Entrená mejor. Progresá siempre.</div></div></div>
 <div id="a2hs"><div class="a2card" id="a2card"></div></div>
 <div class="app">
   <header>
@@ -411,7 +412,71 @@ function vPtStudent(){
   <button class="btn" onclick="editRoutine('${s.routineId}')">📝 Editar rutina de ${esc(fn(s.name))}</button>
   <div class="flex" style="margin-top:10px"><button class="btn sec sm" onclick="fromTemplate('${s.id}')">📋 Desde plantilla</button><button class="btn sec sm" onclick="copyRoutine('${s.id}')">⧉ Copiar a otro</button><button class="btn sec sm" onclick="shareLink('${s.id}')">Compartir link</button></div>
   <button class="btn g" style="margin-top:10px" onclick="ptMessage('${s.id}')">💬 Enviar mensaje a ${esc(fn(s.name))}</button>
+  <button class="btn" style="margin-top:10px;background:#B98CFF;color:#0A0A16" onclick="genStudentPDF('${s.id}')">📄 Informe de evolución (PDF) para compartir</button>
   <div class="card" style="margin-top:14px;border-color:#5A2A2E"><div class="h" style="margin:0 0 6px">Gestión del alumno</div>${s.active===false?`<button class="btn g sm" onclick="reactivateStudent('${s.id}')">▶ Reactivar — vuelve a activos con toda su historia</button>`:`<button class="btn sec sm" onclick="deactivateStudent('${s.id}')">⏸ Desactivar — pausa el servicio (vacaciones, freno) y guarda toda su historia</button>`}<button class="btn sm" style="background:#C0392B;margin-top:8px" onclick="deleteStudent('${s.id}')">🗑 Borrar definitivamente — se pierde toda la historia</button></div>`;
+}
+function pdfImgData(url){return new Promise(function(res){try{if(!url){res(null);return;}fetch(url).then(function(r){return r.blob();}).then(function(b){var fr=new FileReader();fr.onload=function(){res(''+fr.result);};fr.onerror=function(){res(null);};fr.readAsDataURL(b);}).catch(function(){res(null);});}catch(e){res(null);}});}
+async function genStudentPDF(id){
+ var s=(S.students||[]).find(function(x){return x.id===id;});if(!s){toast('No encontré al alumno');return;}
+ var tries=0;while(!(window.jspdf&&window.jspdf.jsPDF)&&tries<8){toast('Cargando el generador de PDF…');await new Promise(function(r){setTimeout(r,400);});tries++;}
+ if(!(window.jspdf&&window.jspdf.jsPDF)){toast('No pude cargar el generador de PDF. Reintentá en unos segundos.');return;}
+ toast('Generando informe…');
+ try{
+  var jsPDF=window.jspdf.jsPDF;var doc=new jsPDF({unit:'pt',format:'a4'});
+  var W=doc.internal.pageSize.getWidth(),H=doc.internal.pageSize.getHeight();var M=40,y=0;
+  function hexRgb(h){h=(''+(h||'#8A5CF6')).replace('#','');if(h.length===3)h=h.split('').map(function(c){return c+c;}).join('');var n=parseInt(h,16)||0;return [(n>>16)&255,(n>>8)&255,n&255];}
+  var bc=hexRgb((S.brand&&S.brand.color)||'#8A5CF6');
+  var brandName=(S.brand&&S.brand.name)||'';var profe=(S.trainer&&S.trainer.name)||'tu entrenador';
+  function pageIf(n){if(y+n>H-M){doc.addPage();y=M;}}
+  function h1(t){pageIf(34);doc.setFont('helvetica','bold');doc.setFontSize(14);doc.setTextColor(bc[0],bc[1],bc[2]);doc.text(t,M,y);y+=5;doc.setDrawColor(bc[0],bc[1],bc[2]);doc.setLineWidth(1.2);doc.line(M,y,W-M,y);y+=16;doc.setFont('helvetica','normal');doc.setTextColor(45,45,45);}
+  function kv(k,v){pageIf(18);doc.setFontSize(10.5);doc.setFont('helvetica','normal');doc.setTextColor(115,115,115);doc.text(''+k,M,y);doc.setTextColor(30,30,30);doc.setFont('helvetica','bold');doc.text(''+v,M+170,y);doc.setFont('helvetica','normal');y+=15;}
+  function para(t){doc.setFont('helvetica','normal');doc.setFontSize(10.5);doc.setTextColor(70,70,70);var ls=doc.splitTextToSize(''+t,W-2*M);pageIf(ls.length*13+4);doc.text(ls,M,y);y+=ls.length*13+5;}
+  function bullet(t){pageIf(15);doc.setFont('helvetica','normal');doc.setFontSize(10.5);doc.setTextColor(50,50,50);var ls=doc.splitTextToSize('- '+t,W-2*M-6);doc.text(ls,M+4,y);y+=ls.length*13+2;}
+  doc.setFillColor(bc[0],bc[1],bc[2]);doc.rect(0,0,W,70,'F');
+  doc.setTextColor(255,255,255);doc.setFont('helvetica','bold');doc.setFontSize(20);doc.text('Informe de evolución',M,38);
+  doc.setFont('helvetica','normal');doc.setFontSize(11);doc.text('Universal Fit'+(brandName?(' · '+brandName):''),M,56);
+  y=92;doc.setTextColor(25,25,25);doc.setFont('helvetica','bold');doc.setFontSize(16);doc.text(''+(fn(s.name)||s.name||'Alumno'),M,y);y+=18;
+  var hoy=new Date();doc.setFont('helvetica','normal');doc.setFontSize(9.5);doc.setTextColor(120,120,120);doc.text('Generado el '+hoy.toLocaleDateString('es-AR')+' por '+profe,M,y);y+=20;
+  h1('Perfil');
+  kv('Objetivo',s.objetivo||'—');kv('Nivel',s.nivel||'—');kv('Días por semana',(s.dias||'—'));kv('Edad',(s.edad||'—'));kv('Género',s.genero||'—');kv('Altura',(s.altura?s.altura+' cm':'—'));
+  var ms=(s.measures||[]);var first=ms.length?ms[0].date:((s.logs&&s.logs.length)?s.logs.map(function(l){return l.date;}).sort()[0]:null);
+  if(first){var wks=Math.max(1,Math.round((Date.now()-Date.parse(first))/(7*864e5)));kv('En el programa',wks+' semana(s)');}
+  y+=6;
+  h1('Adherencia y constancia');
+  kv('Entrenos totales',(s.logs?s.logs.length:0));kv('Racha actual',streak(s)+' semana(s)');
+  var ll=(s.logs&&s.logs.length)?s.logs.map(function(l){return l.date;}).sort().slice(-1)[0]:null;kv('Último entreno',ll?fmt(ll):'—');
+  var wkl=weekly(s);kv('Entrenos por semana (últ. 4)',wkl.map(function(w){return w.c;}).join('  '));
+  pageIf(76);var bw=(W-2*M)/4,maxc=Math.max(1,Math.max.apply(null,wkl.map(function(w){return w.c;}))),baseY=y+48;
+  wkl.forEach(function(w,i){var bh=Math.round(w.c/maxc*38);doc.setFillColor(bc[0],bc[1],bc[2]);doc.rect(M+i*bw+bw*0.28,baseY-bh,bw*0.44,bh,'F');doc.setFontSize(8);doc.setTextColor(120,120,120);doc.text(''+w.k,M+i*bw+bw*0.36,baseY+12);doc.text(''+w.c,M+i*bw+bw*0.45,baseY-bh-3);});
+  y=baseY+26;
+  h1('Evolución corporal');
+  if(ms.length){var m0=ms[0],m1=ms[ms.length-1];para('Primera medición: '+fmt(m0.date)+'  ·  Última: '+fmt(m1.date)+'.');
+   measFields().forEach(function(f){var a=+m0[f[0]]||0,b=+m1[f[0]]||0;if(!a&&!b)return;var d=b-a;kv(f[1],(a||'—')+' -> '+(b||'—')+' '+f[2]+'  ('+(d>=0?'+':'')+d.toFixed(1)+')');});
+  }else{para('Todavía no hay mediciones cargadas.');}
+  y+=6;
+  h1('Progreso de fuerza (cargas)');
+  var rt=routineOf(s);var exs=(typeof allEx==='function'&&rt)?allEx(rt):[];var nm={};exs.forEach(function(e){nm[e.id]=e.name;});
+  var seen={};(s.logs||[]).forEach(function(l){(l.entries||[]).forEach(function(e){seen[e.exerciseId]=1;});});
+  var rows=[];Object.keys(seen).forEach(function(x){var p=progress(s,x);if(p.length){rows.push({name:nm[x]||'Ejercicio',f:p[0].kg,l:p[p.length-1].kg,d:p[p.length-1].kg-p[0].kg});}});
+  rows.sort(function(a,b){return b.d-a.d;});
+  if(rows.length){rows.slice(0,10).forEach(function(r){kv(r.name,r.f+' -> '+r.l+' kg  ('+(r.d>=0?'+':'')+r.d+' kg)');});}else{para('Todavía no hay cargas registradas para medir progreso.');}
+  y+=6;
+  var cks=(s.checkins||[]);if(cks.length){h1('Check-ins semanales');cks.slice(-6).reverse().forEach(function(c){para(fmt(c.date)+(c.feel?(' · '+c.feel):'')+(c.peso?(' · '+c.peso+' kg'):'')+(c.nota?('  "'+c.nota+'"'):''));});}
+  var habs=(s.habits||[]);if(habs.length){h1('Hábitos');para(habs.map(function(h){return h.name;}).join('  ·  '));}
+  h1('Beneficios y logros');
+  bullet((s.logs?s.logs.length:0)+' entrenamientos completados.');
+  if(streak(s)>=1)bullet(streak(s)+' semana(s) seguidas de constancia.');
+  if(ms.length>=2){var p0=+ms[0].peso||0,p1=+ms[ms.length-1].peso||0;if(p0&&p1&&p0!==p1)bullet('Peso: '+p0+' -> '+p1+' kg ('+((p1-p0)>=0?'+':'')+(p1-p0).toFixed(1)+' kg).');var c0=+ms[0].cintura||0,c1=+ms[ms.length-1].cintura||0;if(c0&&c1&&c0!==c1)bullet('Cintura: '+c0+' -> '+c1+' cm ('+((c1-c0)>=0?'+':'')+(c1-c0).toFixed(1)+' cm).');}
+  if(rows[0]&&rows[0].d>0)bullet('Mayor progreso de fuerza: '+rows[0].name+' +'+rows[0].d+' kg.');
+  var ph=(s.photos||[]);if(ph.length){h1('Fotos de progreso');var d0=await pdfImgData(ph[0].url);var d1=ph.length>1?await pdfImgData(ph[ph.length-1].url):null;pageIf(190);var iw=(W-2*M-16)/2;function fmtOf(dd){return (''+dd).indexOf('data:image/png')===0?'PNG':'JPEG';}
+   if(d0){try{doc.addImage(d0,fmtOf(d0),M,y,iw,160);doc.setFontSize(9);doc.setTextColor(120,120,120);doc.text('Inicio · '+fmt(ph[0].date),M,y+172);}catch(e){}}
+   if(d1){try{doc.addImage(d1,fmtOf(d1),M+iw+16,y,iw,160);doc.setFontSize(9);doc.setTextColor(120,120,120);doc.text('Actual · '+fmt(ph[ph.length-1].date),M+iw+16,y+172);}catch(e){}}
+   y+=186;}
+  doc.setFontSize(8.5);doc.setTextColor(150,150,150);doc.text('Generado con Universal Fit · universalfit.com.ar',M,H-24);
+  var fname='Informe_'+(''+(fn(s.name)||'alumno')).replace(/[^a-zA-Z0-9]/g,'_')+'_'+hoy.toISOString().slice(0,10)+'.pdf';
+  try{var blob=doc.output('blob');var file=new File([blob],fname,{type:'application/pdf'});if(navigator.canShare&&navigator.canShare({files:[file]})){await navigator.share({files:[file],title:'Informe de evolución',text:'Evolución de '+(fn(s.name)||'')+' en Universal Fit'});toast('📄 Informe compartido');}else{doc.save(fname);toast('📄 Informe descargado');}}catch(e){try{doc.save(fname);toast('📄 Informe descargado');}catch(e2){}}
+  logEvent('action','pdf_report',{sid:id});
+ }catch(e){toast('No pude generar el PDF: '+((e&&e.message)||e));}
 }
 const UF_TPLS=[
  {id:'uf01',name:'Iniciación total (full body)',sexo:'Cualquiera',nivel:'Novato',edadMin:16,edadMax:99,dias:2,objetivo:'Salud general',desc:'Dos días full body para crear el hábito sin saturar.'},
@@ -764,7 +829,7 @@ function dirFoto(t,size){const st=`width:${size}px;height:${size}px;border-radiu
 function stars(r){if(r==null)return '<span class="pill g">Nuevo</span>';return `<span style="color:#ff9600;font-weight:800">★ ${r}</span>`;}
 
 /* ---- Código de equipo del PT ---- */
-const UF_VERSION='v2.15.0';
+const UF_VERSION='v2.16.0';
 const APP_URL=(function(){try{return (location.origin&&location.origin.indexOf('http')===0)?(location.origin+location.pathname):'https://dano-gpt.github.io/universal-fit/v2/';}catch(e){return 'https://dano-gpt.github.io/universal-fit/v2/';}})();
 function inviteUrl(code){return APP_URL+'?code='+encodeURIComponent(code);}
 function teamCode(){if(!S.trainer)return null;if(!S.trainer.code){S.trainer.code=('UF'+Math.random().toString(36).replace(/[^a-z0-9]/g,'').slice(0,4)).toUpperCase();save();}return S.trainer.code;}
@@ -1089,7 +1154,7 @@ async function finishObAlNewCloud(){const d=S.ui.ob.d;let gUser=null;
  if(!ok){toast('Cuenta creada pero no pude cargar tus datos — probá entrar de nuevo.');return;}
  S.ui.ob=null;S.ui.view='al_home';save();toast('¡Solicitud enviada a '+fn(t.name)+'! 📨');render();}
 async function obGoogleAl(){try{if(!sb){toast('Necesitás conexión para usar Google');return;}S.ui.ob.d.oauthWait=true;save();await sb.auth.signInWithOAuth({provider:'google',options:{redirectTo:APP_URL}});}catch(e){toast('No pude iniciar Google: '+((e&&e.message)||e));}}
-const APP_VER='v2.15.0';
+const APP_VER='v2.16.0';
 function _who(){try{if(typeof ADMIN!=='undefined'&&ADMIN&&ADMIN.otp)return{role:'admin',uid:'admin'};const r=(typeof S!=='undefined'&&S&&S.ui&&S.ui.role)||'anon';let uid=null;if(r==='pt'){uid=(typeof CLOUD!=='undefined'&&CLOUD&&CLOUD.uid)||((S.trainer&&S.trainer.code)||'pt');}else if(r==='al'){const m=(typeof me==='function')&&me();uid=(m&&m.id)||null;}return{role:r,uid:uid};}catch(e){return{role:'anon',uid:null};}}
 function logEvent(cat,name,meta){try{if(typeof sb==='undefined'||!sb)return;const w=_who();sb.rpc('v1_log_event',{p_cat:cat,p_name:name,p_uid:w.uid,p_role:w.role,p_view:(typeof S!=='undefined'&&S&&S.ui&&S.ui.view)||null,p_ver:APP_VER,p_meta:meta||null,p_ua:(navigator.userAgent||'').slice(0,180)}).then(function(){},function(){});}catch(e){}}
 window.addEventListener('error',function(e){logEvent('error','js_error',{msg:((e&&e.message)||'')+'',src:((e&&e.filename)||'').slice(0,120),line:(e&&e.lineno)||0});});
