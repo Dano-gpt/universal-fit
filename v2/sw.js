@@ -1,5 +1,5 @@
 /* Universal Fit — service worker (network-first para no quedar pegado con archivos viejos) */
-const CACHE = 'uf-shell-v3';
+const CACHE = 'uf-shell-v4';
 const SHELL = ['./', './index.html', './manifest.json', './icon-192.png', './icon-512.png'];
 self.addEventListener('install', (e) => {
   self.skipWaiting();
@@ -24,4 +24,28 @@ self.addEventListener('fetch', (e) => {
       return r;
     }).catch(() => caches.match(req).then((m) => m || caches.match('./index.html')))
   );
+});
+/* ---- Web Push ---- */
+self.addEventListener('push', (e) => {
+  let d = {};
+  try { d = e.data ? e.data.json() : {}; } catch (_) { d = { body: (e.data && e.data.text && e.data.text()) || '' }; }
+  const title = d.title || 'Universal Fit';
+  const opts = {
+    body: d.body || '',
+    icon: './icon-192.png',
+    badge: './icon-192.png',
+    tag: d.tag || 'uf',
+    renotify: true,
+    data: { url: d.url || './' }
+  };
+  e.waitUntil(self.registration.showNotification(title, opts));
+});
+self.addEventListener('notificationclick', (e) => {
+  e.notification.close();
+  const target = (e.notification.data && e.notification.data.url) || './';
+  e.waitUntil((async () => {
+    const all = await self.clients.matchAll({ type: 'window', includeUncontrolled: true });
+    for (const c of all) { try { await c.focus(); return; } catch (_) {} }
+    if (self.clients.openWindow) return self.clients.openWindow(target);
+  })());
 });
