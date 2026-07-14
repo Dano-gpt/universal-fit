@@ -4,7 +4,28 @@
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
 <meta name="theme-color" content="#58cc02"/>
-<title>Universal Fit — MVP</title>
+<title>Universal Fit — App para entrenadores: rutinas, seguimiento y progreso de tus alumnos</title>
+<meta name="description" content="Universal Fit es la app del entrenador personal independiente: armá rutinas en minutos, seguí el progreso y la adherencia de cada alumno y mantenelos motivados para que no abandonen. Gratis para empezar."/>
+<link rel="canonical" href="https://universalfit.com.ar/v2/"/>
+<meta name="robots" content="index,follow,max-image-preview:large,max-snippet:-1"/>
+<meta name="author" content="Universal Fit"/>
+<meta name="keywords" content="app para entrenadores, entrenador personal, rutinas de entrenamiento, seguimiento de alumnos, software para personal trainer, gestión de rutinas, fitness Argentina"/>
+<meta property="og:type" content="website"/>
+<meta property="og:site_name" content="Universal Fit"/>
+<meta property="og:locale" content="es_AR"/>
+<meta property="og:title" content="Universal Fit — Rutinas y seguimiento para entrenadores y alumnos"/>
+<meta property="og:description" content="Armá rutinas en minutos y seguí el progreso de cada alumno. La app del entrenador personal independiente. Gratis para empezar."/>
+<meta property="og:url" content="https://universalfit.com.ar/v2/"/>
+<meta property="og:image" content="https://universalfit.com.ar/og-image.png"/>
+<meta property="og:image:width" content="1200"/>
+<meta property="og:image:height" content="630"/>
+<meta name="twitter:card" content="summary_large_image"/>
+<meta name="twitter:title" content="Universal Fit — Rutinas y seguimiento para entrenadores"/>
+<meta name="twitter:description" content="Armá rutinas en minutos y seguí el progreso de cada alumno. Gratis para empezar."/>
+<meta name="twitter:image" content="https://universalfit.com.ar/og-image.png"/>
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"SoftwareApplication","name":"Universal Fit","applicationCategory":"HealthApplication","operatingSystem":"Web, Android, iOS","offers":{"@type":"Offer","price":"0","priceCurrency":"ARS"},"description":"App para entrenadores personales independientes y sus alumnos: crear rutinas, seguir el progreso y la adherencia, y sostener el hábito de entrenamiento.","inLanguage":"es-AR","url":"https://universalfit.com.ar/","author":{"@type":"Organization","name":"Universal Fit","url":"https://universalfit.com.ar/"}}</script>
+<!-- Google Analytics 4 (se activa al reemplazar GA_ID por tu Measurement ID G-XXXX) -->
+<script>window.GA_ID='G-XXXXXXXXXX';(function(){try{if(!GA_ID||GA_ID.indexOf('XXXX')>=0)return;var s=document.createElement('script');s.async=1;s.src='https://www.googletagmanager.com/gtag/js?id='+GA_ID;document.head.appendChild(s);window.dataLayer=window.dataLayer||[];window.gtag=function(){dataLayer.push(arguments);};gtag('js',new Date());gtag('config',GA_ID);}catch(e){}})();</script>
 <!-- PWA / instalar como app -->
 <link rel="manifest" href="manifest.json"/>
 <link rel="apple-touch-icon" href="apple-touch-icon.png"/>
@@ -1194,10 +1215,15 @@ async function finishObAlNewCloud(){const d=S.ui.ob.d;let gUser=null;
 async function obGoogleAl(){try{if(!sb){toast('Necesitás conexión para usar Google');return;}S.ui.ob.d.oauthWait=true;save();await sb.auth.signInWithOAuth({provider:'google',options:{redirectTo:APP_URL}});}catch(e){toast('No pude iniciar Google: '+((e&&e.message)||e));}}
 const APP_VER='v2.23.0';
 function _who(){try{if(typeof ADMIN!=='undefined'&&ADMIN&&ADMIN.otp)return{role:'admin',uid:'admin'};const r=(typeof S!=='undefined'&&S&&S.ui&&S.ui.role)||'anon';let uid=null;if(r==='pt'){uid=(typeof CLOUD!=='undefined'&&CLOUD&&CLOUD.uid)||((S.trainer&&S.trainer.code)||'pt');}else if(r==='al'){const m=(typeof me==='function')&&me();uid=(m&&m.id)||null;}return{role:r,uid:uid};}catch(e){return{role:'anon',uid:null};}}
-function logEvent(cat,name,meta){try{if(typeof sb==='undefined'||!sb)return;const w=_who();sb.rpc('v1_log_event',{p_cat:cat,p_name:name,p_uid:w.uid,p_role:w.role,p_view:(typeof S!=='undefined'&&S&&S.ui&&S.ui.view)||null,p_ver:APP_VER,p_meta:meta||null,p_ua:(navigator.userAgent||'').slice(0,180)}).then(function(){},function(){});}catch(e){}}
+/* ---- v2.24.0: visitante único + fuente de tráfico (alimenta el Tablero → Alcance) ---- */
+var _VID=null,_VNEW=false,_VSRC='directo';
+(function _initVid(){try{var LS=window.localStorage;var v=LS.getItem('uf_vid');if(!v){v='v'+Date.now().toString(36)+Math.random().toString(36).slice(2,8);LS.setItem('uf_vid',v);LS.setItem('uf_vid_first',new Date().toISOString());_VNEW=true;}_VID=v;}catch(e){_VID='t'+Math.random().toString(36).slice(2,9);_VNEW=true;}})();
+function _classSrc(host,us,um,hasCode){host=(host||'').toLowerCase();us=(us||'').toLowerCase();um=(um||'').toLowerCase();if(um==='cpc'||/paid|ppc|ads/.test(um))return 'pago';if(us){if(/insta|face|tiktok|twitter|linkedin|youtube|whats/.test(us))return 'redes';if(/google|bing|duck|yahoo/.test(us))return 'organico';return 'campaña';}if(!host)return hasCode?'invitacion':'directo';if(/google\.|bing\.|duckduckgo|yahoo|ecosia|brave|qwant|search\./.test(host))return 'organico';if(/instagram|facebook|fb\.|t\.co|twitter|x\.com|tiktok|linkedin|youtube|whats|wa\.me/.test(host))return 'redes';return 'referido';}
+function _visitMeta(){var m={vid:_VID,new:_VNEW};try{var u=new URL(location.href);['utm_source','utm_medium','utm_campaign'].forEach(function(k){var v=u.searchParams.get(k);if(v)m[k]=(''+v).slice(0,60);});m.path=(location.pathname||'/').slice(0,60);var ref=document.referrer||'',rh='';try{rh=ref?new URL(ref).hostname.replace(/^www\./,''):'';}catch(e){}m.ref=rh.slice(0,80);m.src=_classSrc(rh,m.utm_source,m.utm_medium,u.searchParams.get('code'));_VSRC=m.src;m.dev=(/Mobi|Android|iPhone|iPad/i.test(navigator.userAgent)||((screen.width||999)<768))?'mobile':'desktop';}catch(e){}return m;}
+function logEvent(cat,name,meta){try{if(typeof sb==='undefined'||!sb)return;const w=_who();var mm=(meta&&typeof meta==='object')?meta:(meta!=null?{v:meta}:{});try{if(_VID&&!mm.vid)mm=Object.assign({vid:_VID},mm);}catch(e){}sb.rpc('v1_log_event',{p_cat:cat,p_name:name,p_uid:w.uid,p_role:w.role,p_view:(typeof S!=='undefined'&&S&&S.ui&&S.ui.view)||null,p_ver:APP_VER,p_meta:mm,p_ua:(navigator.userAgent||'').slice(0,180)}).then(function(){},function(){});}catch(e){}}
 window.addEventListener('error',function(e){logEvent('error','js_error',{msg:((e&&e.message)||'')+'',src:((e&&e.filename)||'').slice(0,120),line:(e&&e.lineno)||0});});
 window.addEventListener('unhandledrejection',function(e){logEvent('error','promise_rejection',{msg:(((e&&e.reason)&&(e.reason.message||e.reason))||'')+''.slice(0,200)});});
-(function(){var t=0;function s(){t++;if(typeof sb!=='undefined'&&sb){logEvent('usage','session_start');}else if(t<6){setTimeout(s,1500);}}setTimeout(s,1800);})();
+(function(){var t=0;function s(){t++;if(typeof sb!=='undefined'&&sb){logEvent('usage','session_start',_visitMeta());}else if(t<6){setTimeout(s,1500);}}setTimeout(s,1800);})();
 
 let AD=null,ADSEEN=false;
 function loadAd(){try{if(typeof sb==='undefined'||!sb)return;sb.rpc('v1_active_ad').then(function(r){var d=r&&r.data;AD=(d&&d.ad)||null;updateAd();},function(){});}catch(e){}}
@@ -1521,10 +1547,35 @@ function vAdminDash(){const A=ADMIN.analytics;const dd=ADMIN.dashDays||14;
  const rol=(A.por_rol||[]).map(c=>`<span class="chip" style="margin:2px 4px 2px 0">${esc(c.rol)}: ${c.n}</span>`).join('');
  const top=(A.top_acciones||[]).map(a=>`<div class="stu" style="padding:8px 12px"><div style="flex:1"><div class="name" style="font-size:13px">${esc(a.name)}</div></div><span class="pill g">${a.n}</span></div>`).join('')||'<div class="empty cap">Sin datos.</div>';
  const errs=(A.errores_recientes||[]).map(e=>`<div class="stu" style="padding:8px 12px;border-color:#5A2A2E"><div style="flex:1"><div class="name" style="font-size:12px;color:#ff98a6">${esc(e.msg||e.name||'error')}</div><div class="sub">${esc(e.view||'')} · ${esc((''+(e.ts||'')).slice(0,16).replace('T',' '))} · ${esc(e.role||'')}</div></div></div>`).join('')||'<div class="empty cap">Sin errores registrados 🎉</div>';
+ const TR=A.traffic||{};const EM=A.embudo||{};
+ const _u=TR.unicos||0,_nav=TR.navegaron||0,_reb=_u?Math.round((_u-_nav)/_u*100):0,_nuevos=TR.nuevos||0,_recur=Math.max(0,_u-_nuevos);
+ const _srcLbl=s=>({organico:'🔎 Orgánico',directo:'➡️ Directo',redes:'📱 Redes',invitacion:'🔗 Invitación',referido:'↗️ Referido',pago:'💲 Pago','campaña':'🏷️ Campaña'}[s]||('· '+(s||'?')));
+ const _srcArr=(TR.por_fuente||[]),_smax=Math.max(1,..._srcArr.map(x=>x.n));
+ const _srcHtml=_srcArr.map(x=>`<div class="row" style="padding:5px 0;gap:8px"><div style="width:104px;font-size:12px;font-weight:800">${_srcLbl(x.src)}</div><div style="flex:1;background:#20203A;border-radius:6px;overflow:hidden;height:16px"><div style="height:100%;width:${Math.round(x.n/_smax*100)}%;background:var(--blue)"></div></div><div style="width:30px;text-align:right;font-size:12px;font-weight:800">${x.n}</div></div>`).join('')||'<div class="cap">Sin visitas registradas todavía.</div>';
+ const _devHtml=(TR.por_disp||[]).map(x=>`<span class="chip" style="margin:2px 4px 2px 0">${esc(x.dev)}: ${x.n}</span>`).join('')||'<span class="cap">—</span>';
+ const _refHtml=(TR.ref_top||[]).map(x=>`<div class="row" style="padding:3px 0"><div style="flex:1;font-size:12px;word-break:break-all">${esc(x.ref)}</div><span class="pill g">${x.n}</span></div>`).join('')||'<div class="cap">Sin referrers (tráfico directo o por invitación).</div>';
+ const _vd=(TR.visitas_por_dia||[]),_vmax=Math.max(1,..._vd.map(x=>x.n));
+ const _vdBars=_vd.map(x=>`<div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;justify-content:flex-end"><div style="font-size:9px;color:var(--muted)">${x.n}</div><div style="width:64%;height:${Math.round(x.n/_vmax*80)+3}px;background:var(--green);border-radius:4px"></div><div class="cap" style="font-size:9px">${(x.dia||'').slice(5)}</div></div>`).join('')||'<div class="cap">Sin datos.</div>';
+ const _frow=(l,n,pct)=>`<div class="row" style="padding:7px 0;border-bottom:1px solid var(--line)"><div style="flex:1;font-weight:800;font-size:13px">${l}</div><div style="font-weight:900;font-size:18px">${n||0}</div>${pct!=null?`<div class="cap" style="width:52px;text-align:right">${pct}%</div>`:'<div style="width:52px"></div>'}</div>`;
+ const _vis=EM.visitantes||_u||0;
+ const trafficCards=`
+  <div class="card" style="border-color:#2C5F2D"><div class="h" style="margin:0 0 4px">🌐 Alcance y tráfico</div>
+   <div class="flex" style="gap:8px;margin:8px 0">${kpi(TR.visitas,'visitas')}${kpi(_u,'únicos')}${kpi(_nuevos,'nuevos')}${kpi(_reb+'%','rebote')}</div>
+   <div class="cap" style="margin:2px 4px 8px">Rebote = entraron y se fueron sin navegar · Nuevos/recurrentes: ${_nuevos} / ${_recur}</div>
+   <div class="h" style="margin:6px 0 4px">De dónde vienen</div>${_srcHtml}
+   <div class="h" style="margin:12px 0 4px">Visitas por día</div><div class="flex" style="align-items:flex-end;gap:3px;height:110px">${_vdBars}</div>
+   <div class="h" style="margin:12px 0 4px">Dispositivo</div><div>${_devHtml}</div>
+   <div class="h" style="margin:12px 0 4px">Sitios que nos traen tráfico</div>${_refHtml}</div>
+  <div class="card"><div class="h" style="margin:0 0 6px">🚪 Embudo: visita → registro → activo</div>
+   ${_frow('👀 Visitantes únicos',_vis,null)}
+   ${_frow('📝 Se registraron (cuenta)',EM.registrados,_vis?Math.round((EM.registrados||0)/_vis*100):0)}
+   ${_frow('💪 Activos (registran entreno)',EM.activos,_vis?Math.round((EM.activos||0)/_vis*100):0)}
+   <div class="cap" style="margin-top:6px">Entran muchos y se registran pocos → conversión. Se registran pero no quedan activos → activación.</div></div>`;
  return `<button class="back" onclick="ADMIN.view=null;render()">← Admin</button>
   <div class="row" style="align-items:center"><div class="h" style="flex:1;margin:0">📊 Tablero de uso</div><button class="btn sec sm" style="width:auto;margin:0" onclick="adminLoadDash(${dd})">🔄 Refrescar</button></div>
   <div class="cap" style="margin:6px 4px">Últimos ${dd} días · ${['7','14','30'].map(d=>`<a onclick="adminLoadDash(${d})" style="color:var(--blue);cursor:pointer;font-weight:800;margin-right:10px">${d}d</a>`).join('')}</div>
   <div class="flex" style="gap:8px;margin-bottom:10px">${kpi(t.eventos,'eventos')}${kpi(t.usuarios,'usuarios')}${kpi(t.sesiones,'sesiones')}${kpi(t.errores,'errores')}</div>
+  ${trafficCards}
   <div class="card"><div class="h" style="margin:0 0 8px">Eventos por día</div><div class="flex" style="align-items:flex-end;gap:3px;height:120px">${bars}</div></div>
   <div class="card"><div class="h" style="margin:0 0 6px">Por categoría</div><div>${cat||'<span class="cap">—</span>'}</div><div class="h" style="margin:10px 0 6px">Por rol</div><div>${rol||'<span class="cap">—</span>'}</div></div>
   <div class="card"><div class="h" style="margin:0 0 8px">Acciones/pantallas más usadas</div>${top}</div>
