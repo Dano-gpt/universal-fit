@@ -1213,7 +1213,7 @@ async function finishObAlNewCloud(){const d=S.ui.ob.d;let gUser=null;
  if(!ok){toast('Cuenta creada pero no pude cargar tus datos — probá entrar de nuevo.');return;}
  S.ui.ob=null;S.ui.view='al_home';save();toast('¡Solicitud enviada a '+fn(t.name)+'! 📨');render();}
 async function obGoogleAl(){try{if(!sb){toast('Necesitás conexión para usar Google');return;}S.ui.ob.d.oauthWait=true;save();await sb.auth.signInWithOAuth({provider:'google',options:{redirectTo:APP_URL}});}catch(e){toast('No pude iniciar Google: '+((e&&e.message)||e));}}
-const APP_VER='v2.23.0';
+const APP_VER='v2.24.0';
 function _who(){try{if(typeof ADMIN!=='undefined'&&ADMIN&&ADMIN.otp)return{role:'admin',uid:'admin'};const r=(typeof S!=='undefined'&&S&&S.ui&&S.ui.role)||'anon';let uid=null;if(r==='pt'){uid=(typeof CLOUD!=='undefined'&&CLOUD&&CLOUD.uid)||((S.trainer&&S.trainer.code)||'pt');}else if(r==='al'){const m=(typeof me==='function')&&me();uid=(m&&m.id)||null;}return{role:r,uid:uid};}catch(e){return{role:'anon',uid:null};}}
 /* ---- v2.24.0: visitante único + fuente de tráfico (alimenta el Tablero → Alcance) ---- */
 var _VID=null,_VNEW=false,_VSRC='directo';
