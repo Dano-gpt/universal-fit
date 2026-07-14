@@ -1,11 +1,188 @@
 <!DOCTYPE html>
-<html lang="es">
+<html lang="es-AR">
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>Universal Fit</title>
-<script>location.replace('./v2/'+location.search);</script>
-<meta http-equiv="refresh" content="0;url=./v2/"/>
+<title>Universal Fit — App para entrenadores personales: rutinas, seguimiento y progreso</title>
+<meta name="description" content="Universal Fit es la app del entrenador personal independiente: armá rutinas en minutos, seguí el progreso y la adherencia de cada alumno y mantenelos motivados para que no abandonen. Y para el alumno: tu plan siempre con vos y tu progreso a la vista. Gratis para empezar."/>
+<link rel="canonical" href="https://universalfit.com.ar/"/>
+<meta name="robots" content="index,follow,max-image-preview:large,max-snippet:-1"/>
+<meta name="author" content="Universal Fit"/>
+<meta name="theme-color" content="#0A0A16"/>
+<meta name="keywords" content="app para entrenadores, entrenador personal, personal trainer, rutinas de entrenamiento, seguimiento de alumnos, software para entrenadores, gestión de rutinas, adherencia, fitness Argentina, Parque Leloir, zona oeste"/>
+<link rel="icon" type="image/png" href="/v2/icon-192.png"/>
+<link rel="apple-touch-icon" href="/v2/apple-touch-icon.png"/>
+<!-- Open Graph -->
+<meta property="og:type" content="website"/>
+<meta property="og:site_name" content="Universal Fit"/>
+<meta property="og:locale" content="es_AR"/>
+<meta property="og:title" content="Universal Fit — Rutinas y seguimiento para entrenadores y alumnos"/>
+<meta property="og:description" content="Armá rutinas en minutos y seguí el progreso de cada alumno. La app del entrenador personal independiente. Gratis para empezar."/>
+<meta property="og:url" content="https://universalfit.com.ar/"/>
+<meta property="og:image" content="https://universalfit.com.ar/og-image.png"/>
+<meta property="og:image:width" content="1200"/>
+<meta property="og:image:height" content="630"/>
+<meta name="twitter:card" content="summary_large_image"/>
+<meta name="twitter:title" content="Universal Fit — Rutinas y seguimiento para entrenadores"/>
+<meta name="twitter:description" content="Armá rutinas en minutos y seguí el progreso de cada alumno. Gratis para empezar."/>
+<meta name="twitter:image" content="https://universalfit.com.ar/og-image.png"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet"/>
+<!-- Datos estructurados (buscadores + motores de IA) -->
+<script type="application/ld+json">
+{"@context":"https://schema.org","@graph":[
+{"@type":"Organization","@id":"https://universalfit.com.ar/#org","name":"Universal Fit","url":"https://universalfit.com.ar/","logo":"https://universalfit.com.ar/v2/icon-512.png","description":"Plataforma que conecta a entrenadores personales con sus alumnos y les da las herramientas para crear rutinas, seguir el progreso y sostener la adherencia.","areaServed":"AR"},
+{"@type":"WebSite","@id":"https://universalfit.com.ar/#web","url":"https://universalfit.com.ar/","name":"Universal Fit","inLanguage":"es-AR","publisher":{"@id":"https://universalfit.com.ar/#org"}},
+{"@type":"SoftwareApplication","name":"Universal Fit","operatingSystem":"Web, Android, iOS","applicationCategory":"HealthApplication","offers":{"@type":"Offer","price":"0","priceCurrency":"ARS"},"description":"App para entrenadores personales independientes y sus alumnos: crear rutinas en minutos, seguir el progreso y la adherencia, y sostener el hábito de entrenamiento.","inLanguage":"es-AR","url":"https://universalfit.com.ar/"},
+{"@type":"FAQPage","mainEntity":[
+{"@type":"Question","name":"¿Qué es Universal Fit?","acceptedAnswer":{"@type":"Answer","text":"Es la app del entrenador personal independiente: te permite armar rutinas en minutos, seguir el progreso y la adherencia de cada alumno y mantenerlos motivados para que no abandonen. El alumno tiene su plan siempre a mano y ve su evolución."}},
+{"@type":"Question","name":"¿Cuánto cuesta?","acceptedAnswer":{"@type":"Answer","text":"Es gratis para empezar. El entrenador puede sumar a sus alumnos y usar todas las funciones de rutinas y seguimiento sin costo inicial."}},
+{"@type":"Question","name":"¿Necesito instalar algo?","acceptedAnswer":{"@type":"Answer","text":"No. Universal Fit funciona desde el navegador del celular o la computadora, y se puede instalar como app (PWA) en la pantalla de inicio del teléfono."}},
+{"@type":"Question","name":"¿Sirve para entrenadores que trabajan por su cuenta?","acceptedAnswer":{"@type":"Answer","text":"Sí. Está pensado justamente para el entrenador independiente que hoy arma rutinas en Excel o WhatsApp y quiere tener a sus alumnos, rutinas y progreso organizados en un solo lugar."}},
+{"@type":"Question","name":"¿El alumno cómo se suma?","acceptedAnswer":{"@type":"Answer","text":"El entrenador le comparte un link de invitación. El alumno lo abre, confirma su ingreso y ya tiene su rutina y su seguimiento asociados a su entrenador."}}
+]}]}
+</script>
+<!-- Google Analytics 4 (se activa al reemplazar GA_ID por tu Measurement ID G-XXXX) -->
+<script>window.GA_ID='G-XXXXXXXXXX';(function(){try{if(!GA_ID||GA_ID.indexOf('XXXX')>=0)return;var s=document.createElement('script');s.async=1;s.src='https://www.googletagmanager.com/gtag/js?id='+GA_ID;document.head.appendChild(s);window.dataLayer=window.dataLayer||[];window.gtag=function(){dataLayer.push(arguments);};gtag('js',new Date());gtag('config',GA_ID);}catch(e){}})();</script>
+<style>
+:root{--bg:#0A0A16;--card:#151528;--ink:#ECEBFF;--muted:#8A88B8;--line:#2A2A4D;--green:#9EFF3D;--green2:#6EE23A;--violet:#B98CFF;--hero:#2A1145;}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+html,body{margin:0;padding:0;font-family:'Nunito',-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;background:var(--bg);color:var(--ink);line-height:1.55;}
+a{color:inherit;text-decoration:none;}
+.wrap{max-width:1040px;margin:0 auto;padding:0 20px;}
+header{position:sticky;top:0;z-index:20;background:rgba(10,10,22,.85);backdrop-filter:blur(10px);border-bottom:1px solid var(--line);}
+.nav{display:flex;align-items:center;justify-content:space-between;height:62px;}
+.logo{display:flex;align-items:center;gap:10px;font-weight:900;font-size:20px;}
+.logo .mk{width:30px;height:30px;border-radius:9px;background:var(--green);display:flex;align-items:center;justify-content:center;color:#0A0A16;font-weight:900;font-size:17px;}
+.btn{display:inline-block;background:var(--green);color:#0A0A16;font-weight:900;padding:12px 20px;border-radius:14px;font-size:15px;border:none;cursor:pointer;box-shadow:0 4px 0 rgba(0,0,0,.35);transition:transform .06s,box-shadow .06s;}
+.btn:active{transform:translateY(3px);box-shadow:0 1px 0 rgba(0,0,0,.35);}
+.btn.sec{background:transparent;color:var(--ink);border:2px solid var(--line);box-shadow:none;}
+.btn.sm{padding:9px 15px;font-size:14px;}
+section{padding:64px 0;}
+.hero{text-align:center;background:radial-gradient(1200px 500px at 50% -10%,rgba(158,255,61,.14),transparent 60%),radial-gradient(900px 500px at 50% 0%,rgba(185,140,255,.12),transparent 55%);}
+h1{font-size:clamp(30px,6vw,52px);font-weight:900;line-height:1.08;margin:0 0 18px;letter-spacing:-.5px;}
+h1 .hl{color:var(--green);}
+.sub{font-size:clamp(16px,2.4vw,20px);color:var(--muted);max-width:620px;margin:0 auto 28px;font-weight:600;}
+.cta-row{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;}
+.eyebrow{display:inline-block;font-size:12px;font-weight:900;letter-spacing:1.2px;text-transform:uppercase;color:var(--green2);background:rgba(158,255,61,.1);border:1px solid rgba(158,255,61,.25);padding:6px 12px;border-radius:20px;margin-bottom:14px;}
+h2{font-size:clamp(24px,4vw,36px);font-weight:900;margin:0 0 10px;letter-spacing:-.3px;}
+.lead{color:var(--muted);font-size:17px;font-weight:600;margin:0 0 34px;max-width:640px;}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:16px;}
+.feat{background:var(--card);border:2px solid var(--line);border-bottom-width:4px;border-radius:18px;padding:22px;}
+.feat .ic{font-size:30px;margin-bottom:10px;}
+.feat h3{margin:0 0 6px;font-size:18px;font-weight:900;}
+.feat p{margin:0;color:var(--muted);font-weight:600;font-size:15px;}
+.split{display:grid;grid-template-columns:1fr 1fr;gap:40px;align-items:center;}
+@media(max-width:760px){.split{grid-template-columns:1fr;gap:24px;}section{padding:48px 0;}}
+.steps{counter-reset:s;display:grid;gap:14px;}
+.step{display:flex;gap:16px;align-items:flex-start;background:var(--card);border:2px solid var(--line);border-radius:16px;padding:18px;}
+.step .n{counter-increment:s;flex:none;width:38px;height:38px;border-radius:11px;background:var(--green);color:#0A0A16;font-weight:900;display:flex;align-items:center;justify-content:center;font-size:18px;}
+.step .n::before{content:counter(s);}
+.step h3{margin:0 0 3px;font-size:17px;font-weight:900;}
+.step p{margin:0;color:var(--muted);font-weight:600;font-size:15px;}
+.faq details{background:var(--card);border:2px solid var(--line);border-radius:14px;padding:4px 18px;margin-bottom:10px;}
+.faq summary{cursor:pointer;font-weight:800;font-size:16px;padding:14px 0;list-style:none;}
+.faq summary::-webkit-details-marker{display:none;}
+.faq summary::after{content:'+';float:right;color:var(--green2);font-weight:900;}
+.faq details[open] summary::after{content:'–';}
+.faq p{margin:0 0 14px;color:var(--muted);font-weight:600;}
+.final{text-align:center;background:linear-gradient(180deg,rgba(158,255,61,.06),transparent);border-top:1px solid var(--line);border-bottom:1px solid var(--line);}
+footer{padding:34px 0;color:var(--muted);font-size:14px;font-weight:600;}
+.footlinks{display:flex;gap:18px;flex-wrap:wrap;margin-top:8px;}
+.badge{display:inline-flex;align-items:center;gap:7px;color:var(--muted);font-weight:700;font-size:14px;margin-top:16px;}
+</style>
 </head>
-<body style="font-family:sans-serif;text-align:center;padding:40px">Redirigiendo a <a href="./v2/">Universal Fit</a>…</body>
+<body>
+<header><div class="wrap nav">
+  <a class="logo" href="/"><span class="mk">U</span> Universal Fit</a>
+  <a class="btn sm" href="/v2/">Entrar a la app →</a>
+</div></header>
+
+<section class="hero"><div class="wrap">
+  <span class="eyebrow">Para entrenadores personales</span>
+  <h1>El sistema de trabajo del <span class="hl">entrenador personal</span></h1>
+  <p class="sub">Armá rutinas en minutos, seguí el progreso y la adherencia de cada alumno, y mantenelos motivados para que no abandonen. Todo en un solo lugar.</p>
+  <div class="cta-row">
+    <a class="btn" href="/v2/">Soy entrenador — empezar gratis</a>
+    <a class="btn sec" href="/v2/">Soy alumno</a>
+  </div>
+  <div class="badge">✅ Gratis para empezar · 📲 Funciona desde el celular · ⚡ Sin instalar nada</div>
+</div></section>
+
+<section><div class="wrap">
+  <span class="eyebrow">Para entrenadores</span>
+  <h2>Dejá el Excel y el WhatsApp</h2>
+  <p class="lead">Tus alumnos, sus rutinas y su evolución organizados y siempre a mano. Te sirve desde el día uno, aunque arranques con un solo alumno.</p>
+  <div class="grid">
+    <div class="feat"><div class="ic">📋</div><h3>Rutinas en minutos</h3><p>Creá y editá planes por día con ejercicios, series, repeticiones y tu propio video de técnica. Copiá y reutilizá rutinas.</p></div>
+    <div class="feat"><div class="ic">📈</div><h3>Progreso y adherencia</h3><p>Mirá quién entrena y quién afloja. Records personales, medidas y evolución de cada alumno de un vistazo.</p></div>
+    <div class="feat"><div class="ic">👥</div><h3>Tus alumnos, ordenados</h3><p>Sumalos con un link de invitación. Cada uno con su ficha, su historial y su seguimiento.</p></div>
+    <div class="feat"><div class="ic">🎨</div><h3>Tu marca</h3><p>La app puede llevar tu nombre y tu color. Tus alumnos entrenan con tu identidad, no con la de un gimnasio.</p></div>
+  </div>
+</div></section>
+
+<section><div class="wrap">
+  <span class="eyebrow">Para alumnos</span>
+  <h2>Tu plan siempre con vos</h2>
+  <p class="lead">Entrená con claridad y mirá cómo progresás. Tu entrenador te acompaña aunque no esté al lado tuyo.</p>
+  <div class="grid">
+    <div class="feat"><div class="ic">💪</div><h3>Tu rutina, siempre a mano</h3><p>Abrí la app y sabé exactamente qué toca hoy, con la guía de cada ejercicio.</p></div>
+    <div class="feat"><div class="ic">✅</div><h3>Registrá cada entreno</h3><p>Anotá tus series y pesos en segundos. Tu profe lo ve y te ajusta el plan.</p></div>
+    <div class="feat"><div class="ic">🏆</div><h3>Mirá tu evolución</h3><p>Records personales, medidas y gráficos que te muestran lo lejos que llegaste.</p></div>
+  </div>
+</div></section>
+
+<section><div class="wrap">
+  <span class="eyebrow">Cómo funciona</span>
+  <h2>Arrancás en 3 pasos</h2>
+  <div class="steps" style="margin-top:24px">
+    <div class="step"><div class="n"></div><div><h3>Creá tu cuenta de entrenador</h3><p>Gratis, en un minuto. Con email o con Google.</p></div></div>
+    <div class="step"><div class="n"></div><div><h3>Sumá a tus alumnos</h3><p>Compartí tu link de invitación por WhatsApp. El alumno confirma y ya está adentro.</p></div></div>
+    <div class="step"><div class="n"></div><div><h3>Armá sus rutinas y seguí el progreso</h3><p>Cargá el plan, mirá quién entrena y ajustá sobre la marcha.</p></div></div>
+  </div>
+</div></section>
+
+<section class="faq"><div class="wrap" style="max-width:760px">
+  <span class="eyebrow">Preguntas frecuentes</span>
+  <h2>Lo que solés preguntar</h2>
+  <div style="margin-top:24px">
+    <details open><summary>¿Qué es Universal Fit?</summary><p>Es la app del entrenador personal independiente: armás rutinas en minutos, seguís el progreso y la adherencia de cada alumno y los mantenés motivados para que no abandonen. El alumno tiene su plan siempre a mano y ve su evolución.</p></details>
+    <details><summary>¿Cuánto cuesta?</summary><p>Es gratis para empezar. Sumás a tus alumnos y usás las funciones de rutinas y seguimiento sin costo inicial.</p></details>
+    <details><summary>¿Necesito instalar algo?</summary><p>No. Funciona desde el navegador del celular o la computadora, y se puede instalar como app en la pantalla de inicio del teléfono.</p></details>
+    <details><summary>¿Sirve para entrenadores que trabajan por su cuenta?</summary><p>Sí. Está pensado justamente para el entrenador independiente que hoy usa Excel o WhatsApp y quiere tener a sus alumnos, rutinas y progreso en un solo lugar.</p></details>
+    <details><summary>¿El alumno cómo se suma?</summary><p>Le compartís un link de invitación. Lo abre, confirma su ingreso y ya tiene su rutina y su seguimiento asociados a vos.</p></details>
+  </div>
+</div></section>
+
+<section class="final"><div class="wrap">
+  <h2>Empezá hoy, gratis</h2>
+  <p class="lead" style="margin:10px auto 26px">Tu primer alumno organizado en menos de lo que tardás en armar una rutina en Excel.</p>
+  <div class="cta-row"><a class="btn" href="/v2/">Crear mi cuenta de entrenador</a></div>
+</div></section>
+
+<footer><div class="wrap">
+  <div class="logo" style="font-size:17px"><span class="mk" style="width:26px;height:26px;font-size:15px">U</span> Universal Fit</div>
+  <div style="margin-top:8px">La app del entrenador personal independiente. Hecho en Argentina 🇦🇷</div>
+  <div class="footlinks"><a href="/v2/">Entrar a la app</a><a href="/#faq">Preguntas frecuentes</a></div>
+  <div style="margin-top:14px;opacity:.6">© <span id="yr"></span> Universal Fit</div>
+</div></footer>
+
+<script>
+document.getElementById('yr').textContent=new Date().getFullYear();
+/* Reenvío de links de invitación viejos que caían en la raíz (?code=...) */
+(function(){try{var q=new URLSearchParams(location.search);var code=q.get('code');if(code){location.replace('/v2/?code='+encodeURIComponent(code));}}catch(e){}})();
+/* Medición de visitas: alimenta el mismo Tablero → Alcance del panel admin */
+(function(){try{
+  var SB_URL='https://vrtahknnofapgwuhaslq.supabase.co';
+  var SB_KEY='sb_publishable_WX7qAiNjLW5K9-k6pQUgaw_MwS6CXDX';
+  var VID=null,VNEW=false;
+  try{var LS=localStorage;VID=LS.getItem('uf_vid');if(!VID){VID='v'+Date.now().toString(36)+Math.random().toString(36).slice(2,8);LS.setItem('uf_vid',VID);LS.setItem('uf_vid_first',new Date().toISOString());VNEW=true;}}catch(e){VID='t'+Math.random().toString(36).slice(2,9);VNEW=true;}
+  function cls(host,us,um,hasCode){host=(host||'').toLowerCase();us=(us||'').toLowerCase();um=(um||'').toLowerCase();if(um==='cpc'||/paid|ppc|ads/.test(um))return 'pago';if(us){if(/insta|face|tiktok|twitter|linkedin|youtube|whats/.test(us))return 'redes';if(/google|bing|duck|yahoo/.test(us))return 'organico';return 'campaña';}if(!host)return hasCode?'invitacion':'directo';if(/google\.|bing\.|duckduckgo|yahoo|ecosia|brave|qwant|search\./.test(host))return 'organico';if(/instagram|facebook|fb\.|t\.co|twitter|x\.com|tiktok|linkedin|youtube|whats|wa\.me/.test(host))return 'redes';return 'referido';}
+  function meta(){var m={vid:VID,new:VNEW};try{var u=new URL(location.href);['utm_source','utm_medium','utm_campaign'].forEach(function(k){var v=u.searchParams.get(k);if(v)m[k]=(''+v).slice(0,60);});m.path=(location.pathname||'/').slice(0,60);var ref=document.referrer||'',rh='';try{rh=ref?new URL(ref).hostname.replace(/^www\./,''):'';}catch(e){}m.ref=rh.slice(0,80);m.src=cls(rh,m.utm_source,m.utm_medium,u.searchParams.get('code'));m.dev=(/Mobi|Android|iPhone|iPad/i.test(navigator.userAgent)||((screen.width||999)<768))?'mobile':'desktop';m.lp='landing';}catch(e){}return m;}
+  var s=document.createElement('script');s.src='https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js';s.crossOrigin='anonymous';
+  s.onload=function(){try{var sb=window.supabase.createClient(SB_URL,SB_KEY);sb.rpc('v1_log_event',{p_cat:'usage',p_name:'session_start',p_uid:null,p_role:'anon',p_view:'landing',p_ver:'landing',p_meta:meta(),p_ua:(navigator.userAgent||'').slice(0,180)}).then(function(){},function(){});}catch(e){}};
+  document.head.appendChild(s);
+}catch(e){}})();
+</script>
+</body>
 </html>
