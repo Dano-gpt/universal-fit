@@ -432,7 +432,7 @@ function vPtStudent(){
   <div class="card"><div class="h" style="margin:0 0 8px">Últimos registros</div>${logs.length?logs.map(l=>`<div class="row" style="padding:6px 0;border-bottom:1px solid var(--line)"><span>${fmt(l.date)}${l.feel?' · se sintió '+l.feel:''}</span><span class="cap">${l.entries.length} ejercicio(s)</span></div>`).join(''):'<div class="cap">Sin registros aún.</div>'}</div>
   <div class="card"><div class="h" style="margin:0 0 6px">🔒 Notas privadas de ${esc(fn(s.name))}</div><textarea class="in" rows="3" style="margin-top:0" placeholder="Lesiones, objetivos charlados, contexto… (solo las ves vos)" onchange="savePtNote('${s.id}',this.value)">${esc(s.ptNotes||'')}</textarea><div class="cap" style="margin-top:4px">Solo visibles para vos. El alumno no las ve.</div></div>
   ${hasPlan(s)?`<button class="btn" onclick="editRoutine('${s.routineId}')">📝 Editar rutina de ${esc(fn(s.name))}</button>`:`<button class="btn g" onclick="assignRoutine('${s.id}')">➕ Armar la rutina de ${esc(fn(s.name))}</button>`}
-  <label class="btn sec" style="margin-top:8px;cursor:pointer;display:block;text-align:center">📥 Importar rutina desde Excel<input type="file" accept=".xlsx,.xls,.csv" style="display:none" onchange="importExcel(this,'${s.id}')"/></label>
+  ${canImportExcel()?`<label class="btn sec" style="margin-top:8px;cursor:pointer;display:block;text-align:center">📥 Importar rutina desde Excel<input type="file" accept=".xlsx,.xls,.csv" style="display:none" onchange="importExcel(this,'${s.id}')"/></label>`:''}
   ${hasPlan(s)?`<button class="btn sec" style="margin-top:8px" onclick="avisarRutinaLista('${s.id}')">🔔 Avisar a ${esc(fn(s.name))} que su rutina está lista</button>`:''}
   <div class="flex" style="margin-top:10px"><button class="btn sec sm" onclick="fromTemplate('${s.id}')">📋 Desde plantilla</button><button class="btn sec sm" onclick="copyRoutine('${s.id}')">⧉ Copiar a otro</button><button class="btn sec sm" onclick="shareLink('${s.id}')">Compartir link</button></div>
   <button class="btn g" style="margin-top:10px" onclick="ptMessage('${s.id}')">💬 Enviar mensaje a ${esc(fn(s.name))}</button>
@@ -607,6 +607,9 @@ function editRoutine(id){S.ui.editRoutineId=id;go('pt_redit');}
 function exObj(e){var b=e.repsText?((e.sets?e.sets+' series · ':'')+e.repsText):((e.sets||0)+'×'+(e.reps||0));return b+(e.weight?' · '+e.weight+'kg':'');}
 /* ---- Importar rutina desde Excel (parser por PT; hoy calibrado para Lautaro) ---- */
 var IMPORT=null;
+/* PTs con formato de Excel calibrado y habilitado para importar (match por nombre o email, en minúscula). Se suma de a uno, pt por pt. */
+var IMPORT_PTS=['lautaro'];
+function canImportExcel(){try{var u=S.user||{},t=S.trainer||{};if(u.type&&u.type!=='pt')return false;var hay=((u.name||'')+' '+(u.email||'')+' '+(t.name||'')).toLowerCase();return IMPORT_PTS.some(function(k){return k&&hay.indexOf(k)>=0;});}catch(e){return false;}}
 function _norm(s){return (s==null?'':s.toString()).toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/[^a-z0-9°+\/ -]/g,' ').replace(/\s+/g,' ').trim();}
 var EX_MAP=[
  [/sentadilla|prensa|zancad|estocad|hip ?tr|gluteo|aductor|abductor|sillon|cuadriceps|femoral|peso muerto|sumo|step ?up|subida.*cajon|gemelo|pantorrilla|patada|buen ?d|buenos ?dias|goblet|unipodal|extension.*cuad/,'Piernas'],
@@ -644,7 +647,7 @@ function parseRoutineRows(rows){
   return {ok:(days.length>0&&total>0),meta:meta,days:days,total:total,review:review};
 }
 function loadXLSX(cb){if(window.XLSX)return cb();var s=document.createElement('script');s.src='https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js';s.onload=function(){cb();};s.onerror=function(){cb('err');};document.head.appendChild(s);}
-function importExcel(input,studentId){var f=input.files&&input.files[0];if(!f){return;}input.value='';toast('Leyendo Excel… ⏳');
+function importExcel(input,studentId){if(!canImportExcel()){return;}var f=input.files&&input.files[0];if(!f){return;}input.value='';toast('Leyendo Excel… ⏳');
   loadXLSX(function(err){
     if(err||!window.XLSX){toast('No pude cargar el lector de Excel. Probá de nuevo con conexión.');return;}
     var rd=new FileReader();
@@ -972,7 +975,7 @@ function dirFoto(t,size){const st=`width:${size}px;height:${size}px;border-radiu
 function stars(r){if(r==null)return '<span class="pill g">Nuevo</span>';return `<span style="color:#ff9600;font-weight:800">★ ${r}</span>`;}
 
 /* ---- Código de equipo del PT ---- */
-const UF_VERSION='v2.25.0';
+const UF_VERSION='v2.25.1';
 const APP_URL=(function(){try{return (location.origin&&location.origin.indexOf('http')===0)?(location.origin+location.pathname):'https://dano-gpt.github.io/universal-fit/v2/';}catch(e){return 'https://dano-gpt.github.io/universal-fit/v2/';}})();
 function inviteUrl(code){return APP_URL+'?code='+encodeURIComponent(code);}
 function teamCode(){if(!S.trainer)return null;if(!S.trainer.code){S.trainer.code=('UF'+Math.random().toString(36).replace(/[^a-z0-9]/g,'').slice(0,4)).toUpperCase();save();}return S.trainer.code;}
