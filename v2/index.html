@@ -432,6 +432,7 @@ function vPtStudent(){
   <div class="card"><div class="h" style="margin:0 0 8px">Últimos registros</div>${logs.length?logs.map(l=>`<div class="row" style="padding:6px 0;border-bottom:1px solid var(--line)"><span>${fmt(l.date)}${l.feel?' · se sintió '+l.feel:''}</span><span class="cap">${l.entries.length} ejercicio(s)</span></div>`).join(''):'<div class="cap">Sin registros aún.</div>'}</div>
   <div class="card"><div class="h" style="margin:0 0 6px">🔒 Notas privadas de ${esc(fn(s.name))}</div><textarea class="in" rows="3" style="margin-top:0" placeholder="Lesiones, objetivos charlados, contexto… (solo las ves vos)" onchange="savePtNote('${s.id}',this.value)">${esc(s.ptNotes||'')}</textarea><div class="cap" style="margin-top:4px">Solo visibles para vos. El alumno no las ve.</div></div>
   ${hasPlan(s)?`<button class="btn" onclick="editRoutine('${s.routineId}')">📝 Editar rutina de ${esc(fn(s.name))}</button>`:`<button class="btn g" onclick="assignRoutine('${s.id}')">➕ Armar la rutina de ${esc(fn(s.name))}</button>`}
+  <label class="btn sec" style="margin-top:8px;cursor:pointer;display:block;text-align:center">📥 Importar rutina desde Excel<input type="file" accept=".xlsx,.xls,.csv" style="display:none" onchange="importExcel(this,'${s.id}')"/></label>
   ${hasPlan(s)?`<button class="btn sec" style="margin-top:8px" onclick="avisarRutinaLista('${s.id}')">🔔 Avisar a ${esc(fn(s.name))} que su rutina está lista</button>`:''}
   <div class="flex" style="margin-top:10px"><button class="btn sec sm" onclick="fromTemplate('${s.id}')">📋 Desde plantilla</button><button class="btn sec sm" onclick="copyRoutine('${s.id}')">⧉ Copiar a otro</button><button class="btn sec sm" onclick="shareLink('${s.id}')">Compartir link</button></div>
   <button class="btn g" style="margin-top:10px" onclick="ptMessage('${s.id}')">💬 Enviar mensaje a ${esc(fn(s.name))}</button>
@@ -547,13 +548,15 @@ function vPtEdit(){
       const eopen=!!EX_OPEN[e.id];
       const up=`<button class="btn sec sm" style="width:auto;margin:0;padding:4px 9px;${ei===0?'visibility:hidden':''}" onclick="event.stopPropagation();moveEx('${e.id}',-1)" title="Subir">↑</button>`;
       const dn=`<button class="btn sec sm" style="width:auto;margin:0;padding:4px 9px;${ei===nEx-1?'visibility:hidden':''}" onclick="event.stopPropagation();moveEx('${e.id}',1)" title="Bajar">↓</button>`;
-      const sm=`${e.sets||0}×${e.reps||0}${e.weight?(' · '+e.weight+'kg'):''}${e.video?' · 🎬':''}`;
+      const sm=exObj(e)+(e.video?' · 🎬':'');
       if(!eopen){
         return `<div class="ex" style="padding:8px 10px"><div class="row" style="align-items:center;gap:8px"><div style="display:flex;flex-direction:column;gap:3px">${up}${dn}</div><div style="flex:1;min-width:0;cursor:pointer" onclick="toggleEx('${e.id}')"><div class="name" style="font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(e.name)}</div><div class="cap">${sm}</div></div><button class="btn sec sm" style="width:auto;margin:0;padding:6px 11px" onclick="toggleEx('${e.id}')" title="Editar">✎</button></div></div>`;
       }
       return `<div class="ex"><div class="row" style="align-items:center;gap:8px"><div style="display:flex;gap:4px">${up}${dn}</div><input class="in" style="font-weight:700;margin-top:0;flex:1" value="${esc(e.name)}" onchange="editExField('${e.id}','name',this.value)"/><button class="btn sec sm" style="width:auto;margin:0;padding:6px 11px" onclick="toggleEx('${e.id}')" title="Listo">▴</button></div>
       <div style="margin-top:6px"><span class="catchip">${esc(e.category||'General')}</span></div>
       <div class="flex" style="margin-top:8px"><div><div class="cap">Series</div><input class="in" type="number" value="${e.sets}" onchange="editExField('${e.id}','sets',this.value)"/></div><div><div class="cap">Reps</div><input class="in" type="number" value="${e.reps}" onchange="editExField('${e.id}','reps',this.value)"/></div><div><div class="cap">Kg</div><input class="in" type="number" value="${e.weight}" onchange="editExField('${e.id}','weight',this.value)"/></div></div>
+      <div class="cap" style="margin-top:2px">Reps (nº) es el valor para registrar. Si tu esquema es más detallado, usá el campo de abajo.</div>
+      <input class="in" placeholder="Esquema de reps (ej: 1x10 3x6-8 1x15) — opcional" value="${esc(e.repsText||'')}" onchange="editExField('${e.id}','repsText',this.value)"/>
       <input class="in" placeholder="Nota de técnica" value="${esc(e.note||'')}" onchange="editExField('${e.id}','note',this.value)"/>
       <div class="flex" style="margin-top:6px;align-items:center"><label class="btn sec sm" style="cursor:pointer;margin:0">🎬 ${e.video&&(e.video.indexOf('blob:')===0||e.video.indexOf('/storage/')>=0)?'Cambiar video':'Subir video'} (máx 40s)<input type="file" accept="video/*" capture="environment" style="display:none" onchange="uploadExVideo(this,'${e.id}')"/></label>${e.video?`<span class="pill g">✓ video</span>`:''}</div>
       <input class="in" placeholder="…o pegá un link de YouTube (opcional)" value="${esc((e.video&&e.video.indexOf('blob:')!==0&&e.video.indexOf('/storage/')<0)?e.video:'')}" onchange="editExField('${e.id}','video',this.value)"/>
@@ -600,6 +603,85 @@ function fromTemplate(id){const tpls=S.routines.filter(r=>!r.owner);if(!tpls.len
 /* routine editor */
 function newRoutine(){const r={id:uid(),owner:null,name:'Nueva plantilla',days:[{id:uid(),name:'Día 1',exercises:[]}]};S.routines.push(r);S.ui.editRoutineId=r.id;save();go('pt_redit');}
 function editRoutine(id){S.ui.editRoutineId=id;go('pt_redit');}
+/* ---- Objetivo (series×reps) legible: usa repsText del profe si existe ---- */
+function exObj(e){var b=e.repsText?((e.sets?e.sets+' series · ':'')+e.repsText):((e.sets||0)+'×'+(e.reps||0));return b+(e.weight?' · '+e.weight+'kg':'');}
+/* ---- Importar rutina desde Excel (parser por PT; hoy calibrado para Lautaro) ---- */
+var IMPORT=null;
+function _norm(s){return (s==null?'':s.toString()).toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/[^a-z0-9°+\/ -]/g,' ').replace(/\s+/g,' ').trim();}
+var EX_MAP=[
+ [/sentadilla|prensa|zancad|estocad|hip ?tr|gluteo|aductor|abductor|sillon|cuadriceps|femoral|peso muerto|sumo|step ?up|subida.*cajon|gemelo|pantorrilla|patada|buen ?d|buenos ?dias|goblet|unipodal|extension.*cuad/,'Piernas'],
+ [/dominad|jalon|remo|traccion|espalda|dorsal|pull ?over|pullover/,'Espalda'],
+ [/press (plano|banca|recto|inclinad|de pecho)|peck ?fl|pec ?fl|apertura|fondos|flexion|pecho/,'Pecho'],
+ [/hombro|militar|elevaci|vuelo|deltoide|arnold|paloff|face ?pull|pajaro/,'Hombros'],
+ [/curl|biceps|triceps|frances|martillo|copa/,'Brazos'],
+ [/abdominal|plancha|core|oblicuo|obvlicuo|rusa|russian|rotacion|crunch|rueda|banco romano|abs/,'Core'],
+ [/cinta|cardio|bici|eliptic|soga|hiit|\bhit\b|correr|trote|caminata|escalador/,'Cardio']
+];
+function mapCat(name){var n=_norm(name);for(var i=0;i<EX_MAP.length;i++){if(EX_MAP[i][0].test(n))return EX_MAP[i][1];}return null;}
+function parseSeries(v){if(v==null)return null;if(typeof v==='number')return Math.round(v)||null;var m=(''+v).match(/\d+/);return m?parseInt(m[0],10):null;}
+function parseRepsNum(v){if(v==null)return 10;if(typeof v==='number')return Math.round(v)||10;var s=(''+v).toLowerCase();var mx=s.match(/x\s*(\d{1,3})/);if(mx)return parseInt(mx[1],10);var nums=(s.match(/\d{1,3}/g)||[]).map(Number).filter(function(n){return n>0&&n<=30;});return nums.length?nums[0]:10;}
+function dayHeader(a){var n=_norm(a);var m=n.match(/^dia\s*(\d+)\s*[-·:]?\s*(.*)$/);if(!m)return null;var desc=(a.toString().replace(/^\s*d[ií]a\s*\d+\s*[-·:]?\s*/i,'')).trim();return {num:parseInt(m[1],10),desc:desc};}
+function isColHeader(a,b){var n=_norm(a);return n==='ejercicio'||(n.indexOf('ejercicio')===0&&/serie/.test(_norm(b)));}
+function parseRoutineRows(rows){
+  var meta={},days=[],cur=null,review=[],total=0;
+  for(var i=0;i<rows.length;i++){var row=rows[i]||[];var a=row[0];
+    if(a!=null&&!cur){var na=_norm(a);
+      if(na.indexOf('nombre y apellido')>=0)meta.nombre=(row[1]!=null?(''+row[1]).trim():'');
+      else if(na.indexOf('objetivo')>=0&&!dayHeader(a))meta.objetivo=(row[1]!=null?(''+row[1]).trim():'');
+      else if(na.indexOf('dias de entrenamiento')>=0)meta.dias=parseSeries(row[1]);}
+    var dh=dayHeader(a);
+    if(dh){cur={num:dh.num,name:'Día '+dh.num+(dh.desc?(' · '+dh.desc):''),exercises:[]};days.push(cur);continue;}
+    if(!cur)continue; if(a==null)continue; if(isColHeader(a,row[1]))continue;
+    var name=(''+a).trim(); if(!name)continue;
+    var sets=parseSeries(row[1]); var repsRaw=(row[2]!=null)?(''+row[2]).trim():''; var carga=row[3]; var nota=(row[5]!=null)?(''+row[5]).trim():'';
+    var cat=mapCat(name); var recognized=!!cat; var weight=(typeof carga==='number')?carga:0;
+    if(carga!=null&&typeof carga!=='number'&&!nota)nota=(''+carga).trim();
+    cur.exercises.push({id:uid(),name:name,category:cat||'Otros',sets:(sets!=null?sets:3),reps:parseRepsNum(repsRaw),repsText:repsRaw,weight:weight,rest:90,note:nota,video:'',_recognized:recognized});
+    total++;
+    if(!recognized||sets==null)review.push({day:cur.name,name:name,why:(!recognized?'no reconocí el ejercicio':'no pude leer las series')});
+  }
+  days=days.filter(function(d){return d.exercises.length;});
+  return {ok:(days.length>0&&total>0),meta:meta,days:days,total:total,review:review};
+}
+function loadXLSX(cb){if(window.XLSX)return cb();var s=document.createElement('script');s.src='https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js';s.onload=function(){cb();};s.onerror=function(){cb('err');};document.head.appendChild(s);}
+function importExcel(input,studentId){var f=input.files&&input.files[0];if(!f){return;}input.value='';toast('Leyendo Excel… ⏳');
+  loadXLSX(function(err){
+    if(err||!window.XLSX){toast('No pude cargar el lector de Excel. Probá de nuevo con conexión.');return;}
+    var rd=new FileReader();
+    rd.onload=function(e){try{
+      var wb=XLSX.read(new Uint8Array(e.target.result),{type:'array'});
+      var ws=wb.Sheets[wb.SheetNames[0]];
+      var rows=XLSX.utils.sheet_to_json(ws,{header:1,raw:true,defval:null});
+      var p=parseRoutineRows(rows);
+      if(!p.ok){toast('No pude leer este Excel con el formato conocido. Por ahora el importador está calibrado para el formato de Lautaro.');return;}
+      IMPORT={studentId:studentId,parsed:p};
+      showImportSummary();
+    }catch(ex){console.warn('importExcel',ex);toast('No pude leer el Excel. Revisá que sea el archivo correcto.');}};
+    rd.onerror=function(){toast('No pude abrir el archivo.');};
+    rd.readAsArrayBuffer(f);
+  });
+}
+function showImportSummary(){
+  var st=S.students.find(function(x){return x.id===IMPORT.studentId;});var p=IMPORT.parsed;if(!st){return;}
+  var daysHtml=p.days.map(function(d){
+    var exs=d.exercises.map(function(e){return '<div class="row" style="padding:5px 0;border-top:1px solid var(--line)"><div style="flex:1"><div class="name" style="font-size:13px">'+(e._recognized?'':'⚠️ ')+esc(e.name)+'</div><div class="cap">'+catEmoji(e.category)+' '+esc(e.category)+' · '+esc(exObj(e))+'</div></div></div>';}).join('');
+    return '<div class="card" style="margin:8px 0"><div class="h" style="margin:0 0 2px">'+esc(d.name)+' <span class="cap" style="font-weight:400">('+d.exercises.length+')</span></div>'+exs+'</div>';
+  }).join('');
+  var rev=p.review.length?('<div class="card" style="margin:8px 0;border-color:#6B5A1E;background:#211C10"><div class="h" style="margin:0 0 6px">⚠️ Revisá estos '+p.review.length+' ejercicio(s)</div><div class="cap" style="margin:0 0 6px">Se importan igual, pero revisá su categoría y datos en el editor.</div>'+p.review.map(function(x){return '<div class="cap" style="padding:3px 0">• <b>'+esc(x.name)+'</b> — '+esc(x.why)+' <span style="color:var(--muted)">('+esc(x.day)+')</span></div>';}).join('')+'</div>'):'<div class="cap" style="text-align:center;color:var(--green);margin:8px 0">✓ Reconocí todos los ejercicios. Igual conviene darle una repasada.</div>';
+  var nameNote=(p.meta&&p.meta.nombre)?('<div class="cap" style="margin:0 0 8px">Excel de <b>'+esc(p.meta.nombre)+'</b> → se crea como la rutina de <b>'+esc(fn(st.name))+'</b>.</div>'):'';
+  var warnReplace=hasPlan(st)?('<div class="cap" style="color:var(--amber);margin:0 0 8px">⚠️ '+esc(fn(st.name))+' ya tiene una rutina — la importación la reemplaza.</div>'):'';
+  var html='<div style="position:fixed;inset:0;z-index:4000;background:rgba(0,0,0,.6);overflow:auto;padding:20px 0" onclick="if(event.target===this)closeImport()"><div style="max-width:560px;margin:0 auto;padding:0 14px"><div class="card"><div class="h" style="margin:0 0 4px">📥 Importar rutina desde Excel</div>'+nameNote+warnReplace+'<div class="cap">'+p.days.length+' día(s) · '+p.total+' ejercicio(s)</div></div>'+rev+daysHtml+'<div class="flex" style="gap:8px;margin:10px 0 34px"><button class="btn sec" style="margin:0" onclick="closeImport()">Cancelar</button><button class="btn g" style="margin:0" onclick="commitImport()">Crear rutina ✓</button></div></div></div>';
+  var d=document.createElement('div');d.id='importOv';d.innerHTML=html;document.body.appendChild(d);
+}
+function closeImport(){var d=document.getElementById('importOv');if(d)d.remove();IMPORT=null;}
+function commitImport(){
+  if(!IMPORT){return;}var st=S.students.find(function(x){return x.id===IMPORT.studentId;});var p=IMPORT.parsed;if(!st){closeImport();return;}
+  S.routines=S.routines.filter(function(r){return r.owner!==st.id;});
+  var rt={id:uid(),owner:st.id,name:'Rutina de '+fn(st.name),days:p.days.map(function(d){return {id:uid(),name:d.name,exercises:d.exercises.map(function(e){return {id:uid(),name:e.name,category:e.category,sets:e.sets,reps:e.reps,repsText:e.repsText,weight:e.weight||0,rest:e.rest||90,note:e.note||'',video:''};})};})};
+  S.routines.push(rt);st.routineId=rt.id;
+  S.ui.editRoutineId=rt.id;var nrev=p.review.length;closeImport();save();
+  toast('✅ Rutina importada'+(nrev?(' · revisá '+nrev+' ejercicio(s)'):''));go('pt_redit');
+}
 function renameRoutine(v){cur().name=(v||'').trim()||'Rutina';save();}
 function addDay(){const r=cur();r.days.push({id:uid(),name:'Día '+(r.days.length+1),exercises:[]});save();render();}
 function renameDay(dayId,v){const d=cur().days.find(x=>x.id===dayId);if(d)d.name=(v||'').trim()||'Día';save();}
@@ -639,7 +721,7 @@ function vAlDay_OLD_unused(){/* QA 08-jul: código muerto — la vAlDay activa (
   CATS.concat(['Otros']).forEach(cat=>{
     const list=day.exercises.filter(e=>(e.category||'Otros')===cat);if(!list.length)return;
     list.forEach(e=>used.add(e.id));
-    groups+=`<div class="h" style="margin:14px 4px 8px">${catEmoji(cat)} ${cat}</div>`+list.map(e=>`<div class="exrow" onclick="openLog('${e.id}')"><div class="ico">${catEmoji(e.category)}</div><div style="flex:1"><div class="t">${esc(e.name)}</div><div class="m">${e.sets} x ${e.reps}${e.weight?' · '+e.weight+'kg':''}</div></div><div class="chk ${loggedToday(s,e.id)?'done':''}">${loggedToday(s,e.id)?'✓':''}</div></div>`).join('');
+    groups+=`<div class="h" style="margin:14px 4px 8px">${catEmoji(cat)} ${cat}</div>`+list.map(e=>`<div class="exrow" onclick="openLog('${e.id}')"><div class="ico">${catEmoji(e.category)}</div><div style="flex:1"><div class="t">${esc(e.name)}</div><div class="m">${exObj(e)}</div></div><div class="chk ${loggedToday(s,e.id)?'done':''}">${loggedToday(s,e.id)?'✓':''}</div></div>`).join('');
   });
   const first=day.exercises[0];
   return `<button class="back" onclick="go('al_days')">← Mis días</button>
@@ -657,7 +739,7 @@ function vAlLog(){
   return `<button class="back" onclick="go('al_day')">← Volver</button>
   <div class="banner"><div class="em">${catEmoji(e.category)}</div><div class="nm">${esc(e.name)}</div><div style="margin-top:6px"><span class="catchip" style="background:rgba(255,255,255,.2);color:#fff">${esc(e.category||'General')}</span></div></div>
   <div class="h" style="margin:0 0 6px">Video de técnica</div>${videoBox(e.video,e.name)}${equipCard(e)}
-  <div class="card" style="margin-top:12px"><div class="cap">Objetivo: ${e.sets} x ${e.reps}${e.weight?' · '+e.weight+'kg':''}</div>${lm?`<div class="m" style="margin-top:6px">📌 La última vez hiciste <b>${lm.reps} × ${lm.kg} kg</b> (${fmt(lm.date)})</div>`:''}${e.note?`<div class="m" style="margin-top:6px">📝 ${esc(e.note)}</div>`:''}</div>
+  <div class="card" style="margin-top:12px"><div class="cap">Objetivo: ${exObj(e)}</div>${lm?`<div class="m" style="margin-top:6px">📌 La última vez hiciste <b>${lm.reps} × ${lm.kg} kg</b> (${fmt(lm.date)})</div>`:''}${e.note?`<div class="m" style="margin-top:6px">📝 ${esc(e.note)}</div>`:''}</div>
   <div class="h" style="margin:0 0 6px">Registrá tus series</div><div class="card">${rows}</div>
   <div class="card" style="text-align:center"><div class="h" style="margin:0 0 6px">⏱ Descanso entre series · ${e.rest||90} s</div><button class="btn sec" id="restT" onclick="startRest(${e.rest||90})">▶ Iniciar descanso</button></div>
   ${techCard(e)}<button class="btn" onclick="saveLog('${e.id}',${e.sets})">Guardar entreno ✓</button>`;
@@ -858,7 +940,7 @@ function vAlDay(){
   let groups='';
   CATS.concat(['Otros']).forEach(cat=>{
     const list=day.exercises.filter(e=>(e.category||'Otros')===cat);if(!list.length)return;
-    groups+=`<div class="h" style="margin:14px 4px 8px">${catEmoji(cat)} ${cat}</div>`+list.map(e=>`<div class="exrow" ${started?`onclick="openLog('${e.id}')"`:'style="opacity:.45;pointer-events:none"'}><div class="ico">${catEmoji(e.category)}</div><div style="flex:1"><div class="t">${esc(e.name)}</div><div class="m">${e.sets} x ${e.reps}${e.weight?' · '+e.weight+'kg':''}</div></div><div class="chk ${loggedToday(s,e.id)?'done':''}">${loggedToday(s,e.id)?'✓':(started?'':'🔒')}</div></div>`).join('');
+    groups+=`<div class="h" style="margin:14px 4px 8px">${catEmoji(cat)} ${cat}</div>`+list.map(e=>`<div class="exrow" ${started?`onclick="openLog('${e.id}')"`:'style="opacity:.45;pointer-events:none"'}><div class="ico">${catEmoji(e.category)}</div><div style="flex:1"><div class="t">${esc(e.name)}</div><div class="m">${exObj(e)}</div></div><div class="chk ${loggedToday(s,e.id)?'done':''}">${loggedToday(s,e.id)?'✓':(started?'':'🔒')}</div></div>`).join('');
   });
   return `<button class="back" onclick="go('al_days')">← Mis días</button>
   <div class="card" style="background:var(--hero);color:#fff;border:none"><div style="font-size:20px;font-weight:800">${esc(day.name)}</div><div class="cap" style="color:rgba(255,255,255,.88);margin-top:2px">${day.exercises.length} ejercicios · ${done}/${day.exercises.length} hechos hoy</div></div>
@@ -890,7 +972,7 @@ function dirFoto(t,size){const st=`width:${size}px;height:${size}px;border-radiu
 function stars(r){if(r==null)return '<span class="pill g">Nuevo</span>';return `<span style="color:#ff9600;font-weight:800">★ ${r}</span>`;}
 
 /* ---- Código de equipo del PT ---- */
-const UF_VERSION='v2.23.0';
+const UF_VERSION='v2.25.0';
 const APP_URL=(function(){try{return (location.origin&&location.origin.indexOf('http')===0)?(location.origin+location.pathname):'https://dano-gpt.github.io/universal-fit/v2/';}catch(e){return 'https://dano-gpt.github.io/universal-fit/v2/';}})();
 function inviteUrl(code){return APP_URL+'?code='+encodeURIComponent(code);}
 function teamCode(){if(!S.trainer)return null;if(!S.trainer.code){S.trainer.code=('UF'+Math.random().toString(36).replace(/[^a-z0-9]/g,'').slice(0,4)).toUpperCase();save();}return S.trainer.code;}
