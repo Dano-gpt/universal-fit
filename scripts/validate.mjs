@@ -50,8 +50,12 @@ const expected = [
   "Finalizar día de entrenamiento",
   "Comentario para tu entrenador",
   "Nota general para tu entrenador",
-  "Grabar ahora (máx. 3 min)",
+  "Grabar un video nuevo",
   "function storageVideoUpload",
+  "function saveTechFeedback",
+  "function deleteTechVideo",
+  "Devolución para el alumno",
+  "Borrar este video",
 ];
 for (const marker of expected) {
   if (!app.includes(marker)) errors.push(`Falta la funcionalidad aprobada: ${marker}`);
