@@ -56,6 +56,12 @@ const expected = [
   "function deleteTechVideo",
   "Devolución para el alumno",
   "Borrar este video",
+  "function trainerWorkoutDetails",
+  "function saveWorkoutExerciseFeedback",
+  "function latestWorkoutFeedback",
+  "function vPtWorkoutHistory",
+  "Ver historia de entrenamiento",
+  "Comentario de tu entrenador para esta vez",
 ];
 for (const marker of expected) {
   if (!app.includes(marker)) errors.push(`Falta la funcionalidad aprobada: ${marker}`);
