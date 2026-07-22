@@ -59,7 +59,8 @@ const expected = [
   "function trainerWorkoutDetails",
   "function saveWorkoutExerciseFeedback",
   "function latestWorkoutFeedback",
-  "Detalle de entrenamientos",
+  "function vPtWorkoutHistory",
+  "Ver historia de entrenamiento",
   "Comentario de tu entrenador para esta vez",
 ];
 for (const marker of expected) {
