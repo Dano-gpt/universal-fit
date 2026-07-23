@@ -169,6 +169,34 @@ nav button.on{color:var(--blue);}
 .a2steps li{color:var(--ink);border-color:var(--line);}
 .a2steps li .n{background:var(--blue);color:var(--accink);}
 .roles button.on{color:var(--blue);border-color:var(--blue);}
+/* ---- Responsive de escritorio ---- */
+@media (min-width:900px){
+  body{background:#070712;}
+  .app{max-width:1180px;border-left:1px solid var(--line);border-right:1px solid var(--line);box-shadow:0 0 50px rgba(0,0,0,.28);}
+  header{padding:14px 28px 0;}
+  .brand h1{font-size:19px;}
+  .idbar{padding:9px 28px;}
+  #adslot{max-width:1124px!important;padding:0 28px!important;}
+  main{width:100%;max-width:900px;margin:0 auto;padding:24px 28px 110px;overflow:visible;}
+  nav{max-width:1180px;}
+  nav button{padding:13px 0 15px;font-size:12px;}
+  .card{padding:18px;margin-bottom:16px;}
+  .stu,.ex,.exrow,.daycard{padding:14px;}
+  .app[data-layout="admin-home"] main{max-width:none;}
+  .admin-settings-grid,.admin-directory-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px;align-items:start;}
+  .admin-settings-grid>.card{margin-bottom:0;}
+  .admin-directory-grid{margin-top:20px;}
+  .admin-directory-column{min-width:0;}
+  .admin-directory-column>.h{margin-top:0!important;}
+}
+@media (min-width:1280px){
+  .app{max-width:1240px;}
+  nav{max-width:1240px;}
+  .app[data-layout="admin-home"] main{padding-left:34px;padding-right:34px;}
+}
+@media (min-width:900px) and (max-width:1050px){
+  .admin-settings-grid,.admin-directory-grid{grid-template-columns:1fr;}
+}
 </style>
 <style>
 #tourOv{position:fixed;inset:0;z-index:3000;pointer-events:auto}
@@ -374,6 +402,11 @@ function cur(){return S.routines.find(x=>x.id===S.ui.editRoutineId);}
 
 function render(){
   applyBrand();
+  const appShell=document.querySelector('.app');
+  if(appShell){
+    const adminHome=typeof ADMIN!=='undefined'&&ADMIN.on&&ADMIN.otp&&ADMIN.data&&!ADMIN.view;
+    appShell.dataset.layout=adminHome?'admin-home':((typeof ADMIN!=='undefined'&&ADMIN.on)?'admin-detail':((S&&S.ui&&S.ui.view)||'default'));
+  }
   if(typeof ADMIN!=='undefined'&&ADMIN.on){
     const roles0=document.getElementById('roles');if(roles0)roles0.style.display='none';
     const ib=document.getElementById('idbar');if(ib)ib.style.display='none';
@@ -1031,7 +1064,7 @@ function dirFoto(t,size){const st=`width:${size}px;height:${size}px;border-radiu
 function stars(r){if(r==null)return '<span class="pill g">Nuevo</span>';return `<span style="color:#ff9600;font-weight:800">★ ${r}</span>`;}
 
 /* ---- Código de equipo del PT ---- */
-const UF_VERSION='v2.25.5';
+const UF_VERSION='v2.25.6';
 const APP_URL=(function(){try{return (location.origin&&location.origin.indexOf('http')===0)?(location.origin+location.pathname):'https://dano-gpt.github.io/universal-fit/v2/';}catch(e){return 'https://dano-gpt.github.io/universal-fit/v2/';}})();
 function inviteUrl(code){return APP_URL+'?code='+encodeURIComponent(code);}
 function teamCode(){if(!S.trainer)return null;if(!S.trainer.code){S.trainer.code=('UF'+Math.random().toString(36).replace(/[^a-z0-9]/g,'').slice(0,4)).toUpperCase();save();}return S.trainer.code;}
@@ -1742,9 +1775,9 @@ function vAdminHome(){
  const plansCfgCard=`<div class="card"><div class="h" style="margin:0 0 8px">💳 Planes y precios</div><div class="cap" style="margin-bottom:8px">Precio y link de cobro de MercadoPago por plan. El profe los ve al pedir upgrade; cuando paga, activás su plan desde su ficha.</div>${_plansCfg}</div>`;
  const gateOn=ADMIN.gateRequired!==false;
  const gateCard=`<div class="card"><div class="h" style="margin:0 0 8px">🚪 Puerta de acceso anticipado</div><div class="cap" style="margin-bottom:8px">${gateOn?'Estado: <b>Requiere código</b> al entrar (invite-only).':'Estado: <b style="color:#9bef6e">Abierta</b> — cualquiera entra sin código.'}</div><button class="btn${gateOn?'':' sec'}" style="margin:0" onclick="adminSetGate(${gateOn?'false':'true'})">${gateOn?'🔓 Abrir acceso (sin código)':'🔒 Volver a requerir código'}</button></div>`;
- return `<div class="card" style="background:#3c3c3c;color:#fff;border:none"><div style="font-size:18px;font-weight:900">🛡 Panel de administración</div><div class="cap" style="color:rgba(255,255,255,.85);margin-top:4px">${(D.trainers||[]).length} entrenador(es) · ${(D.students||[]).length} alumno(s)</div><button class="btn sec sm" style="margin-top:10px" onclick="adminLoad()">🔄 Actualizar datos</button> <button class="btn sec sm" style="margin-top:10px" onclick="openAdminDash()">📊 Tablero</button></div>${rqs}${codesCard}${adsCard}${plansCfgCard}${gateCard}
- <div class="h">Entrenadores (${(D.trainers||[]).length})</div>${ts}
- <div class="h" style="margin-top:16px">Alumnos (${_fstu.length}${_flt?' de '+_allstu.length:''})</div>${stuFilterSel}${(function(){var np=_fstu.filter(function(r){return !r.pending;});var cr=np.filter(admHasRt).length;return '<div class="cap" style="margin:0 0 10px">📋 '+cr+' con rutina · ⏳ '+(np.length-cr)+' sin rutina</div>';})()}${ss}`;
+ return `<div class="card" style="background:#3c3c3c;color:#fff;border:none"><div style="font-size:18px;font-weight:900">🛡 Panel de administración</div><div class="cap" style="color:rgba(255,255,255,.85);margin-top:4px">${(D.trainers||[]).length} entrenador(es) · ${(D.students||[]).length} alumno(s)</div><button class="btn sec sm" style="margin-top:10px" onclick="adminLoad()">🔄 Actualizar datos</button> <button class="btn sec sm" style="margin-top:10px" onclick="openAdminDash()">📊 Tablero</button></div>${rqs}<div class="admin-settings-grid">${codesCard}${adsCard}${plansCfgCard}${gateCard}</div>
+ <div class="admin-directory-grid"><section class="admin-directory-column"><div class="h">Entrenadores (${(D.trainers||[]).length})</div>${ts}</section>
+ <section class="admin-directory-column"><div class="h">Alumnos (${_fstu.length}${_flt?' de '+_allstu.length:''})</div>${stuFilterSel}${(function(){var np=_fstu.filter(function(r){return !r.pending;});var cr=np.filter(admHasRt).length;return '<div class="cap" style="margin:0 0 10px">📋 '+cr+' con rutina · ⏳ '+(np.length-cr)+' sin rutina</div>';})()}${ss}</section></div>`;
 }
 function vAdminStudent(){
  const D=ADMIN.data;const r=(D.students||[]).find(x=>x.id===ADMIN.view.s);if(!r){ADMIN.view=null;return vAdminHome();}

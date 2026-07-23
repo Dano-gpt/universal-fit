@@ -62,6 +62,9 @@ const expected = [
   "function vPtWorkoutHistory",
   "Ver historia de entrenamiento",
   "Comentario de tu entrenador para esta vez",
+  "Responsive de escritorio",
+  "admin-settings-grid",
+  "admin-directory-grid",
 ];
 for (const marker of expected) {
   if (!app.includes(marker)) errors.push(`Falta la funcionalidad aprobada: ${marker}`);
