@@ -18,6 +18,8 @@ const required = [
   "v2/version.txt",
   "v2/icon-192.png",
   "v2/icon-512.png",
+  ".github/workflows/daily-database-backup.yml",
+  "docs/BACKUP-RESTORE.md",
 ];
 
 for (const file of required) {
@@ -44,6 +46,31 @@ for (const [, attributes, source] of app.matchAll(/<script(?![^>]*\bsrc=)([^>]*)
   }
 }
 
+const periodFunctions = ["historyLogDate", "historyPeriodMatch"].map((name) => {
+  const match = app.match(new RegExp(`function ${name}\\([^\\n]+`));
+  if (!match) errors.push(`No se pudo probar ${name}`);
+  return match?.[0] ?? "";
+}).join("\n");
+if (periodFunctions.trim()) {
+  try {
+    const periodContext = {};
+    new vm.Script(periodFunctions).runInNewContext(periodContext);
+    const sample = { date: "2026-07-15" };
+    const cases = [
+      periodContext.historyPeriodMatch(sample, { mode: "all" }),
+      periodContext.historyPeriodMatch(sample, { mode: "day", date: "2026-07-15" }),
+      !periodContext.historyPeriodMatch(sample, { mode: "day", date: "2026-07-16" }),
+      periodContext.historyPeriodMatch(sample, { mode: "month", month: "2026-07" }),
+      !periodContext.historyPeriodMatch(sample, { mode: "month", month: "2026-06" }),
+      periodContext.historyPeriodMatch(sample, { mode: "range", from: "2026-07-10", to: "2026-07-20" }),
+      periodContext.historyPeriodMatch(sample, { mode: "range", from: "2026-07-20", to: "2026-07-10" }),
+    ];
+    if (cases.some((result) => !result)) errors.push("El filtro por periodo no supera sus casos de día, mes y lapso");
+  } catch (error) {
+    errors.push(`No se pudo ejecutar el filtro por periodo: ${error.message}`);
+  }
+}
+
 const expected = [
   "function activeWorkoutFor",
   "function finishWorkout",
@@ -62,12 +89,32 @@ const expected = [
   "function vPtWorkoutHistory",
   "Ver historia de entrenamiento",
   "Comentario de tu entrenador para esta vez",
-  "Responsive de escritorio",
   "admin-settings-grid",
   "admin-directory-grid",
+  "function historyPeriodMatch",
+  "Día específico",
+  "Lapso personalizado",
+  "La ficha y todo el historial se conservan siempre",
+  "Responsive fluido: móvil, tablet, notebook y monitor",
+  "function forgotPassword",
+  "resetPasswordForEmail",
+  "Olvidé mi contraseña",
+  "function togglePasswordVisibility",
+  "PASSWORD_RECOVERY",
+  "updateUser({password:p})",
+  "Crear contraseña nueva",
 ];
 for (const marker of expected) {
   if (!app.includes(marker)) errors.push(`Falta la funcionalidad aprobada: ${marker}`);
+}
+
+if (app.includes('onclick="deleteStudent(')) {
+  errors.push("La vista del profesor todavía permite borrar definitivamente un alumno");
+}
+
+const backupWorkflow = await read(".github/workflows/daily-database-backup.yml");
+for (const marker of ["cron: \"15 3 * * *\"", "pg_dump", "aes-256-cbc", "retention-days: 30"]) {
+  if (!backupWorkflow.includes(marker)) errors.push(`Backup diario incompleto: falta ${marker}`);
 }
 
 for (const file of ["index.html", "v2/index.html", "v2/anim.js", "v2/sw.js"]) {
