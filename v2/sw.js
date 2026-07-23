@@ -1,5 +1,5 @@
 /* Universal Fit — service worker (network-first para no quedar pegado con archivos viejos) */
-const CACHE = 'uf-shell-v5';
+const CACHE = 'uf-shell-v6-2.25.10';
 const SHELL = ['./', './index.html', './manifest.json', './icon-192.png', './icon-512.png'];
 self.addEventListener('install', (e) => {
   self.skipWaiting();
@@ -16,9 +16,14 @@ self.addEventListener('fetch', (e) => {
   if (req.method !== 'GET') return;
   const url = new URL(req.url);
   if (url.origin !== self.location.origin) return;            // Supabase/Google/etc: red directa
+  // version.txt nunca se resuelve desde caché: es la fuente de verdad de la versión publicada.
+  if (url.pathname.endsWith('/version.txt')) {
+    e.respondWith(fetch(req, { cache: 'no-store' }));
+    return;
+  }
   // Network-first: siempre intenta la versión más nueva; si no hay red, cae al cache.
   e.respondWith(
-    fetch(req).then((r) => {
+    fetch(req, { cache: 'no-store' }).then((r) => {
       const copy = r.clone();
       caches.open(CACHE).then((c) => c.put(req, copy)).catch(() => {});
       return r;
