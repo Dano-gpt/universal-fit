@@ -98,6 +98,27 @@ if (customStart < 0 || customEnd < 0) {
   }
 }
 
+const adStart = app.indexOf("function adBanner()");
+const adEnd = app.indexOf("function updateAd()", adStart);
+if (adStart < 0 || adEnd < 0) {
+  errors.push("No se pudo probar el estilo de publicidad");
+} else {
+  try {
+    const adContext = {
+      AD: { texto: "Plan Pro | Conocé los beneficios", url: "https://universalfit.com.ar" },
+      ADSEEN: false,
+      esc: (value) => String(value),
+    };
+    new vm.Script(app.slice(adStart, adEnd)).runInNewContext(adContext);
+    const banner = adContext.adBanner();
+    if (!banner.includes("ufAdBanner") || !banner.includes("Plan Pro") || !banner.includes("Conocé los beneficios") || banner.includes("AD.color")) {
+      errors.push("El banner no usa la composición blanca y verde esperada");
+    }
+  } catch (error) {
+    errors.push(`No se pudo ejecutar el banner de publicidad: ${error.message}`);
+  }
+}
+
 const expected = [
   "function activeWorkoutFor",
   "function finishWorkout",
@@ -143,6 +164,10 @@ const expected = [
   "Guardar y agregar ejercicio",
   "customExercises:customExerciseLibrary()",
   "customExercises:((acc.data&&acc.data.customExercises)||[]).slice()",
+  "ufAdBanner",
+  "AD_BANNER_GREEN='#0B5B50'",
+  "ufAdStylePreview",
+  "function adBanner",
   "function animateGateNumber",
   "function loadPublicStats",
   "Profesores inscriptos",
