@@ -98,6 +98,27 @@ if (customStart < 0 || customEnd < 0) {
   }
 }
 
+const adStart = app.indexOf("function adBanner()");
+const adEnd = app.indexOf("function updateAd()", adStart);
+if (adStart < 0 || adEnd < 0) {
+  errors.push("No se pudo probar el estilo de publicidad");
+} else {
+  try {
+    const adContext = {
+      AD: { texto: "Plan Pro | Conocé los beneficios", url: "https://universalfit.com.ar" },
+      ADSEEN: false,
+      esc: (value) => String(value),
+    };
+    new vm.Script(app.slice(adStart, adEnd)).runInNewContext(adContext);
+    const banner = adContext.adBanner();
+    if (!banner.includes("ufAdBanner") || !banner.includes("Plan Pro") || !banner.includes("Conocé los beneficios") || banner.includes("AD.color")) {
+      errors.push("El banner no usa la composición blanca y verde esperada");
+    }
+  } catch (error) {
+    errors.push(`No se pudo ejecutar el banner de publicidad: ${error.message}`);
+  }
+}
+
 const expected = [
   "function activeWorkoutFor",
   "function finishWorkout",
@@ -143,6 +164,18 @@ const expected = [
   "Guardar y agregar ejercicio",
   "customExercises:customExerciseLibrary()",
   "customExercises:((acc.data&&acc.data.customExercises)||[]).slice()",
+  "ufAdBanner",
+  "AD_BANNER_GREEN='#0B5B50'",
+  "ufAdStylePreview",
+  "function adBanner",
+  "function animateGateNumber",
+  "function loadPublicStats",
+  "Profesores inscriptos",
+  "Alumnos que usan la app",
+  "function adminSavePublicStats",
+  "Indicadores de la pantalla inicial",
+  "admin_set_public_stats",
+  "v1_public_stats",
 ];
 for (const marker of expected) {
   if (!app.includes(marker)) errors.push(`Falta la funcionalidad aprobada: ${marker}`);
@@ -163,6 +196,17 @@ if (app.includes('onclick="deleteStudent(')) {
 const backupWorkflow = await read(".github/workflows/daily-database-backup.yml");
 for (const marker of ["cron: \"15 3 * * *\"", "pg_dump", "aes-256-cbc", "retention-days: 30"]) {
   if (!backupWorkflow.includes(marker)) errors.push(`Backup diario incompleto: falta ${marker}`);
+}
+
+const publicStatsSchema = await read("docs/schema_public_stats.sql");
+for (const marker of [
+  "create or replace function public.v1_public_stats()",
+  "create or replace function public.admin_set_public_stats(",
+  "if not public.admin_check()",
+  "grant execute on function public.v1_public_stats() to anon, authenticated",
+  "grant execute on function public.admin_set_public_stats(int, int) to authenticated",
+]) {
+  if (!publicStatsSchema.includes(marker)) errors.push(`Esquema de indicadores incompleto: falta ${marker}`);
 }
 
 const serviceWorker = await read("v2/sw.js");
