@@ -243,7 +243,7 @@ img,video,iframe,canvas,svg{max-width:100%;}
 </style>
 </head>
 <body>
-<div id="gate"><div style="position:absolute;bottom:18px;left:0;right:0;text-align:center;color:rgba(255,255,255,.75);font-size:12px;font-weight:700">v2.25.8</div><div id="gateInner"><svg class="gIco" width="82" height="82" viewBox="0 0 120 120" style="overflow:visible"><g fill="none" stroke-width="11" stroke-linecap="round" stroke-linejoin="round"><path d="M22 34 L22 68 A18 18 0 0 0 58 68 L58 34" stroke="#9EFF3D"/><path d="M72 34 L72 86 M72 34 L98 34 M72 60 L93 60" stroke="#B98CFF"/></g></svg><div class="gName">Universal Fit</div><div class="gSub">Entrená mejor. Progresá siempre.</div></div></div>
+<div id="gate"><div style="position:absolute;bottom:18px;left:0;right:0;text-align:center;color:rgba(255,255,255,.75);font-size:12px;font-weight:700">v2.25.9</div><div id="gateInner"><svg class="gIco" width="82" height="82" viewBox="0 0 120 120" style="overflow:visible"><g fill="none" stroke-width="11" stroke-linecap="round" stroke-linejoin="round"><path d="M22 34 L22 68 A18 18 0 0 0 58 68 L58 34" stroke="#9EFF3D"/><path d="M72 34 L72 86 M72 34 L98 34 M72 60 L93 60" stroke="#B98CFF"/></g></svg><div class="gName">Universal Fit</div><div class="gSub">Entrená mejor. Progresá siempre.</div></div></div>
 <div id="a2hs"><div class="a2card" id="a2card"></div></div>
 <div class="app">
   <header>
@@ -1108,7 +1108,7 @@ function dirFoto(t,size){const st=`width:${size}px;height:${size}px;border-radiu
 function stars(r){if(r==null)return '<span class="pill g">Nuevo</span>';return `<span style="color:#ff9600;font-weight:800">★ ${r}</span>`;}
 
 /* ---- Código de equipo del PT ---- */
-const UF_VERSION='v2.25.8';
+const UF_VERSION='v2.25.9';
 const APP_URL=(function(){try{return (location.origin&&location.origin.indexOf('http')===0)?(location.origin+location.pathname):'https://dano-gpt.github.io/universal-fit/v2/';}catch(e){return 'https://dano-gpt.github.io/universal-fit/v2/';}})();
 function inviteUrl(code){return APP_URL+'?code='+encodeURIComponent(code);}
 function teamCode(){if(!S.trainer)return null;if(!S.trainer.code){S.trainer.code=('UF'+Math.random().toString(36).replace(/[^a-z0-9]/g,'').slice(0,4)).toUpperCase();save();}return S.trainer.code;}
@@ -1435,7 +1435,7 @@ async function finishObAlNewCloud(){const d=S.ui.ob.d;let gUser=null;
  if(!ok){toast('Cuenta creada pero no pude cargar tus datos — probá entrar de nuevo.');return;}
  S.ui.ob=null;S.ui.view='al_home';save();toast('¡Solicitud enviada a '+fn(t.name)+'! 📨');render();}
 async function obGoogleAl(){try{if(!sb){toast('Necesitás conexión para usar Google');return;}S.ui.ob.d.oauthWait=true;save();await sb.auth.signInWithOAuth({provider:'google',options:{redirectTo:APP_URL}});}catch(e){toast('No pude iniciar Google: '+((e&&e.message)||e));}}
-const APP_VER='v2.25.8';
+const APP_VER='v2.25.9';
 function _who(){try{if(typeof ADMIN!=='undefined'&&ADMIN&&ADMIN.otp)return{role:'admin',uid:'admin'};const r=(typeof S!=='undefined'&&S&&S.ui&&S.ui.role)||'anon';let uid=null;if(r==='pt'){uid=(typeof CLOUD!=='undefined'&&CLOUD&&CLOUD.uid)||((S.trainer&&S.trainer.code)||'pt');}else if(r==='al'){const m=(typeof me==='function')&&me();uid=(m&&m.id)||null;}return{role:r,uid:uid};}catch(e){return{role:'anon',uid:null};}}
 /* ---- v2.24.0: visitante único + fuente de tráfico (alimenta el Tablero → Alcance) ---- */
 var _VID=null,_VNEW=false,_VSRC='directo';
@@ -1700,7 +1700,40 @@ function notiCard(){
   if(p==='denied')return '<div class="card"><b>🔔 Notificaciones bloqueadas</b><div class="cap">Las bloqueaste en el navegador. Habilitalas desde los ajustes del sitio para recibir avisos.</div></div>';
   return '<div class="card" style="border-color:var(--blue);background:#131C33"><b>🔔 Activá las notificaciones</b><div class="cap" style="margin:4px 0 8px">Recibí avisos (nuevo alumno, rutina lista, mensajes…) aunque no tengas la app abierta.</div><button class="btn g sm" onclick="activarNotis()">Activar notificaciones</button></div>';
 }
-if('serviceWorker' in navigator){window.addEventListener('load',function(){navigator.serviceWorker.register('sw.js').catch(function(){});setTimeout(function(){try{ensurePushSub();}catch(e){}},4000);});}
+var APP_RELOADING=false,APP_VERSION_CHECK_AT=0;
+function reloadLatestApp(version){
+  if(APP_RELOADING)return;
+  if(version)try{
+    var lastVersion=sessionStorage.getItem('uf_reload_version'),lastAt=+(sessionStorage.getItem('uf_reload_at')||0);
+    if(lastVersion===version&&Date.now()-lastAt<30000)return;
+    sessionStorage.setItem('uf_reload_version',version);sessionStorage.setItem('uf_reload_at',''+Date.now());
+  }catch(e){}
+  APP_RELOADING=true;
+  try{var u=new URL(location.href);if(version)u.searchParams.set('_ufv',version.replace(/[^0-9.]/g,''));location.replace(u.toString());}
+  catch(e){location.reload();}
+}
+async function ensureLatestAppVersion(reg,force){
+  try{
+    var now=Date.now();if(!force&&now-APP_VERSION_CHECK_AT<60000)return;APP_VERSION_CHECK_AT=now;
+    if(reg)try{await reg.update();}catch(e){}
+    var r=await fetch('version.txt?_ufcheck='+now,{cache:'no-store',headers:{'Cache-Control':'no-cache'}});
+    if(!r.ok)return;
+    var latest=(await r.text()).trim();
+    if(/^v\d+\.\d+\.\d+$/.test(latest)&&latest!==UF_VERSION){reloadLatestApp(latest);return;}
+    try{sessionStorage.removeItem('uf_reload_version');sessionStorage.removeItem('uf_reload_at');}catch(e){}
+    var u=new URL(location.href);if(u.searchParams.has('_ufv')){u.searchParams.delete('_ufv');history.replaceState(null,'',u.toString());}
+  }catch(e){}
+}
+if('serviceWorker' in navigator){
+  window.addEventListener('load',function(){
+    navigator.serviceWorker.addEventListener('controllerchange',function(){reloadLatestApp();});
+    navigator.serviceWorker.register('sw.js',{updateViaCache:'none'}).then(function(reg){
+      ensureLatestAppVersion(reg,true);
+      document.addEventListener('visibilitychange',function(){if(document.visibilityState==='visible')ensureLatestAppVersion(reg,false);});
+    }).catch(function(){});
+    setTimeout(function(){try{ensurePushSub();}catch(e){}},4000);
+  });
+}
 function showGateCode(){const i=document.getElementById('gateInner');if(!i)return;window.__gateShown=true;
  const expMsg=(GATE_EXPIRED)?`<div class="gErr" style="background:rgba(0,0,0,.28)">Tu acceso anticipado venció el ${fmtDMY(GATE_EXPIRED)}. Pedile un código nuevo al administrador.</div>`:'';
  i.innerHTML=`<div class="gCard"><div class="gIco" style="font-size:44px">🔑</div><div class="gName" style="font-size:26px;animation:none">Acceso anticipado</div><p style="margin-top:12px">Estás entrando a una <b>versión anticipada</b> de Universal Fit, por <b>tiempo limitado</b>. Si tenés este acceso es porque fuiste elegido/a como alguien especial 💚.</p><p>Ingresá tu <b>código de acceso anticipado</b>:</p><input class="gIn" id="gateCode" type="text" autocapitalize="characters" autocomplete="off" maxlength="16" placeholder="TU CÓDIGO" style="text-transform:uppercase" onkeydown="if(event.key===\'Enter\')tryGate()"/><div class="gErr" id="gateErr"></div>${expMsg}<button class="gBtn" onclick="tryGate()">Entrar →</button></div>`;

@@ -103,6 +103,12 @@ const expected = [
   "PASSWORD_RECOVERY",
   "updateUser({password:p})",
   "Crear contraseña nueva",
+  "function ensureLatestAppVersion",
+  "updateViaCache:'none'",
+  "controllerchange",
+  "cache:'no-store'",
+  "visibilitychange",
+  "uf_reload_version",
 ];
 for (const marker of expected) {
   if (!app.includes(marker)) errors.push(`Falta la funcionalidad aprobada: ${marker}`);
@@ -123,6 +129,17 @@ if (app.includes('onclick="deleteStudent(')) {
 const backupWorkflow = await read(".github/workflows/daily-database-backup.yml");
 for (const marker of ["cron: \"15 3 * * *\"", "pg_dump", "aes-256-cbc", "retention-days: 30"]) {
   if (!backupWorkflow.includes(marker)) errors.push(`Backup diario incompleto: falta ${marker}`);
+}
+
+const serviceWorker = await read("v2/sw.js");
+for (const marker of [
+  `const CACHE = 'uf-shell-v6-${version.slice(1)}'`,
+  "url.pathname.endsWith('/version.txt')",
+  "fetch(req, { cache: 'no-store' })",
+  "self.skipWaiting()",
+  "self.clients.claim()",
+]) {
+  if (!serviceWorker.includes(marker)) errors.push(`Actualización automática incompleta: falta ${marker}`);
 }
 
 for (const file of ["index.html", "v2/index.html", "v2/anim.js", "v2/sw.js"]) {
