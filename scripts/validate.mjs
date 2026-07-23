@@ -108,6 +108,14 @@ for (const marker of expected) {
   if (!app.includes(marker)) errors.push(`Falta la funcionalidad aprobada: ${marker}`);
 }
 
+for (const marker of [
+  `<div id="gate"><div style="position:absolute;bottom:18px;left:0;right:0;text-align:center;color:rgba(255,255,255,.75);font-size:12px;font-weight:700">${version}</div>`,
+  `const UF_VERSION='${version}'`,
+  `const APP_VER='${version}'`,
+]) {
+  if (!app.includes(marker)) errors.push(`Referencia de versión desactualizada: falta ${marker}`);
+}
+
 if (app.includes('onclick="deleteStudent(')) {
   errors.push("La vista del profesor todavía permite borrar definitivamente un alumno");
 }
