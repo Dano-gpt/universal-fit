@@ -85,6 +85,10 @@
   input,select,textarea{font-family:inherit;}
   .in{width:100%;border:2px solid var(--line);border-radius:12px;padding:11px;font-size:15px;margin-top:6px;background:#fff;font-weight:600;}
   .in:focus{outline:none;border-color:#84d8ff;}
+  .password-field{position:relative;width:100%;}
+  .password-field .in{padding-right:52px;}
+  .password-eye{position:absolute;right:7px;top:12px;width:40px;height:36px;border:0;border-radius:10px;background:transparent;color:var(--muted);font-size:19px;cursor:pointer;display:flex;align-items:center;justify-content:center;}
+  .password-eye:hover,.password-eye:focus{background:rgba(158,255,61,.12);color:var(--blue);outline:none;}
   .setrow{display:flex;align-items:center;gap:8px;margin:8px 0;}
   .setrow .lbl{font-size:13px;color:var(--muted);width:54px;font-weight:700;}
   .setrow input{width:100%;border:2px solid var(--line);border-radius:12px;padding:10px;font-size:16px;text-align:center;font-weight:700;}
@@ -420,6 +424,12 @@ async function loginEmail(){const e=(val('loginEmail')||'').trim(),p=val('loginP
   if(isAdminEmail(e)){ADMIN={on:true,otp:false,data:null,view:null};S.user=null;render();return;}
   const ok=await cloudBoot(data.user);
   if(!ok){toast('Esa cuenta no tiene datos todavía — creá tu cuenta con "Soy entrenador" o "Soy alumno".');try{await sb.auth.signOut();}catch(x){}}}
+function passwordField(id,placeholder,extra){return `<div class="password-field"><input class="in" id="${id}" type="password" placeholder="${esc(placeholder)}" ${extra||''}/><button type="button" class="password-eye" aria-label="Mostrar contraseña" aria-pressed="false" onclick="togglePasswordVisibility('${id}',this)">👁</button></div>`;}
+function togglePasswordVisibility(id,button){const input=document.getElementById(id);if(!input)return;const show=input.type==='password';input.type=show?'text':'password';if(button){button.textContent=show?'🙈':'👁';button.setAttribute('aria-label',show?'Ocultar contraseña':'Mostrar contraseña');button.setAttribute('aria-pressed',show?'true':'false');}}
+async function forgotPassword(){const email=(val('loginEmail')||'').trim();if(!sb){toast('La recuperación necesita conexión a internet');return;}if(!email||email.indexOf('@')<1){toast('Escribí tu email y después tocá “Olvidé mi contraseña”');const input=document.getElementById('loginEmail');if(input)input.focus();return;}toast('Enviando enlace de recuperación…');const {error}=await sb.auth.resetPasswordForEmail(email,{redirectTo:'https://universalfit.com.ar/v2/?recovery=1'});if(error){toast('No pudimos enviar el enlace. Probá nuevamente.');return;}toast('Si existe una cuenta con ese email, vas a recibir un enlace para cambiar la contraseña.');}
+function vPasswordRecovery(){return `<div class="login-wrap"><div class="card" style="text-align:center;border:none;background:var(--hero);color:#fff"><div style="font-size:42px">🔐</div><div style="font-size:22px;font-weight:900;margin-top:8px">Crear contraseña nueva</div><div style="font-size:13px;opacity:.9;margin-top:5px">Elegí una contraseña segura para volver a ingresar.</div></div><div class="card"><div class="cap">Nueva contraseña (mínimo 8 caracteres)</div>${passwordField('recoveryPass','Nueva contraseña','autocomplete="new-password"')}<div class="cap" style="margin-top:10px">Repetir contraseña</div>${passwordField('recoveryPass2','Repetir contraseña','autocomplete="new-password"')}<button class="btn" style="margin-top:12px" onclick="finishPasswordRecovery()">Guardar contraseña nueva</button><button class="back" style="margin-top:14px;width:100%" onclick="cancelPasswordRecovery()">Cancelar y volver al ingreso</button></div></div>`;}
+async function finishPasswordRecovery(){const p=val('recoveryPass')||'',p2=val('recoveryPass2')||'';if(p.length<8){toast('La contraseña necesita al menos 8 caracteres');return;}if(p!==p2){toast('Las contraseñas no coinciden');return;}if(!sb){toast('Sin conexión a internet');return;}const {data:sessionData}=await sb.auth.getSession();if(!sessionData||!sessionData.session){toast('El enlace venció o no es válido. Pedí uno nuevo desde “Olvidé mi contraseña”.');return;}toast('Guardando contraseña…');const {error}=await sb.auth.updateUser({password:p});if(error){toast('No se pudo actualizar: '+error.message);return;}AUTH_RECOVERY=false;try{await sb.auth.signOut();}catch(e){}try{history.replaceState(null,'',location.pathname);}catch(e){}toast('Contraseña actualizada. Ya podés ingresar.');render();}
+async function cancelPasswordRecovery(){AUTH_RECOVERY=false;try{if(sb)await sb.auth.signOut();}catch(e){}try{history.replaceState(null,'',location.pathname);}catch(e){}render();}
 function demoLogin(){S.user={name:'Entrenador',email:'demo@universalfit.app',provider:'demo',type:'pt'};if(!S.trainer)S.trainer={name:'Entrenador'};save();toast('Modo demo: los datos quedan solo en este dispositivo.');render();}
 async function loginGoogle(){if(!sb){S.user={name:'Entrenador',email:'demo@gmail.com',provider:'google',type:'pt'};if(!S.trainer)S.trainer={name:'Entrenador'};save();render();return;}
  try{const r=await fetch(SB_URL+'/auth/v1/settings',{headers:{apikey:SB_KEY}});const j=await r.json();
@@ -460,7 +470,7 @@ function render(){
     document.getElementById('main').scrollTop=0;return;
   }
   const roles=document.getElementById('roles');
-  if(!S.user){roles.style.display='none';var hl0=document.getElementById('hLogout');if(hl0)hl0.style.display='none';var hs0=document.getElementById('hSync');if(hs0)hs0.style.display='none';document.getElementById('idbar').style.display='none';document.getElementById('nav').innerHTML='';document.getElementById('main').innerHTML=(S.ui&&S.ui.grole)?vGRole():((S.ui&&S.ui.ob)?((S.ui.ob.kind==='pt')?vObPt():vObAl()):vLogin());return;}
+  if(!S.user){roles.style.display='none';var hl0=document.getElementById('hLogout');if(hl0)hl0.style.display='none';var hs0=document.getElementById('hSync');if(hs0)hs0.style.display='none';document.getElementById('idbar').style.display='none';document.getElementById('nav').innerHTML='';document.getElementById('main').innerHTML=AUTH_RECOVERY?vPasswordRecovery():((S.ui&&S.ui.grole)?vGRole():((S.ui&&S.ui.ob)?((S.ui.ob.kind==='pt')?vObPt():vObAl()):vLogin()));return;}
   var hl1=document.getElementById('hLogout');if(hl1)hl1.style.display='inline-block';var hs1=document.getElementById('hSync');if(hs1)hs1.style.display=(typeof cloudOn==='function'&&cloudOn())?'inline-block':'none';
   roles.style.display='none';
   const r=(S.user.type==='al')?'al':(S.ui.role||'pt');S.ui.role=r;
@@ -494,8 +504,9 @@ function vLogin(){
   <div class="card">
     <button class="btn gg" onclick="loginGoogle()"><span style="font-weight:800;color:#4285F4">G</span> Continuar con Google</button>
     <div style="text-align:center;color:var(--muted);font-size:12px;margin:14px 0">— o con tu email —</div>
-    <input class="in" id="loginEmail" type="email" placeholder="tu@email.com"/><input class="in" id="loginPass" type="password" placeholder="Contraseña"/>
+    <input class="in" id="loginEmail" type="email" autocomplete="email" placeholder="tu@email.com"/>${passwordField('loginPass','Contraseña','autocomplete="current-password"')}
     <button class="btn" onclick="loginEmail()">Entrar</button>
+    ${sb?`<button class="back" style="display:block;width:100%;margin-top:14px;text-align:center" onclick="forgotPassword()">Olvidé mi contraseña</button>`:''}
     ${sb?`<div class="cap" style="text-align:center;margin-top:12px">🔐 Registro y login reales — tus datos quedan guardados en la nube.</div>`:`<div class="cap" style="text-align:center;margin-top:12px">Demo sin conexión: cualquier dato entra.</div>`}
   </div></div>`;
 }
@@ -1097,7 +1108,7 @@ function dirFoto(t,size){const st=`width:${size}px;height:${size}px;border-radiu
 function stars(r){if(r==null)return '<span class="pill g">Nuevo</span>';return `<span style="color:#ff9600;font-weight:800">★ ${r}</span>`;}
 
 /* ---- Código de equipo del PT ---- */
-const UF_VERSION='v2.25.7';
+const UF_VERSION='v2.25.8';
 const APP_URL=(function(){try{return (location.origin&&location.origin.indexOf('http')===0)?(location.origin+location.pathname):'https://dano-gpt.github.io/universal-fit/v2/';}catch(e){return 'https://dano-gpt.github.io/universal-fit/v2/';}})();
 function inviteUrl(code){return APP_URL+'?code='+encodeURIComponent(code);}
 function teamCode(){if(!S.trainer)return null;if(!S.trainer.code){S.trainer.code=('UF'+Math.random().toString(36).replace(/[^a-z0-9]/g,'').slice(0,4)).toUpperCase();save();}return S.trainer.code;}
@@ -1115,7 +1126,7 @@ function uploadPtFoto(input){const f=input.files&&input.files[0];if(!f)return;co
 function vObPt(){
   const o=S.ui.ob,d=o.d;let body='';
   if(o.step===1)body=`${d.oauth?'<div class="pill g" style="display:inline-block;margin-bottom:8px">✓ Conectado con Google</div>':''}<div class="h">¿Cómo te llamás?</div><input class="in" id="obV" placeholder="Nombre y apellido" value="${esc(d.name||'')}"/><button class="btn" onclick="(function(){const v=val('obV').trim();if(!v){toast('Poné tu nombre');return;}if(S.ui.ob.d.oauth){S.ui.ob.d.name=v;S.ui.ob.step=3;save();render();}else obNext('name',v);})()">Siguiente →</button>`;
-  else if(o.step===2)body=`<div class="h">Tu cuenta</div><input class="in" id="obV" type="email" placeholder="tu@email.com" value="${esc(d.email||'')}"/>${sb?`<input class="in" id="obP" type="password" placeholder="Elegí una contraseña (mín. 6)"/>`:''}<button class="btn" onclick="(function(){const v=val('obV').trim();if(!v||v.indexOf('@')<1){toast('Poné un email válido');return;}if(sb){const p=val('obP')||'';if(p.length<6){toast('La contraseña necesita 6+ caracteres');return;}S.ui.ob.d.pass=p;}obNext('email',v);})()">Siguiente →</button>${sb?'':'<div class="cap" style="margin-top:8px">Demo sin conexión.</div>'}`;
+  else if(o.step===2)body=`<div class="h">Tu cuenta</div><input class="in" id="obV" type="email" placeholder="tu@email.com" value="${esc(d.email||'')}"/>${sb?passwordField('obP','Elegí una contraseña (mín. 6)','autocomplete="new-password"'):''}<button class="btn" onclick="(function(){const v=val('obV').trim();if(!v||v.indexOf('@')<1){toast('Poné un email válido');return;}if(sb){const p=val('obP')||'';if(p.length<6){toast('La contraseña necesita 6+ caracteres');return;}S.ui.ob.d.pass=p;}obNext('email',v);})()">Siguiente →</button>${sb?'':'<div class="cap" style="margin-top:8px">Demo sin conexión.</div>'}`;
   else if(o.step===3)body=`<div class="h">Tu perfil público</div><div class="cap" style="margin:0 0 8px">Esto lo ven los alumnos que buscan entrenador en su zona.</div><div class="setrow"><span class="lbl">Edad</span><input id="obEdad" type="number" inputmode="numeric" value="${d.edad||''}"/></div><div class="setrow"><span class="lbl">Zona</span><select class="in" id="obZona" style="margin:0;text-align:left">${optList(ZONAS,d.zona||ZONAS[0])}</select></div><input class="in" id="obEspec" placeholder="Especialidad (ej: Fuerza e hipertrofia)" value="${esc(d.espec||'')}"/><div class="setrow" style="margin-top:8px"><span class="lbl">Años exp.</span><input id="obExp" type="number" inputmode="numeric" value="${d.exp||''}"/></div><button class="btn" style="margin-top:10px" onclick="(function(){const e=+val('obEdad')||0;if(!e){toast('Poné tu edad');return;}S.ui.ob.d.edad=e;S.ui.ob.d.zona=val('obZona');S.ui.ob.d.espec=(val('obEspec')||'').trim();S.ui.ob.d.exp=+val('obExp')||null;S.ui.ob.step=4;save();render();})()">Siguiente →</button>`;
   else if(o.step===4)body=`<div class="h">Tu foto (opcional)</div><div class="cap" style="margin:0 0 8px">Los alumnos eligen mejor con una cara. Podés sumarla después.</div><div style="display:flex;justify-content:center;margin:10px 0">${dirFoto({foto:d.foto},84)}</div><label class="btn sec" style="cursor:pointer;display:block;text-align:center">📷 Subir foto<input type="file" accept="image/*" style="display:none" onchange="obPtFoto(this)"/></label><button class="btn" style="margin-top:8px" onclick="obGoto(5)">Siguiente →</button><button class="back" style="margin-top:10px" onclick="obGoto(5)">Saltar este paso</button>`;
   else if(o.step===5){const colors=['#58cc02','#1cb0f6','#ce82ff','#ff4b4b','#ff9600','#00cd9c'];body=`<div class="h">Tu marca (opcional)</div><div class="cap" style="margin:0 0 8px">Tus alumnos van a ver tu nombre y color al entrar.</div><input class="in" id="obV" placeholder="Nombre de tu negocio (ej: RG Training)" value="${esc(d.negocio||'')}"/><div class="flex" style="margin-top:10px">${colors.map(c=>`<button style="height:36px;border-radius:8px;border:${(d.color||'')===c?'3px solid #1A2230':'1px solid #ccc'};background:${c};cursor:pointer" onclick="S.ui.ob.d.color='${c}';S.ui.ob.d.negocio=val('obV');save();render()"></button>`).join('')}</div><button class="btn" style="margin-top:12px" onclick="(function(){S.ui.ob.d.negocio=val('obV');if(sb){finishObPt(false);}else{S.ui.ob.step=6;save();render();}})()">${sb?'Crear mi cuenta ✓':'Siguiente →'}</button><button class="back" style="margin-top:10px" onclick="(function(){S.ui.ob.d.negocio='';S.ui.ob.d.color='';if(sb){finishObPt(false);}else{S.ui.ob.step=6;save();render();}})()">Saltar este paso</button>`;}
@@ -1172,7 +1183,7 @@ function vObAl(){
   else if(o.step===8)body=`<div class="h">¿Cuántos días por semana querés entrenar?</div><div class="flex">`+[2,3,4,5,6,7].map(n=>`<button class="btn sec" style="padding:12px 0" onclick="S.ui.ob.d.dias=${n};obGoto(9)">${n}</button>`).join('')+`</div>`;
   else if(o.step===28)body=`<div class="h">¿Cuántos días por semana querés entrenar?</div><div class="flex">`+[2,3,4,5,6,7].map(n=>`<button class="btn sec" style="padding:12px 0" onclick="alDias(${n})">${n}</button>`).join('')+`</div><div class="cap" style="margin-top:10px">Con esto ${esc((dirAll().find(t=>t.id===d.trainerId)||{}).name||'el entrenador')} ya puede armarte la primera rutina.</div>`;
   else if(o.step===9){const mf=[['altura','Altura','cm']].concat(measFields());body=`<div class="h">Tus datos físicos</div><div class="cap" style="margin:0 0 8px">Son el punto de partida para medir tu evolución. Altura y peso son obligatorios; el resto lo podés completar después. 📏 Ideal: medirse temprano a la mañana y con poca ropa.</div>${mf.map(([k,l,u])=>`<div class="setrow"><span class="lbl">${l}</span><input id="cd_${k}" type="number" inputmode="decimal" placeholder="${u}"/><span class="u">${u}</span></div>`).join('')}<button class="btn" style="margin-top:10px" onclick="obMedNext()">${sb?'Siguiente →':'Guardar y entrar 💪'}</button><button class="back" style="margin-top:8px" onclick="obMedSkip()">⏭ Cargar después (te lo pedimos en 1 semana)</button>`;}
-  else if(o.step===10||o.step===29)body=`<div class="h">Creá tu cuenta</div><div class="cap" style="margin:0 0 8px">🔐 Con tu cuenta entrás desde cualquier celu y tus datos quedan guardados en la nube.</div><button class="btn gg" onclick="obGoogleAl()"><span style="font-weight:800;color:#4285F4">G</span> Registrarme con Google</button><div style="text-align:center;color:var(--muted);font-size:12px;margin:12px 0">— o con tu email —</div><input class="in" id="obEmail" type="email" placeholder="tu@email.com" value="${esc(d.email||'')}"/><input class="in" id="obPass" type="password" placeholder="Elegí una contraseña (mín. 6)"/><button class="btn" onclick="${o.step===10?'finishObCodeCloud()':'finishObAlNewCloud()'}">Crear mi cuenta ✓</button>`;
+  else if(o.step===10||o.step===29)body=`<div class="h">Creá tu cuenta</div><div class="cap" style="margin:0 0 8px">🔐 Con tu cuenta entrás desde cualquier celu y tus datos quedan guardados en la nube.</div><button class="btn gg" onclick="obGoogleAl()"><span style="font-weight:800;color:#4285F4">G</span> Registrarme con Google</button><div style="text-align:center;color:var(--muted);font-size:12px;margin:12px 0">— o con tu email —</div><input class="in" id="obEmail" type="email" placeholder="tu@email.com" value="${esc(d.email||'')}"/>${passwordField('obPass','Elegí una contraseña (mín. 6)','autocomplete="new-password"')}<button class="btn" onclick="${o.step===10?'finishObCodeCloud()':'finishObAlNewCloud()'}">Crear mi cuenta ✓</button>`;
   else if(o.step===21)body=`<div class="h">¿Cómo te llamás?</div><input class="in" id="obV" placeholder="Nombre y apellido" value="${esc(d.name||'')}"/><button class="btn" onclick="(function(){const v=val('obV').trim();if(!v){toast('Poné tu nombre');return;}S.ui.ob.d.name=v;S.ui.ob.step=22;save();render();})()">Siguiente →</button>`;
   else if(o.step===22)body=`<div class="h">¿En qué zona vivís?</div><div class="cap" style="margin:0 0 8px">Te mostramos los entrenadores cerca tuyo.</div>`+ZONAS.map(z=>`<button class="btn sec" style="text-align:left;margin-bottom:8px" onclick="obZona('${z}')">📍 ${z}</button>`).join('');
   return `<div class="login-wrap"><button class="back" onclick="obAlBack()">← ${o.step===1?'Volver':'Atrás'}</button>${obBar(idx+1,T)}<div class="cap" style="margin:0 4px 10px">Alta de alumno</div><div class="card">${body}</div></div>`;
@@ -1238,8 +1249,9 @@ function vLogin(){
   <div class="card"><div class="h" style="margin:0 0 8px">Ya tengo cuenta</div>
     <button class="btn gg" onclick="loginGoogle()"><span style="font-weight:800;color:#4285F4">G</span> Continuar con Google</button>
     <div style="text-align:center;color:var(--muted);font-size:12px;margin:14px 0">— o con tu email —</div>
-    <input class="in" id="loginEmail" type="email" placeholder="tu@email.com"/><input class="in" id="loginPass" type="password" placeholder="Contraseña"/>
+    <input class="in" id="loginEmail" type="email" autocomplete="email" placeholder="tu@email.com"/>${passwordField('loginPass','Contraseña','autocomplete="current-password"')}
     <button class="btn" onclick="loginEmail()">Entrar</button>
+    ${sb?`<button class="back" style="display:block;width:100%;margin-top:14px;text-align:center" onclick="forgotPassword()">Olvidé mi contraseña</button>`:''}
     ${sb?`<div class="cap" style="text-align:center;margin-top:12px">🔐 Registro y login reales — tus datos quedan guardados en la nube.</div>`:`<div class="cap" style="text-align:center;margin-top:12px">Demo sin conexión: cualquier dato entra.</div>`}
   </div><div class="cap" style="text-align:center;margin-top:14px">Universal Fit · ${UF_VERSION} · <a onclick="openInstallManual()" style="color:var(--blue);cursor:pointer;font-weight:700">📲 Instalar app</a></div></div>`;
 }
@@ -1254,6 +1266,9 @@ function vAlWelcome(){const s=me();if(!s)return vAlHome();const tn=trainerName(s
 const SB_URL='https://vrtahknnofapgwuhaslq.supabase.co';
 const SB_KEY='sb_publishable_WX7qAiNjLW5K9-k6pQUgaw_MwS6CXDX';
 let sb=null;try{if(window.supabase&&window.supabase.createClient)sb=window.supabase.createClient(SB_URL,SB_KEY);}catch(e){}
+const RECOVERY_REQUESTED=(function(){try{return new URLSearchParams(location.search).get('recovery')==='1'||location.hash.indexOf('type=recovery')>=0;}catch(e){return false;}})();
+let AUTH_RECOVERY=RECOVERY_REQUESTED;
+if(sb){try{sb.auth.onAuthStateChange(function(event){if(event==='PASSWORD_RECOVERY'){AUTH_RECOVERY=true;S.user=null;setTimeout(render,0);}});}catch(e){}}
 let CLOUD={on:false,uid:null,kind:null,timer:null,hashes:{},pushing:false};
 function cloudOn(){return !!(sb&&CLOUD.on);}
 function cloudQueue(){clearTimeout(CLOUD.timer);CLOUD.timer=setTimeout(cloudPush,1200);}
@@ -1829,12 +1844,13 @@ async function adminToggleTrainer(uid,dis){const {data}=await sb.rpc('admin_set_
 async function adminDelTrainer(uid,name){if(!confirm('¿Borrar DEFINITIVAMENTE a '+name+'? Se elimina su cuenta, su perfil y TODOS sus alumnos.'))return;const {data}=await sb.rpc('admin_delete_trainer',{p_uid:uid});if(data&&data.ok){toast('Entrenador borrado 🗑');adminLoad();}else toast('Error');}
 async function adminRenameStudent(id,cur){const v=prompt('Nuevo nombre:',cur);if(!v||!v.trim())return;const {data}=await sb.rpc('admin_rename',{p_kind:'al',p_id:id,p_name:v.trim()});if(data&&data.ok){toast('Nombre actualizado ✏️');adminLoad();}else toast('Error');}
 S=load();
+if(AUTH_RECOVERY){S.user=null;S.ui.ob=null;S.ui.grole=null;}
 const QCODE=(function(){try{var c=new URLSearchParams(location.search).get('code');return (c&&c.length<=8)?c:null;}catch(e){return null;}})();
 if(QCODE&&!S.user){S.ui.ob={kind:'al',step:2,d:{path:'code',code:QCODE}};try{history.replaceState(null,'',location.pathname);}catch(e){}}
 render();
 initGate();
 if(QCODE&&!S.user&&S.ui.ob&&S.ui.ob.step===2){setTimeout(function(){if(S.ui.ob&&S.ui.ob.kind==='al'&&S.ui.ob.step===2)checkCode();},700);}
-if(sb){sb.auth.getSession().then(({data})=>{if(data&&data.session){const u=data.session.user;
+if(sb&&!AUTH_RECOVERY){sb.auth.getSession().then(({data})=>{if(data&&data.session){const u=data.session.user;
  if(isAdminEmail(u.email)){ADMIN={on:true,otp:false,data:null,view:null};render();}
  else{cloudBoot(u).then(ok=>{if(!ok){var ob=S.ui&&S.ui.ob;if(ob&&ob.kind==='al'&&ob.d&&ob.d.oauthWait){S.user=null;S.ui.grole=null;ob.d.oauth=true;ob.d.oauthWait=false;ob.d.email=u.email||ob.d.email||'';save();render();if(ob.d.path==='code')finishObCodeCloud();else if(ob.d.path==='new')finishObAlNewCloud();}else{S.user=null;S.ui.ob=null;S.ui.grole={name:(u.user_metadata&&(u.user_metadata.full_name||u.user_metadata.name))||'',email:u.email||''};save();render();}}});}
 }}).catch(()=>{});}

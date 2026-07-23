@@ -96,6 +96,13 @@ const expected = [
   "Lapso personalizado",
   "La ficha y todo el historial se conservan siempre",
   "Responsive fluido: móvil, tablet, notebook y monitor",
+  "function forgotPassword",
+  "resetPasswordForEmail",
+  "Olvidé mi contraseña",
+  "function togglePasswordVisibility",
+  "PASSWORD_RECOVERY",
+  "updateUser({password:p})",
+  "Crear contraseña nueva",
 ];
 for (const marker of expected) {
   if (!app.includes(marker)) errors.push(`Falta la funcionalidad aprobada: ${marker}`);
