@@ -143,6 +143,14 @@ const expected = [
   "Guardar y agregar ejercicio",
   "customExercises:customExerciseLibrary()",
   "customExercises:((acc.data&&acc.data.customExercises)||[]).slice()",
+  "function animateGateNumber",
+  "function loadPublicStats",
+  "Profesores inscriptos",
+  "Alumnos que usan la app",
+  "function adminSavePublicStats",
+  "Indicadores de la pantalla inicial",
+  "admin_set_public_stats",
+  "v1_public_stats",
 ];
 for (const marker of expected) {
   if (!app.includes(marker)) errors.push(`Falta la funcionalidad aprobada: ${marker}`);
@@ -163,6 +171,17 @@ if (app.includes('onclick="deleteStudent(')) {
 const backupWorkflow = await read(".github/workflows/daily-database-backup.yml");
 for (const marker of ["cron: \"15 3 * * *\"", "pg_dump", "aes-256-cbc", "retention-days: 30"]) {
   if (!backupWorkflow.includes(marker)) errors.push(`Backup diario incompleto: falta ${marker}`);
+}
+
+const publicStatsSchema = await read("docs/schema_public_stats.sql");
+for (const marker of [
+  "create or replace function public.v1_public_stats()",
+  "create or replace function public.admin_set_public_stats(",
+  "if not public.admin_check()",
+  "grant execute on function public.v1_public_stats() to anon, authenticated",
+  "grant execute on function public.admin_set_public_stats(int, int) to authenticated",
+]) {
+  if (!publicStatsSchema.includes(marker)) errors.push(`Esquema de indicadores incompleto: falta ${marker}`);
 }
 
 const serviceWorker = await read("v2/sw.js");

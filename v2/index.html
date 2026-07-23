@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="es">
+<html lang="es" class="uf-gate-open">
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
@@ -119,11 +119,20 @@
   .toast.show{opacity:.97;}
   svg{display:block;width:100%;}
   .login-wrap{padding:20px 4px;}
-  #gate{position:fixed;inset:0;background:var(--blue);z-index:100;display:flex;align-items:center;justify-content:center;text-align:center;transition:opacity .5s;padding:24px;}
+  html.uf-gate-open,body.uf-gate-open{overflow:hidden;}
+  #gate{position:fixed;inset:0;background:var(--blue);z-index:100;display:flex;align-items:center;justify-content:center;text-align:center;transition:opacity .5s;padding:24px;overflow-y:auto;overflow-x:hidden;}
   #gate.bye{opacity:0;pointer-events:none;}
   .gName{font-size:40px;font-weight:900;color:#fff;letter-spacing:1px;animation:gPop .9s ease-out both,gFloat 2.4s ease-in-out 1s infinite;}
   .gIco{font-size:54px;animation:gPop .7s ease-out both,gFloat 2.4s ease-in-out 1s infinite;}
   .gSub{color:rgba(255,255,255,.92);font-size:13px;font-weight:800;margin-top:12px;letter-spacing:.6px;text-transform:uppercase;animation:gPop 1.6s ease-out both;}
+  .gStats{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;width:min(360px,calc(100vw - 40px));margin:24px auto 0;animation:gStatsIn .8s .45s cubic-bezier(.2,.9,.25,1.2) both;}
+  .gStat{position:relative;overflow:hidden;min-height:112px;padding:16px 10px 14px;border:1px solid rgba(255,255,255,.25);border-radius:22px;background:linear-gradient(145deg,rgba(255,255,255,.17),rgba(255,255,255,.06));box-shadow:0 14px 36px rgba(0,0,0,.22),inset 0 1px 0 rgba(255,255,255,.22);backdrop-filter:blur(12px);}
+  .gStat:before{content:"";position:absolute;width:90px;height:90px;border-radius:50%;right:-34px;top:-42px;background:var(--stat-color);opacity:.25;filter:blur(4px);animation:gOrb 2.2s ease-in-out infinite;}
+  .gStat:after{content:"";position:absolute;inset:0;background:linear-gradient(115deg,transparent 20%,rgba(255,255,255,.18) 45%,transparent 70%);transform:translateX(-130%);animation:gShine 2.8s 1.2s ease-in-out infinite;}
+  .gStatIcon{position:relative;z-index:1;font-size:23px;line-height:1;margin-bottom:7px;animation:gIconBeat 1.8s ease-in-out infinite;}
+  .gStatNum{position:relative;z-index:1;color:#fff;font-size:31px;line-height:1;font-weight:900;font-variant-numeric:tabular-nums;text-shadow:0 4px 15px rgba(0,0,0,.3);}
+  .gStatLabel{position:relative;z-index:1;color:rgba(255,255,255,.88);font-size:10px;line-height:1.25;font-weight:900;letter-spacing:.45px;text-transform:uppercase;margin-top:7px;}
+  .gStatsToday{color:rgba(255,255,255,.65);font-size:9px;font-weight:800;margin-top:3px;}
   .gCard{max-width:340px;margin:0 auto;color:#fff;animation:gPop .6s ease-out both;}
   .gCard p{font-size:14px;line-height:1.5;color:rgba(255,255,255,.95);font-weight:600;}
   .gIn{width:100%;border:none;border-radius:14px;padding:14px;font-size:26px;font-weight:900;text-align:center;letter-spacing:10px;margin-top:12px;font-family:inherit;}
@@ -132,6 +141,11 @@
   .gErr{color:#fff;background:rgba(0,0,0,.25);border-radius:10px;padding:6px 10px;font-size:13px;font-weight:800;margin-top:10px;min-height:18px;}
   @keyframes gPop{0%{opacity:0;transform:scale(.7) translateY(24px)}60%{opacity:1;transform:scale(1.06)}100%{opacity:1;transform:scale(1) translateY(0)}}
   @keyframes gFloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
+  @keyframes gStatsIn{0%{opacity:0;transform:translateY(24px) scale(.9)}100%{opacity:1;transform:translateY(0) scale(1)}}
+  @keyframes gOrb{0%,100%{transform:scale(.85)}50%{transform:scale(1.25)}}
+  @keyframes gShine{0%,45%{transform:translateX(-130%)}75%,100%{transform:translateX(130%)}}
+  @keyframes gIconBeat{0%,100%{transform:scale(1) rotate(0)}50%{transform:scale(1.13) rotate(-4deg)}}
+  @media (prefers-reduced-motion:reduce){.gName,.gIco,.gSub,.gStats,.gStat:before,.gStat:after,.gStatIcon{animation:none!important}.gStats{opacity:1;transform:none}}
   /* ---- Instalar como app (A2HS) ---- */
   #a2hs{position:fixed;inset:0;z-index:120;display:none;align-items:flex-end;justify-content:center;background:rgba(0,0,0,.45);opacity:0;transition:opacity .3s;}
   #a2hs.show{display:flex;opacity:1;}
@@ -242,8 +256,8 @@ img,video,iframe,canvas,svg{max-width:100%;}
 #tourTip a.sk{color:#8A88B8;font-size:12px;cursor:pointer}
 </style>
 </head>
-<body>
-<div id="gate"><div style="position:absolute;bottom:18px;left:0;right:0;text-align:center;color:rgba(255,255,255,.75);font-size:12px;font-weight:700">v2.25.10</div><div id="gateInner"><svg class="gIco" width="82" height="82" viewBox="0 0 120 120" style="overflow:visible"><g fill="none" stroke-width="11" stroke-linecap="round" stroke-linejoin="round"><path d="M22 34 L22 68 A18 18 0 0 0 58 68 L58 34" stroke="#9EFF3D"/><path d="M72 34 L72 86 M72 34 L98 34 M72 60 L93 60" stroke="#B98CFF"/></g></svg><div class="gName">Universal Fit</div><div class="gSub">Entrená mejor. Progresá siempre.</div></div></div>
+<body class="uf-gate-open">
+<div id="gate"><div style="position:absolute;bottom:18px;left:0;right:0;text-align:center;color:rgba(255,255,255,.75);font-size:12px;font-weight:700">v2.25.11</div><div id="gateInner"><svg class="gIco" width="82" height="82" viewBox="0 0 120 120" style="overflow:visible"><g fill="none" stroke-width="11" stroke-linecap="round" stroke-linejoin="round"><path d="M22 34 L22 68 A18 18 0 0 0 58 68 L58 34" stroke="#9EFF3D"/><path d="M72 34 L72 86 M72 34 L98 34 M72 60 L93 60" stroke="#B98CFF"/></g></svg><div class="gName">Universal Fit</div><div class="gSub">Entrená mejor. Progresá siempre.</div><div class="gStats" aria-label="Comunidad Universal Fit"><div class="gStat" style="--stat-color:#9EFF3D"><div class="gStatIcon">🏋️</div><div class="gStatNum" id="gateProfessors">0</div><div class="gStatLabel">Profesores inscriptos</div></div><div class="gStat" style="--stat-color:#B98CFF"><div class="gStatIcon">⚡</div><div class="gStatNum" id="gateStudents">0</div><div class="gStatLabel">Alumnos que usan la app</div><div class="gStatsToday">hasta hoy</div></div></div></div></div>
 <div id="a2hs"><div class="a2card" id="a2card"></div></div>
 <div class="app">
   <header>
@@ -1120,7 +1134,7 @@ function dirFoto(t,size){const st=`width:${size}px;height:${size}px;border-radiu
 function stars(r){if(r==null)return '<span class="pill g">Nuevo</span>';return `<span style="color:#ff9600;font-weight:800">★ ${r}</span>`;}
 
 /* ---- Código de equipo del PT ---- */
-const UF_VERSION='v2.25.10';
+const UF_VERSION='v2.25.11';
 const APP_URL=(function(){try{return (location.origin&&location.origin.indexOf('http')===0)?(location.origin+location.pathname):'https://dano-gpt.github.io/universal-fit/v2/';}catch(e){return 'https://dano-gpt.github.io/universal-fit/v2/';}})();
 function inviteUrl(code){return APP_URL+'?code='+encodeURIComponent(code);}
 function teamCode(){if(!S.trainer)return null;if(!S.trainer.code){S.trainer.code=('UF'+Math.random().toString(36).replace(/[^a-z0-9]/g,'').slice(0,4)).toUpperCase();save();}return S.trainer.code;}
@@ -1447,7 +1461,7 @@ async function finishObAlNewCloud(){const d=S.ui.ob.d;let gUser=null;
  if(!ok){toast('Cuenta creada pero no pude cargar tus datos — probá entrar de nuevo.');return;}
  S.ui.ob=null;S.ui.view='al_home';save();toast('¡Solicitud enviada a '+fn(t.name)+'! 📨');render();}
 async function obGoogleAl(){try{if(!sb){toast('Necesitás conexión para usar Google');return;}S.ui.ob.d.oauthWait=true;save();await sb.auth.signInWithOAuth({provider:'google',options:{redirectTo:APP_URL}});}catch(e){toast('No pude iniciar Google: '+((e&&e.message)||e));}}
-const APP_VER='v2.25.10';
+const APP_VER='v2.25.11';
 function _who(){try{if(typeof ADMIN!=='undefined'&&ADMIN&&ADMIN.otp)return{role:'admin',uid:'admin'};const r=(typeof S!=='undefined'&&S&&S.ui&&S.ui.role)||'anon';let uid=null;if(r==='pt'){uid=(typeof CLOUD!=='undefined'&&CLOUD&&CLOUD.uid)||((S.trainer&&S.trainer.code)||'pt');}else if(r==='al'){const m=(typeof me==='function')&&me();uid=(m&&m.id)||null;}return{role:r,uid:uid};}catch(e){return{role:'anon',uid:null};}}
 /* ---- v2.24.0: visitante único + fuente de tráfico (alimenta el Tablero → Alcance) ---- */
 var _VID=null,_VNEW=false,_VSRC='directo';
@@ -1570,6 +1584,7 @@ async function adminToggleAd(id,act){const {data,error}=await sb.rpc('admin_set_
 async function adminDelAd(id){if(!confirm('¿Borrar este anuncio?'))return;const {data,error}=await sb.rpc('admin_del_ad',{p_id:id});if(error||!data||!data.ok){toast('Error');return;}toast('Anuncio borrado 🗑');adminLoad();}
 async function adminSavePlanCfg(plan){const price=+val('pc_'+plan+'_price')||0;const link=(val('pc_'+plan+'_link')||'').trim();const {data,error}=await sb.rpc('admin_set_plan_cfg',{p_plan:plan,p_price:price,p_link:link});if(error||!data||!data.ok){toast('No se pudo guardar (¿corriste schema_plans.sql?)');return;}toast('Plan '+plan+' actualizado ✅');adminLoad();}
 async function adminSetGate(req){const {data,error}=await sb.rpc('admin_set_gate',{p_required:req});if(error||!data||!data.ok){toast('No se pudo cambiar (¿corriste schema_settings.sql?)');return;}toast(req?'Acceso: ahora pide código 🔒':'Acceso: abierto, sin código 🔓');adminLoad();}
+async function adminSavePublicStats(){const professors=Math.max(0,Math.min(999999,+val('publicProfessors')||0)),students=Math.max(0,Math.min(999999,+val('publicStudents')||0));const {data,error}=await sb.rpc('admin_set_public_stats',{p_professors:professors,p_students:students});if(error||!data||!data.ok){toast('No se pudieron guardar los indicadores');return;}ADMIN.publicStats={ok:true,professors:data.professors,students:data.students};PUBLIC_STATS={professors:data.professors,students:data.students};toast('Indicadores de inicio actualizados ✨');render();}
 let MYADQ=null,MYADS=[];
 function toggleMyAd(){S.ui.myAdEdit=!S.ui.myAdEdit;save();if(S.ui.myAdEdit){loadMyAd();}else{render();}}
 async function loadMyAd(){if(typeof sb==='undefined'||!sb){render();return;}try{const q=await sb.rpc('v1_my_ad_quota');MYADQ=(q&&q.data)||null;}catch(e){MYADQ=null;}try{const a=await sb.rpc('v1_my_ads');MYADS=(a&&a.data&&a.data.ads)||[];}catch(e){MYADS=[];}render();}
@@ -1613,13 +1628,17 @@ function maybeTourFire(role){try{if(TOUR||_tourDone(role))return;if(typeof ADMIN
 let GATE_EXPIRED=null;
 function fmtDMY(x){try{return new Date(x).toLocaleDateString('es-AR');}catch(e){return (''+x).slice(0,10);}}
 let GATE_REQUIRED=true;
+let PUBLIC_STATS={professors:0,students:0};
+function animateGateNumber(id,target){const el=document.getElementById(id);if(!el)return;target=Math.max(0,Math.min(999999,+target||0));if(window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches){el.textContent=target.toLocaleString('es-AR');return;}const started=Date.now(),duration=1250;function frame(){const elapsed=Math.min(1,(Date.now()-started)/duration),ease=1-Math.pow(1-elapsed,4);el.textContent=Math.round(target*ease).toLocaleString('es-AR');if(elapsed<1)requestAnimationFrame(frame);}requestAnimationFrame(frame);}
+function paintPublicStats(){animateGateNumber('gateProfessors',PUBLIC_STATS.professors);animateGateNumber('gateStudents',PUBLIC_STATS.students);}
+async function loadPublicStats(){if(typeof sb==='undefined'||!sb)return;try{const r=await sb.rpc('v1_public_stats');if(r&&r.data&&r.data.ok){PUBLIC_STATS={professors:+r.data.professors||0,students:+r.data.students||0};paintPublicStats();}}catch(e){}}
 async function loadGateSetting(){if(typeof sb==='undefined'||!sb)return;try{const r=await sb.rpc('v1_gate');if(r&&r.data&&r.data.ok)GATE_REQUIRED=(r.data.required!==false);}catch(e){}if(!GATE_REQUIRED&&window.__gateShown){hideGate();}}
-function initGate(){const g=document.getElementById('gate');if(!g)return;
+function initGate(){const g=document.getElementById('gate');if(!g)return;try{window.scrollTo(0,0);}catch(e){}
  let unlocked=false,exp=null;try{unlocked=localStorage.getItem('uf_gate')==='1';exp=localStorage.getItem('uf_gate_exp');}catch(e){}
  if(unlocked&&exp&&Date.now()>Date.parse(exp)){unlocked=false;GATE_EXPIRED=exp;try{localStorage.removeItem('uf_gate');localStorage.removeItem('uf_gate_exp');}catch(e){}}
- loadGateSetting();
- setTimeout(function(){if(unlocked||!GATE_REQUIRED){hideGate();if(unlocked&&exp){setTimeout(function(){toast('Acceso anticipado · vence el '+fmtDMY(exp));},1400);}}else showGateCode();},3000);}
-function hideGate(){const g=document.getElementById('gate');if(!g)return;g.classList.add('bye');setTimeout(function(){g.style.display='none';maybeOfferInstall();},600);}
+ paintPublicStats();loadPublicStats();loadGateSetting();
+ setTimeout(function(){if(unlocked||!GATE_REQUIRED){hideGate();if(unlocked&&exp){setTimeout(function(){toast('Acceso anticipado · vence el '+fmtDMY(exp));},1400);}}else showGateCode();},4000);}
+function hideGate(){const g=document.getElementById('gate');if(!g)return;g.classList.add('bye');document.documentElement.classList.remove('uf-gate-open');document.body.classList.remove('uf-gate-open');setTimeout(function(){g.style.display='none';maybeOfferInstall();},600);}
 /* ---- Instalar como app / acceso directo (A2HS) ---- */
 let A2HS_DEFERRED=null;
 window.addEventListener('beforeinstallprompt',function(e){e.preventDefault();A2HS_DEFERRED=e;});
@@ -1795,6 +1814,7 @@ async function adminLoad(){if(!sb)return;const {data,error}=await sb.rpc('admin_
  try{const {data:adx}=await sb.rpc('admin_list_ads');ADMIN.ads=(adx&&adx.ads)||[];}catch(e){ADMIN.ads=[];}
  try{const {data:pl}=await sb.rpc('v1_plans');ADMIN.plans=(pl&&pl.ok)?(pl.plans||[]):[];}catch(e){ADMIN.plans=[];}
  try{const {data:gt}=await sb.rpc('v1_gate');ADMIN.gateRequired=(gt&&gt.ok)?(gt.required!==false):true;}catch(e){ADMIN.gateRequired=true;}
+ try{const {data:ps}=await sb.rpc('v1_public_stats');ADMIN.publicStats=(ps&&ps.ok)?ps:{professors:(data.trainers||[]).length,students:(data.students||[]).length};}catch(e){ADMIN.publicStats={professors:(data.trainers||[]).length,students:(data.students||[]).length};}
  try{const {data:rq}=await sb.from('v1_notifs').select('*').eq('trainer_uid',ADMIN_UID).order('id',{ascending:false}).limit(30);ADMIN.reqs=rq||[];}catch(e){ADMIN.reqs=[];}
  render();}
 async function adminReqDone(id){try{await sb.from('v1_notifs').update({read:true}).eq('id',id);}catch(e){}adminLoad();}
@@ -1868,7 +1888,9 @@ function vAdminHome(){
  const plansCfgCard=`<div class="card"><div class="h" style="margin:0 0 8px">💳 Planes y precios</div><div class="cap" style="margin-bottom:8px">Precio y link de cobro de MercadoPago por plan. El profe los ve al pedir upgrade; cuando paga, activás su plan desde su ficha.</div>${_plansCfg}</div>`;
  const gateOn=ADMIN.gateRequired!==false;
  const gateCard=`<div class="card"><div class="h" style="margin:0 0 8px">🚪 Puerta de acceso anticipado</div><div class="cap" style="margin-bottom:8px">${gateOn?'Estado: <b>Requiere código</b> al entrar (invite-only).':'Estado: <b style="color:#9bef6e">Abierta</b> — cualquiera entra sin código.'}</div><button class="btn${gateOn?'':' sec'}" style="margin:0" onclick="adminSetGate(${gateOn?'false':'true'})">${gateOn?'🔓 Abrir acceso (sin código)':'🔒 Volver a requerir código'}</button></div>`;
- return `<div class="card" style="background:#3c3c3c;color:#fff;border:none"><div style="font-size:18px;font-weight:900">🛡 Panel de administración</div><div class="cap" style="color:rgba(255,255,255,.85);margin-top:4px">${(D.trainers||[]).length} entrenador(es) · ${(D.students||[]).length} alumno(s)</div><button class="btn sec sm" style="margin-top:10px" onclick="adminLoad()">🔄 Actualizar datos</button> <button class="btn sec sm" style="margin-top:10px" onclick="openAdminDash()">📊 Tablero</button></div>${rqs}<div class="admin-settings-grid">${codesCard}${adsCard}${plansCfgCard}${gateCard}</div>
+ const publicStats=ADMIN.publicStats||{professors:(D.trainers||[]).length,students:(D.students||[]).length};
+ const publicStatsCard=`<div class="card" style="border-color:#503978;background:linear-gradient(145deg,#18142d,#201438)"><div class="h" style="margin:0 0 8px;color:#c9a8ff">✨ Indicadores de la pantalla inicial</div><div class="cap" style="margin-bottom:10px">Estos números aparecen animados cada vez que alguien abre la aplicación.</div><div class="flex" style="gap:8px"><div><div class="cap">Profesores inscriptos</div><input class="in" id="publicProfessors" type="number" min="0" max="999999" value="${+publicStats.professors||0}"/></div><div><div class="cap">Alumnos que usan la app</div><input class="in" id="publicStudents" type="number" min="0" max="999999" value="${+publicStats.students||0}"/></div></div><button class="btn" style="margin-top:10px" onclick="adminSavePublicStats()">Guardar indicadores</button></div>`;
+ return `<div class="card" style="background:#3c3c3c;color:#fff;border:none"><div style="font-size:18px;font-weight:900">🛡 Panel de administración</div><div class="cap" style="color:rgba(255,255,255,.85);margin-top:4px">${(D.trainers||[]).length} entrenador(es) · ${(D.students||[]).length} alumno(s)</div><button class="btn sec sm" style="margin-top:10px" onclick="adminLoad()">🔄 Actualizar datos</button> <button class="btn sec sm" style="margin-top:10px" onclick="openAdminDash()">📊 Tablero</button></div>${rqs}<div class="admin-settings-grid">${publicStatsCard}${codesCard}${adsCard}${plansCfgCard}${gateCard}</div>
  <div class="admin-directory-grid"><section class="admin-directory-column"><div class="h">Entrenadores (${(D.trainers||[]).length})</div>${ts}</section>
  <section class="admin-directory-column"><div class="h">Alumnos (${_fstu.length}${_flt?' de '+_allstu.length:''})</div>${stuFilterSel}${(function(){var np=_fstu.filter(function(r){return !r.pending;});var cr=np.filter(admHasRt).length;return '<div class="cap" style="margin:0 0 10px">📋 '+cr+' con rutina · ⏳ '+(np.length-cr)+' sin rutina</div>';})()}${ss}</section></div>`;
 }
