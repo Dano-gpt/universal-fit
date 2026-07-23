@@ -1,4 +1,4 @@
--- Universal Fit v2.25.11
+-- Universal Fit v2.25.12
 -- Contadores configurables para la animacion de apertura.
 
 insert into public.v1_settings(key, val, updated_at)
