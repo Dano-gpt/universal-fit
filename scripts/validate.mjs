@@ -71,6 +71,33 @@ if (periodFunctions.trim()) {
   }
 }
 
+const customStart = app.indexOf("function customExerciseLibrary()");
+const customEnd = app.indexOf("function hasPlan(", customStart);
+if (customStart < 0 || customEnd < 0) {
+  errors.push("No se pudo probar la biblioteca de ejercicios personalizados");
+} else {
+  try {
+    let sequence = 0;
+    const customContext = { S: {}, uid: () => `test_${++sequence}` };
+    new vm.Script(app.slice(customStart, customEnd)).runInNewContext(customContext);
+    const first = customContext.rememberCustomExercise({ name: "Remo especial", category: "Espalda", sets: 3, reps: 12, note: "Primera técnica" });
+    const updated = customContext.rememberCustomExercise({ name: "Remo especial", category: "Espalda", sets: 4, reps: 10, note: "Técnica actualizada" });
+    const copyA = customContext.routineExerciseFromLibrary(updated);
+    const copyB = customContext.routineExerciseFromLibrary(updated);
+    if (
+      customContext.S.customExercises.length !== 1 ||
+      first.libraryId !== updated.libraryId ||
+      updated.note !== "Técnica actualizada" ||
+      copyA.id === copyB.id ||
+      copyA.customLibraryId !== updated.libraryId
+    ) {
+      errors.push("La biblioteca personalizada no guarda, actualiza o reutiliza ejercicios correctamente");
+    }
+  } catch (error) {
+    errors.push(`No se pudo ejecutar la biblioteca personalizada: ${error.message}`);
+  }
+}
+
 const expected = [
   "function activeWorkoutFor",
   "function finishWorkout",
@@ -109,6 +136,13 @@ const expected = [
   "cache:'no-store'",
   "visibilitychange",
   "uf_reload_version",
+  "function customExerciseLibrary",
+  "function rememberCustomExercise",
+  "function addExFromLibrary",
+  "Mis ejercicios personalizados",
+  "Guardar y agregar ejercicio",
+  "customExercises:customExerciseLibrary()",
+  "customExercises:((acc.data&&acc.data.customExercises)||[]).slice()",
 ];
 for (const marker of expected) {
   if (!app.includes(marker)) errors.push(`Falta la funcionalidad aprobada: ${marker}`);
