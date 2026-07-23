@@ -169,33 +169,60 @@ nav button.on{color:var(--blue);}
 .a2steps li{color:var(--ink);border-color:var(--line);}
 .a2steps li .n{background:var(--blue);color:var(--accink);}
 .roles button.on{color:var(--blue);border-color:var(--blue);}
-/* ---- Responsive de escritorio ---- */
-@media (min-width:900px){
+/* ---- Responsive fluido: móvil, tablet, notebook y monitor ---- */
+html,body{width:100%;min-height:100%;overflow-x:hidden;}
+img,video,iframe,canvas,svg{max-width:100%;}
+.app{width:100%;}
+.period-controls{display:grid;grid-template-columns:minmax(170px,1fr);gap:10px;}
+.period-range{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;}
+.history-days-grid{display:grid;grid-template-columns:1fr;gap:16px;align-items:start;}
+.history-day-column{min-width:0;}
+@media (max-width:420px){
+  header{padding-left:12px;padding-right:12px;}
+  main{padding-left:10px;padding-right:10px;}
+  .card{padding:12px;border-radius:14px;}
+  .stu,.ex,.exrow,.daycard{padding:10px;gap:9px;}
+  .period-range{grid-template-columns:1fr;}
+  .flex.responsive-stack{flex-direction:column;}
+  .setrow{gap:5px;}
+  .setrow .lbl{width:46px;}
+}
+@media (min-width:600px){
   body{background:#070712;}
-  .app{max-width:1180px;border-left:1px solid var(--line);border-right:1px solid var(--line);box-shadow:0 0 50px rgba(0,0,0,.28);}
-  header{padding:14px 28px 0;}
-  .brand h1{font-size:19px;}
-  .idbar{padding:9px 28px;}
-  #adslot{max-width:1124px!important;padding:0 28px!important;}
-  main{width:100%;max-width:900px;margin:0 auto;padding:24px 28px 110px;overflow:visible;}
-  nav{max-width:1180px;}
+  .app{max-width:none;border-left:0;border-right:0;box-shadow:none;}
+  header{padding:14px clamp(20px,4vw,44px) 0;}
+  header .brand,header .roles{width:min(100%,1440px);margin-left:auto;margin-right:auto;}
+  .brand h1{font-size:clamp(18px,2vw,21px);}
+  .idbar{padding:9px clamp(20px,4vw,44px);}
+  #adslot{max-width:1440px!important;padding:0 clamp(20px,4vw,44px)!important;}
+  main{width:min(100%,820px);max-width:none;margin:0 auto;padding:clamp(18px,2.5vw,30px) clamp(20px,4vw,44px) 110px;overflow:visible;}
+  nav{max-width:none;width:100%;}
   nav button{padding:13px 0 15px;font-size:12px;}
-  .card{padding:18px;margin-bottom:16px;}
+  .card{padding:clamp(16px,2vw,22px);margin-bottom:16px;}
   .stu,.ex,.exrow,.daycard{padding:14px;}
-  .app[data-layout="admin-home"] main{max-width:none;}
-  .admin-settings-grid,.admin-directory-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px;align-items:start;}
+  .period-controls{grid-template-columns:minmax(200px,280px) minmax(260px,1fr);align-items:end;}
+}
+@media (min-width:900px){
+  main{width:min(100%,1440px);}
+  .app[data-layout="auth"] main,
+  .app[data-layout="pt_wizard"] main,
+  .app[data-layout="pt_addex"] main,
+  .app[data-layout="pt_redit"] main,
+  .app[data-layout="al_log"] main,
+  .app[data-layout="al_measure"] main,
+  .app[data-layout="pt_profile"] main{width:min(100%,820px);}
+  .app[data-layout="pt_history"] main{width:min(100%,1680px);}
+  .app[data-layout="admin-home"] main{width:min(100%,1760px);}
+  .admin-settings-grid,.admin-directory-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,380px),1fr));gap:18px;align-items:start;}
   .admin-settings-grid>.card{margin-bottom:0;}
   .admin-directory-grid{margin-top:20px;}
   .admin-directory-column{min-width:0;}
   .admin-directory-column>.h{margin-top:0!important;}
+  .history-days-grid{grid-template-columns:repeat(auto-fit,minmax(min(100%,520px),1fr));gap:20px;}
 }
-@media (min-width:1280px){
-  .app{max-width:1240px;}
-  nav{max-width:1240px;}
-  .app[data-layout="admin-home"] main{padding-left:34px;padding-right:34px;}
-}
-@media (min-width:900px) and (max-width:1050px){
-  .admin-settings-grid,.admin-directory-grid{grid-template-columns:1fr;}
+@media (min-width:1500px){
+  main{padding-left:48px;padding-right:48px;}
+  .app[data-layout="admin-home"] main{padding-left:56px;padding-right:56px;}
 }
 </style>
 <style>
@@ -309,9 +336,16 @@ function streak(st){const wk=new Set(st.logs.map(l=>weekKey(l.date)));let n=0,d=
 function progress(st,exId){return st.logs.filter(l=>l.entries.some(e=>e.exerciseId===exId)).map(l=>{const e=l.entries.find(x=>x.exerciseId===exId);return{date:l.date,kg:Math.max(...e.sets.map(s=>+s.kg||0))};}).sort((a,b)=>a.date<b.date?-1:1);}
 function weekly(st){const out=[];for(let i=3;i>=0;i--){const s=new Date();s.setDate(s.getDate()-i*7);const k=weekKey(s.toISOString().slice(0,10));out.push({k:'S'+(4-i),c:st.logs.filter(l=>weekKey(l.date)===k).length});}return out;}
 function latestWorkoutFeedback(st,dayId,exId){const logs=(st.logs||[]).slice().sort((a,b)=>((b.completedAt||b.date||'').localeCompare(a.completedAt||a.date||'')));for(const l of logs){if(l.dayId&&dayId&&l.dayId!==dayId)continue;const en=(l.entries||[]).find(x=>x.exerciseId===exId);if(en&&Object.prototype.hasOwnProperty.call(en,'trainerComment'))return en.trainerComment?{text:en.trainerComment,date:(en.trainerCommentAt||l.completedAt||l.date||'').slice(0,10)}:null;}return null;}
-function trainerWorkoutDetails(s,rt,dayFilter){const logs=(s.logs||[]).map((l,index)=>({l,index})).filter(({l})=>{if(!dayFilter)return true;if(dayFilter==='__other__')return !l.dayId||!(rt&&rt.days||[]).some(d=>d.id===l.dayId);return l.dayId===dayFilter;}).sort((a,b)=>((b.l.completedAt||b.l.date||'').localeCompare(a.l.completedAt||a.l.date||'')));if(!logs.length)return '';return `<div class="card"><div class="cap" style="margin-bottom:10px">${logs.length} sesión(es), ordenadas desde la más reciente.</div>${logs.map(({l,index})=>{const day=rt&&rt.days&&rt.days.find(d=>d.id===l.dayId);return `<div style="margin:14px 0;padding:12px;border:1px solid var(--line);border-radius:12px;background:#101020"><div class="row"><b>${fmt(l.date)}${day?' · '+esc(day.name):''}</b><span class="pill g">${(l.entries||[]).length} ejercicio(s)</span></div>${l.feel?`<div class="cap" style="margin-top:4px">Sensación: ${l.feel}</div>`:''}${l.note?`<div style="margin-top:8px;padding:8px;border-radius:9px;background:#211C10"><b>📝 Nota del alumno</b><div class="cap">${esc(l.note)}</div></div>`:''}${(l.entries||[]).map((en,entryIndex)=>{const ex=findEx(rt,en.exerciseId),sets=en.sets||[];return `<div style="margin-top:12px;padding-top:10px;border-top:1px solid var(--line)"><div class="row"><b>${esc(ex?ex.name:'Ejercicio')}</b><span class="cap">${sets.length} serie(s)</span></div>${sets.map((set,i)=>`<div class="row" style="padding:5px 8px;margin-top:4px;border-radius:8px;background:#18182C"><span class="cap">Serie ${i+1}</span><span><b>${+set.reps||0} reps</b> · ${+set.kg||0} kg</span></div>`).join('')}${en.comment?`<div class="cap" style="margin-top:7px">💬 Alumno: “${esc(en.comment)}”</div>`:''}<div class="cap" style="margin-top:9px">Comentario para la próxima vez</div><textarea id="workoutFeedback_${index}_${entryIndex}" class="in" rows="3" maxlength="1000" placeholder="Ej.: mantené la espalda neutra y probá repetir este peso…">${esc(en.trainerComment||'')}</textarea><button class="btn g sm" onclick="saveWorkoutExerciseFeedback('${s.id}',${index},${entryIndex})">Guardar comentario</button>${en.trainerCommentAt?`<div class="cap" style="text-align:center;margin-top:5px">Actualizado: ${fmt(en.trainerCommentAt.slice(0,10))}</div>`:''}</div>`;}).join('')}</div>`;}).join('')}</div>`;}
+function historyPeriodState(){S.ui=S.ui||{};if(!S.ui.historyPeriod)S.ui.historyPeriod={mode:'all',date:today(),month:today().slice(0,7),from:today().slice(0,8)+'01',to:today()};return S.ui.historyPeriod;}
+function historyLogDate(log){return ((log&&log.completedAt)||((log&&log.date)||'')).slice(0,10);}
+function historyPeriodMatch(log,period){const d=historyLogDate(log);if(!period||period.mode==='all')return true;if(!d)return false;if(period.mode==='day')return d===period.date;if(period.mode==='month')return d.slice(0,7)===period.month;if(period.mode==='range'){const a=period.from||'0000-01-01',b=period.to||'9999-12-31',from=a<=b?a:b,to=a<=b?b:a;return d>=from&&d<=to;}return true;}
+function setHistoryPeriod(mode){const p=historyPeriodState();p.mode=mode;save();render();}
+function setHistoryPeriodField(field,value){const p=historyPeriodState();p[field]=value;save();render();}
+function historyPeriodLabel(period){if(!period||period.mode==='all')return 'Todo el historial';if(period.mode==='day')return period.date?fmtDMY(period.date):'Día sin seleccionar';if(period.mode==='month'){const x=(period.month||'').split('-');return x.length===2?x[1]+'/'+x[0]:'Mes sin seleccionar';}if(period.mode==='range')return (period.from?fmtDMY(period.from):'inicio')+' a '+(period.to?fmtDMY(period.to):'hoy');return 'Todo el historial';}
+function historyPeriodCard(logs){const p=historyPeriodState(),count=(logs||[]).filter(l=>historyPeriodMatch(l,p)).length;let field='';if(p.mode==='day')field=`<div><div class="cap">Día</div><input class="in" type="date" value="${esc(p.date||'')}" onchange="setHistoryPeriodField('date',this.value)"/></div>`;else if(p.mode==='month')field=`<div><div class="cap">Mes</div><input class="in" type="month" value="${esc(p.month||'')}" onchange="setHistoryPeriodField('month',this.value)"/></div>`;else if(p.mode==='range')field=`<div class="period-range"><div><div class="cap">Desde</div><input class="in" type="date" value="${esc(p.from||'')}" onchange="setHistoryPeriodField('from',this.value)"/></div><div><div class="cap">Hasta</div><input class="in" type="date" value="${esc(p.to||'')}" onchange="setHistoryPeriodField('to',this.value)"/></div></div>`;else field='<div class="cap" style="padding-bottom:10px">Se muestran todos los entrenamientos guardados.</div>';return `<div class="card"><div class="h" style="margin:0 0 10px">📅 Periodo</div><div class="period-controls"><div><div class="cap">Ver información por</div><select class="in" onchange="setHistoryPeriod(this.value)"><option value="all" ${p.mode==='all'?'selected':''}>Todo el historial</option><option value="day" ${p.mode==='day'?'selected':''}>Día específico</option><option value="month" ${p.mode==='month'?'selected':''}>Mes</option><option value="range" ${p.mode==='range'?'selected':''}>Lapso personalizado</option></select></div>${field}</div><div class="cap" style="margin-top:10px"><b>${count}</b> sesión(es) en ${esc(historyPeriodLabel(p))}.</div></div>`;}
+function trainerWorkoutDetails(s,rt,dayFilter,period){const logs=(s.logs||[]).map((l,index)=>({l,index})).filter(({l})=>{if(!historyPeriodMatch(l,period))return false;if(!dayFilter)return true;if(dayFilter==='__other__')return !l.dayId||!(rt&&rt.days||[]).some(d=>d.id===l.dayId);return l.dayId===dayFilter;}).sort((a,b)=>((b.l.completedAt||b.l.date||'').localeCompare(a.l.completedAt||a.l.date||'')));if(!logs.length)return '';return `<div class="card"><div class="cap" style="margin-bottom:10px">${logs.length} sesión(es), ordenadas desde la más reciente.</div>${logs.map(({l,index})=>{const day=rt&&rt.days&&rt.days.find(d=>d.id===l.dayId);return `<div style="margin:14px 0;padding:12px;border:1px solid var(--line);border-radius:12px;background:#101020"><div class="row"><b>${fmt(l.date)}${day?' · '+esc(day.name):''}</b><span class="pill g">${(l.entries||[]).length} ejercicio(s)</span></div>${l.feel?`<div class="cap" style="margin-top:4px">Sensación: ${l.feel}</div>`:''}${l.note?`<div style="margin-top:8px;padding:8px;border-radius:9px;background:#211C10"><b>📝 Nota del alumno</b><div class="cap">${esc(l.note)}</div></div>`:''}${(l.entries||[]).map((en,entryIndex)=>{const ex=findEx(rt,en.exerciseId),sets=en.sets||[];return `<div style="margin-top:12px;padding-top:10px;border-top:1px solid var(--line)"><div class="row"><b>${esc(ex?ex.name:'Ejercicio')}</b><span class="cap">${sets.length} serie(s)</span></div>${sets.map((set,i)=>`<div class="row" style="padding:5px 8px;margin-top:4px;border-radius:8px;background:#18182C"><span class="cap">Serie ${i+1}</span><span><b>${+set.reps||0} reps</b> · ${+set.kg||0} kg</span></div>`).join('')}${en.comment?`<div class="cap" style="margin-top:7px">💬 Alumno: “${esc(en.comment)}”</div>`:''}<div class="cap" style="margin-top:9px">Comentario para la próxima vez</div><textarea id="workoutFeedback_${index}_${entryIndex}" class="in" rows="3" maxlength="1000" placeholder="Ej.: mantené la espalda neutra y probá repetir este peso…">${esc(en.trainerComment||'')}</textarea><button class="btn g sm" onclick="saveWorkoutExerciseFeedback('${s.id}',${index},${entryIndex})">Guardar comentario</button>${en.trainerCommentAt?`<div class="cap" style="text-align:center;margin-top:5px">Actualizado: ${fmt(en.trainerCommentAt.slice(0,10))}</div>`:''}</div>`;}).join('')}</div>`;}).join('')}</div>`;}
 function saveWorkoutExerciseFeedback(studentId,logIndex,entryIndex){const s=S.students.find(x=>x.id===studentId),log=s&&s.logs&&s.logs[logIndex],en=log&&log.entries&&log.entries[entryIndex];if(!s||!log||!en){toast('El registro cambió. Volvé a abrir el detalle.');render();return;}const rt=routineOf(s),ex=findEx(rt,en.exerciseId),text=(val('workoutFeedback_'+logIndex+'_'+entryIndex)||'').trim().slice(0,1000),had=!!en.trainerComment;en.trainerComment=text;en.trainerCommentAt=new Date().toISOString();if(text){s.msgs=s.msgs||[];s.msgs.unshift({id:uid(),date:today(),text:'📋 Tu entrenador comentó '+(ex?ex.name:'un ejercicio')+' de tu entrenamiento del '+fmt(log.date)+': “'+text.slice(0,180)+'”',read:false});pushTo({targetStudentId:s.id,title:'📋 Nueva devolución de tu entrenamiento',body:'Tu entrenador comentó '+(ex?ex.name:'uno de tus ejercicios')});}save();toast(text?(had?'Comentario actualizado ✓':'Comentario enviado al alumno ✓'):'Comentario eliminado');render();}
-function vPtWorkoutHistory(){const s=S.students.find(x=>x.id===S.ui.viewStudentId);if(!s)return vPtHome();const rt=routineOf(s),logs=s.logs||[],days=(rt&&rt.days||[]).filter(day=>logs.some(l=>l.dayId===day.id)),hasOther=logs.some(l=>!l.dayId||!(rt&&rt.days||[]).some(d=>d.id===l.dayId));return `<button class="back" onclick="go('pt_student')">← ${esc(fn(s.name))}</button><div class="card" style="background:var(--hero);color:#fff;border:none"><div style="font-size:20px;font-weight:800">📚 Historia de entrenamiento</div><div class="cap" style="color:rgba(255,255,255,.88);margin-top:4px">${esc(s.name)} · detalle completo separado por día de rutina</div></div>${!logs.length?`<div class="empty cap">El alumno todavía no finalizó entrenamientos.</div>`:days.map(day=>`<div class="h" style="margin:18px 4px 8px">${esc(day.name)}</div>${trainerWorkoutDetails(s,rt,day.id)}`).join('')+(hasOther?`<div class="h" style="margin:18px 4px 8px">Otros entrenamientos</div>${trainerWorkoutDetails(s,rt,'__other__')}`:'')}`;}
+function vPtWorkoutHistory(){const s=S.students.find(x=>x.id===S.ui.viewStudentId);if(!s)return vPtHome();const rt=routineOf(s),logs=s.logs||[],period=historyPeriodState(),visible=logs.filter(l=>historyPeriodMatch(l,period)),days=(rt&&rt.days||[]).filter(day=>visible.some(l=>l.dayId===day.id)),hasOther=visible.some(l=>!l.dayId||!(rt&&rt.days||[]).some(d=>d.id===l.dayId));const sections=days.map(day=>`<section class="history-day-column"><div class="h" style="margin:4px 4px 8px">${esc(day.name)}</div>${trainerWorkoutDetails(s,rt,day.id,period)}</section>`).join('')+(hasOther?`<section class="history-day-column"><div class="h" style="margin:4px 4px 8px">Otros entrenamientos</div>${trainerWorkoutDetails(s,rt,'__other__',period)}</section>`:'');return `<button class="back" onclick="go('pt_student')">← ${esc(fn(s.name))}</button><div class="card" style="background:var(--hero);color:#fff;border:none"><div style="font-size:20px;font-weight:800">📚 Historia de entrenamiento</div><div class="cap" style="color:rgba(255,255,255,.88);margin-top:4px">${esc(s.name)} · ${visible.length} de ${logs.length} sesión(es) en el periodo seleccionado</div></div>${historyPeriodCard(logs)}${!logs.length?`<div class="empty cap">El alumno todavía no finalizó entrenamientos.</div>`:(!visible.length?`<div class="empty"><div class="em">📅</div><p>No hay entrenamientos en este periodo.</p></div>`:`<div class="history-days-grid">${sections}</div>`)}`;}
 function activeWorkoutFor(st,day){
   if(!st||!day)return null;
   let w=st.activeWorkout;
@@ -405,7 +439,7 @@ function render(){
   const appShell=document.querySelector('.app');
   if(appShell){
     const adminHome=typeof ADMIN!=='undefined'&&ADMIN.on&&ADMIN.otp&&ADMIN.data&&!ADMIN.view;
-    appShell.dataset.layout=adminHome?'admin-home':((typeof ADMIN!=='undefined'&&ADMIN.on)?'admin-detail':((S&&S.ui&&S.ui.view)||'default'));
+    appShell.dataset.layout=adminHome?'admin-home':((typeof ADMIN!=='undefined'&&ADMIN.on)?'admin-detail':((!S||!S.user)?'auth':((S.ui&&S.ui.view)||'default')));
   }
   if(typeof ADMIN!=='undefined'&&ADMIN.on){
     const roles0=document.getElementById('roles');if(roles0)roles0.style.display='none';
@@ -496,7 +530,7 @@ function vPtStudent(){
   <div class="flex" style="margin-top:10px"><button class="btn sec sm" onclick="fromTemplate('${s.id}')">📋 Desde plantilla</button><button class="btn sec sm" onclick="copyRoutine('${s.id}')">⧉ Copiar a otro</button><button class="btn sec sm" onclick="shareLink('${s.id}')">Compartir link</button></div>
   <button class="btn g" style="margin-top:10px" onclick="ptMessage('${s.id}')">💬 Enviar mensaje a ${esc(fn(s.name))}</button>
   <button class="btn" style="margin-top:10px;background:#B98CFF;color:#0A0A16" onclick="genStudentPDF('${s.id}')">📄 Informe de evolución (PDF) para compartir</button>
-  <div class="card" style="margin-top:14px;border-color:#5A2A2E"><div class="h" style="margin:0 0 6px">Gestión del alumno</div>${s.active===false?`<button class="btn g sm" onclick="reactivateStudent('${s.id}')">▶ Reactivar — vuelve a activos con toda su historia</button>`:`<button class="btn sec sm" onclick="deactivateStudent('${s.id}')">⏸ Desactivar — pausa el servicio (vacaciones, freno) y guarda toda su historia</button>`}<button class="btn sm" style="background:#C0392B;margin-top:8px" onclick="deleteStudent('${s.id}')">🗑 Borrar definitivamente — se pierde toda la historia</button></div>`;
+  <div class="card" style="margin-top:14px"><div class="h" style="margin:0 0 6px">Estado del alumno</div><div class="cap" style="margin-bottom:10px">La ficha y todo el historial se conservan siempre. Podés pausar o reactivar al alumno cuando sea necesario.</div>${s.active===false?`<button class="btn g sm" onclick="reactivateStudent('${s.id}')">▶ Activar alumno — recupera el acceso con toda su historia</button>`:`<button class="btn sec sm" onclick="deactivateStudent('${s.id}')">⏸ Desactivar alumno — pausa el acceso sin perder información</button>`}</div>`;
 }
 function pdfImgData(url){return new Promise(function(res){try{if(!url){res(null);return;}fetch(url).then(function(r){return r.blob();}).then(function(b){var fr=new FileReader();fr.onload=function(){res(''+fr.result);};fr.onerror=function(){res(null);};fr.readAsDataURL(b);}).catch(function(){res(null);});}catch(e){res(null);}});}
 async function genStudentPDF(id){
@@ -1004,7 +1038,6 @@ function activeStudents(){return S.students.filter(x=>x.active!==false&&!x.pendi
 function codeOf(st){return st.id.slice(0,6);}
 function deactivateStudent(id){const st=S.students.find(x=>x.id===id);if(!confirm('¿Desactivar a '+fn(st.name)+'? No aparece más entre los activos, pero TODA su historia se guarda para cuando vuelva.'))return;st.active=false;save();toast(fn(st.name)+' desactivado ⏸ (historia guardada)');go('pt_home');}
 function reactivateStudent(id){const st=S.students.find(x=>x.id===id);st.active=true;save();toast(fn(st.name)+' reactivado ▶ ¡Bienvenido de vuelta!');render();}
-function deleteStudent(id){const st=S.students.find(x=>x.id===id);if(!confirm('¿BORRAR a '+fn(st.name)+' DEFINITIVAMENTE?\n\nSe pierde TODA su historia: rutinas, entrenos, medidas, fotos y mensajes. Esta acción no se puede deshacer.\n\nSi solo se va por un tiempo, usá "Desactivar".'))return;S.routines=S.routines.filter(r=>r.owner!==id);S.students=S.students.filter(x=>x.id!==id);S.notifs=(S.notifs||[]).filter(n=>n.studentId!==id);if(S.ui.studentId===id)S.ui.studentId=S.students[0]&&S.students[0].id;save();toast('Alumno borrado 🗑');go('pt_home');}
 function dayStarted(s,day){return !!activeWorkoutFor(s,day);}
 function startWorkout(dayId){const s=me(),rt=routineOf(s),day=rt&&rt.days.find(d=>d.id===dayId);if(!day)return;if(s.activeWorkout&&s.activeWorkout.dayId!==dayId){const activeDay=rt&&rt.days.find(d=>d.id===s.activeWorkout.dayId);toast('Tenés '+((activeDay&&activeDay.name)||'otro día')+' en curso. Finalizalo antes de iniciar otro.');return;}if(!s.activeWorkout)s.activeWorkout={dayId:dayId,date:today(),startedAt:new Date().toISOString(),entries:[],feel:'',note:''};delete S.ui.workout;save();toast('¡Día iniciado! Se mantendrá abierto hasta que lo finalices 💪');const first=day.exercises.find(e=>!activeEntry(s,e.id))||day.exercises[0];if(first){S.ui.logExerciseId=first.id;go('al_log');}else render();}
 function finishWorkout(dayId){const s=me(),rt=routineOf(s),day=rt&&rt.days.find(d=>d.id===dayId),w=activeWorkoutFor(s,day);if(!w){toast('No hay un entrenamiento en curso');return;}const done=(w.entries||[]).length,total=day.exercises.length;if(!done){toast('Registrá al menos un ejercicio antes de finalizar');return;}if(!confirm('¿Finalizar el día de entrenamiento?\n\nGuardaste '+done+' de '+total+' ejercicios. Una vez finalizado se cerrará esta sesión.'))return;const log={date:w.date||today(),dayId:dayId,startedAt:w.startedAt||new Date().toISOString(),completedAt:new Date().toISOString(),entries:w.entries||[],feel:w.feel||'',note:(w.note||'').trim()};s.logs=s.logs||[];s.logs.push(log);delete s.activeWorkout;delete S.ui.workout;try{logEvent('action','finish_workout',{dayId:dayId,done:done,total:total});}catch(e){}const comments=(log.entries||[]).filter(en=>en.comment).length;notify(s.id,fn(s.name)+' finalizó '+day.name+' ('+done+'/'+total+' ejercicios)'+(log.feel?' y se sintió '+log.feel:'')+(comments?' · dejó '+comments+' comentario(s)':'')+(log.note?' · nota: “'+log.note.slice(0,100)+'”':''));save();toast('¡Día de entrenamiento finalizado! ✅');go('al_days');}
@@ -1064,7 +1097,7 @@ function dirFoto(t,size){const st=`width:${size}px;height:${size}px;border-radiu
 function stars(r){if(r==null)return '<span class="pill g">Nuevo</span>';return `<span style="color:#ff9600;font-weight:800">★ ${r}</span>`;}
 
 /* ---- Código de equipo del PT ---- */
-const UF_VERSION='v2.25.6';
+const UF_VERSION='v2.25.7';
 const APP_URL=(function(){try{return (location.origin&&location.origin.indexOf('http')===0)?(location.origin+location.pathname):'https://dano-gpt.github.io/universal-fit/v2/';}catch(e){return 'https://dano-gpt.github.io/universal-fit/v2/';}})();
 function inviteUrl(code){return APP_URL+'?code='+encodeURIComponent(code);}
 function teamCode(){if(!S.trainer)return null;if(!S.trainer.code){S.trainer.code=('UF'+Math.random().toString(36).replace(/[^a-z0-9]/g,'').slice(0,4)).toUpperCase();save();}return S.trainer.code;}

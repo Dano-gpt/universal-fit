@@ -1,0 +1,65 @@
+name: Backup diario de Supabase
+
+on:
+  schedule:
+    # 00:15 de Argentina (UTC-3).
+    - cron: "15 3 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  backup:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+      BACKUP_ENCRYPTION_KEY: ${{ secrets.BACKUP_ENCRYPTION_KEY }}
+
+    steps:
+      - name: Validar configuración segura
+        shell: bash
+        run: |
+          if [[ -z "$SUPABASE_DB_URL" || -z "$BACKUP_ENCRYPTION_KEY" ]]; then
+            echo "::error::Faltan SUPABASE_DB_URL y/o BACKUP_ENCRYPTION_KEY en GitHub Actions."
+            exit 1
+          fi
+
+      - name: Instalar cliente PostgreSQL
+        shell: bash
+        run: |
+          sudo apt-get update
+          sudo apt-get install --yes postgresql-client
+
+      - name: Exportar toda la base
+        id: dump
+        shell: bash
+        run: |
+          stamp="$(date -u +'%Y-%m-%dT%H-%M-%SZ')"
+          dump_file="universal-fit-${stamp}.dump"
+          encrypted_file="${dump_file}.enc"
+          pg_dump "$SUPABASE_DB_URL" \
+            --format=custom \
+            --compress=9 \
+            --no-owner \
+            --no-privileges \
+            --file="$dump_file"
+          openssl enc -aes-256-cbc -salt -pbkdf2 -iter 200000 \
+            -in "$dump_file" \
+            -out "$encrypted_file" \
+            -pass env:BACKUP_ENCRYPTION_KEY
+          sha256sum "$encrypted_file" > "${encrypted_file}.sha256"
+          rm -f "$dump_file"
+          echo "file=$encrypted_file" >> "$GITHUB_OUTPUT"
+
+      - name: Guardar respaldo cifrado por 30 días
+        uses: actions/upload-artifact@v4
+        with:
+          name: supabase-backup-${{ github.run_id }}
+          path: |
+            ${{ steps.dump.outputs.file }}
+            ${{ steps.dump.outputs.file }}.sha256
+          retention-days: 30
+          if-no-files-found: error
+
