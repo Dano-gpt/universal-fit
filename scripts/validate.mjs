@@ -46,28 +46,116 @@ for (const [, attributes, source] of app.matchAll(/<script(?![^>]*\bsrc=)([^>]*)
   }
 }
 
-const periodFunctions = ["historyLogDate", "historyPeriodMatch"].map((name) => {
-  const match = app.match(new RegExp(`function ${name}\\([^\\n]+`));
-  if (!match) errors.push(`No se pudo probar ${name}`);
-  return match?.[0] ?? "";
-}).join("\n");
-if (periodFunctions.trim()) {
+const relativeStart = app.indexOf("function validDay(");
+const relativeEnd = app.indexOf("function latestWorkoutFeedback(", relativeStart);
+if (relativeStart < 0 || relativeEnd < 0) {
+  errors.push("No se pudo probar el cálculo de semanas y meses desde el inicio");
+} else {
   try {
-    const periodContext = {};
-    new vm.Script(periodFunctions).runInNewContext(periodContext);
-    const sample = { date: "2026-07-15" };
+    const periodContext = { today: () => "2026-07-25" };
+    new vm.Script(app.slice(relativeStart, relativeEnd)).runInNewContext(periodContext);
     const cases = [
-      periodContext.historyPeriodMatch(sample, { mode: "all" }),
-      periodContext.historyPeriodMatch(sample, { mode: "day", date: "2026-07-15" }),
-      !periodContext.historyPeriodMatch(sample, { mode: "day", date: "2026-07-16" }),
-      periodContext.historyPeriodMatch(sample, { mode: "month", month: "2026-07" }),
-      !periodContext.historyPeriodMatch(sample, { mode: "month", month: "2026-06" }),
-      periodContext.historyPeriodMatch(sample, { mode: "range", from: "2026-07-10", to: "2026-07-20" }),
-      periodContext.historyPeriodMatch(sample, { mode: "range", from: "2026-07-20", to: "2026-07-10" }),
+      periodContext.relativePeriodIndex("2026-01-01", "2026-01-01", "week") === 1,
+      periodContext.relativePeriodIndex("2026-01-07", "2026-01-01", "week") === 1,
+      periodContext.relativePeriodIndex("2026-01-08", "2026-01-01", "week") === 2,
+      periodContext.relativePeriodIndex("2026-02-14", "2026-01-15", "month") === 1,
+      periodContext.relativePeriodIndex("2026-02-15", "2026-01-15", "month") === 2,
+      periodContext.relativePeriodBounds("2026-01-01", "week", 2).from === "2026-01-08",
+      periodContext.relativePeriodBounds("2026-01-31", "month", 2).from === "2026-02-28",
     ];
-    if (cases.some((result) => !result)) errors.push("El filtro por periodo no supera sus casos de día, mes y lapso");
+    if (cases.some((result) => !result)) errors.push("El cálculo relativo no supera sus casos de semana y mes desde el inicio");
   } catch (error) {
-    errors.push(`No se pudo ejecutar el filtro por periodo: ${error.message}`);
+    errors.push(`No se pudo ejecutar el cálculo relativo: ${error.message}`);
+  }
+}
+
+const newsStart = app.indexOf("function renderStudentNews(");
+const newsEnd = app.indexOf("function renderPeriodMedia(", newsStart);
+if (newsStart < 0 || newsEnd < 0) {
+  errors.push("No se pudo probar la respuesta contextual de novedades");
+} else {
+  try {
+    const newsContext = {
+      S: { ui: {} },
+      studentNovelties: () => [
+        { key: "message:1", text: "Mensaje del alumno", kind: "message" },
+        { key: "video:1", text: "Video de técnica", kind: "video", video: { exId: "ex1", name: "Sentadilla", url: "video.mp4" } },
+      ],
+      filterStudentNovelties: (_student, list) => list,
+      studentNoveltyFilters: () => ({ status: "all", type: "all" }),
+      noveltyStore: () => ({}),
+      noveltyIcon: (kind) => kind,
+      noveltyReplyEditor: () => "",
+      videoBox: () => "<video></video>",
+      esc: (value) => String(value ?? ""),
+      fn: (value) => String(value ?? "").split(" ")[0],
+    };
+    new vm.Script(app.slice(newsStart, newsEnd)).runInNewContext(newsContext);
+    const html = newsContext.renderStudentNews({ id: "student1", name: "Alumno Demo" });
+    const replyActions = (html.match(/Responder ahora/g) || []).length;
+    if (replyActions !== 2 || !html.includes("Mensaje del alumno") || !html.includes("Video de técnica") || !html.includes("Guardar devolución")) {
+      errors.push("La respuesta contextual no aparece tanto en mensajes como en videos");
+    }
+  } catch (error) {
+    errors.push(`No se pudo ejecutar la vista de novedades: ${error.message}`);
+  }
+}
+
+const noveltyFilterStart = app.indexOf("function studentNoveltyFilters(");
+const noveltyFilterEnd = app.indexOf("function setNoveltyStatus(", noveltyFilterStart);
+if (noveltyFilterStart < 0 || noveltyFilterEnd < 0) {
+  errors.push("No se pudo probar los filtros de novedades");
+} else {
+  try {
+    const filterContext = { S: { ui: {} }, noveltyStore: (student) => student.noveltyStatus };
+    new vm.Script(app.slice(noveltyFilterStart, noveltyFilterEnd)).runInNewContext(filterContext);
+    const student = { id: "student1", noveltyStatus: { "message:seen": { seen: true }, "video:done": { seen: true, responded: true } } };
+    const list = [
+      { key: "message:new", kind: "message" },
+      { key: "message:seen", kind: "message" },
+      { key: "video:done", kind: "video" },
+    ];
+    const filters = filterContext.studentNoveltyFilters(student);
+    filters.status = "seen";
+    const seen = filterContext.filterStudentNovelties(student, list).map((item) => item.key);
+    filters.status = "unanswered";
+    filters.type = "message";
+    const unansweredMessages = filterContext.filterStudentNovelties(student, list).map((item) => item.key);
+    if (!seen.includes("message:seen") || !seen.includes("video:done") || !unansweredMessages.includes("message:new") || !unansweredMessages.includes("message:seen") || unansweredMessages.includes("video:done")) {
+      errors.push("Los filtros combinados de novedades no respetan vistos, sin responder y tipo");
+    }
+  } catch (error) {
+    errors.push(`No se pudo ejecutar los filtros de novedades: ${error.message}`);
+  }
+}
+
+const demoSeedStart = app.indexOf("function ensureLocalDemoNovedades()");
+const demoSeedEnd = app.indexOf("/* helpers */", demoSeedStart);
+if (demoSeedStart < 0 || demoSeedEnd < 0) {
+  errors.push("No se pudo probar la carga aislada de novedades demo");
+} else {
+  try {
+    const demoStudent = { id: "demo_student", name: "Juan P.", techVids: [], noveltyStatus: {}, msgs: [] };
+    const demoContext = {
+      LOCAL_DEMO: true,
+      S: { students: [demoStudent], notifs: [] },
+      routineOf: () => ({ id: "routine" }),
+      allEx: () => [{ id: "exercise", name: "Press banca" }],
+      today: () => "2026-07-25",
+    };
+    new vm.Script(app.slice(demoSeedStart, demoSeedEnd)).runInNewContext(demoContext);
+    demoContext.ensureLocalDemoNovedades();
+    if (
+      demoContext.S.notifs.length < 2 ||
+      !demoStudent.techVids.some((video) => video.demoSample) ||
+      !demoStudent.noveltyStatus["notif:demo-checkin-juan"]?.responded ||
+      !demoStudent.noveltyStatus["notif:demo-visto-juan"]?.seen ||
+      !demoStudent.msgs.some((message) => message.id === "demo-reply-juan")
+    ) {
+      errors.push("El modo demo no carga novedades de mensaje, video y respuesta de ejemplo");
+    }
+  } catch (error) {
+    errors.push(`No se pudo ejecutar la carga demo: ${error.message}`);
   }
 }
 
@@ -135,13 +223,30 @@ const expected = [
   "function saveWorkoutExerciseFeedback",
   "function latestWorkoutFeedback",
   "function vPtWorkoutHistory",
-  "Ver historia de entrenamiento",
+  "Configuración del alumno",
+  "Novedades de hoy",
+  "Avances desde el inicio",
+  "function studentTrainingStart",
+  "function relativePeriodIndex",
+  "function relativePeriodBounds",
+  "function studentNovelties",
+  "function filterStudentNovelties",
+  "function clearStudentNoveltyFilters",
+  "Sin responder",
+  "Ver todas las novedades",
+  "function setNoveltyStatus",
+  "function deleteStudentNovelty",
+  "function sendNoveltyReply",
+  "function noveltyReplyEditor",
+  "replyToNovelty",
+  "Enviar respuesta",
+  "Respuesta de tu entrenador",
+  "Marcar respondida",
+  "No usa semanas ni meses calendario",
   "Comentario de tu entrenador para esta vez",
   "admin-settings-grid",
   "admin-directory-grid",
   "function historyPeriodMatch",
-  "Día específico",
-  "Lapso personalizado",
   "La ficha y todo el historial se conservan siempre",
   "Responsive fluido: móvil, tablet, notebook y monitor",
   "function forgotPassword",
