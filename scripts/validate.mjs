@@ -81,6 +81,8 @@ if (newsStart < 0 || newsEnd < 0) {
         { key: "message:1", text: "Mensaje del alumno", kind: "message" },
         { key: "video:1", text: "Video de técnica", kind: "video", video: { exId: "ex1", name: "Sentadilla", url: "video.mp4" } },
       ],
+      filterStudentNovelties: (_student, list) => list,
+      studentNoveltyFilters: () => ({ status: "all", type: "all" }),
       noveltyStore: () => ({}),
       noveltyIcon: (kind) => kind,
       noveltyReplyEditor: () => "",
@@ -96,6 +98,34 @@ if (newsStart < 0 || newsEnd < 0) {
     }
   } catch (error) {
     errors.push(`No se pudo ejecutar la vista de novedades: ${error.message}`);
+  }
+}
+
+const noveltyFilterStart = app.indexOf("function studentNoveltyFilters(");
+const noveltyFilterEnd = app.indexOf("function setNoveltyStatus(", noveltyFilterStart);
+if (noveltyFilterStart < 0 || noveltyFilterEnd < 0) {
+  errors.push("No se pudo probar los filtros de novedades");
+} else {
+  try {
+    const filterContext = { S: { ui: {} }, noveltyStore: (student) => student.noveltyStatus };
+    new vm.Script(app.slice(noveltyFilterStart, noveltyFilterEnd)).runInNewContext(filterContext);
+    const student = { id: "student1", noveltyStatus: { "message:seen": { seen: true }, "video:done": { seen: true, responded: true } } };
+    const list = [
+      { key: "message:new", kind: "message" },
+      { key: "message:seen", kind: "message" },
+      { key: "video:done", kind: "video" },
+    ];
+    const filters = filterContext.studentNoveltyFilters(student);
+    filters.status = "seen";
+    const seen = filterContext.filterStudentNovelties(student, list).map((item) => item.key);
+    filters.status = "unanswered";
+    filters.type = "message";
+    const unansweredMessages = filterContext.filterStudentNovelties(student, list).map((item) => item.key);
+    if (!seen.includes("message:seen") || !seen.includes("video:done") || !unansweredMessages.includes("message:new") || !unansweredMessages.includes("message:seen") || unansweredMessages.includes("video:done")) {
+      errors.push("Los filtros combinados de novedades no respetan vistos, sin responder y tipo");
+    }
+  } catch (error) {
+    errors.push(`No se pudo ejecutar los filtros de novedades: ${error.message}`);
   }
 }
 
@@ -119,6 +149,7 @@ if (demoSeedStart < 0 || demoSeedEnd < 0) {
       demoContext.S.notifs.length < 2 ||
       !demoStudent.techVids.some((video) => video.demoSample) ||
       !demoStudent.noveltyStatus["notif:demo-checkin-juan"]?.responded ||
+      !demoStudent.noveltyStatus["notif:demo-visto-juan"]?.seen ||
       !demoStudent.msgs.some((message) => message.id === "demo-reply-juan")
     ) {
       errors.push("El modo demo no carga novedades de mensaje, video y respuesta de ejemplo");
@@ -199,6 +230,10 @@ const expected = [
   "function relativePeriodIndex",
   "function relativePeriodBounds",
   "function studentNovelties",
+  "function filterStudentNovelties",
+  "function clearStudentNoveltyFilters",
+  "Sin responder",
+  "Ver todas las novedades",
   "function setNoveltyStatus",
   "function deleteStudentNovelty",
   "function sendNoveltyReply",

@@ -254,6 +254,8 @@ img,video,iframe,canvas,svg{max-width:100%;}
 .novelty-reply .in{margin:8px 0 0;}
 .novelty-reply-actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px;}
 .novelty-reply-actions .btn{width:auto;margin:0;}
+.novelty-filters{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px;align-items:end;}
+.novelty-filters .btn{margin:0;}
 .section-heading{margin:18px 2px 8px;font-size:18px;font-weight:900;}
 @media (max-width:420px){
   header{padding-left:12px;padding-right:12px;}
@@ -284,6 +286,7 @@ img,video,iframe,canvas,svg{max-width:100%;}
   .student-section-nav{grid-template-columns:repeat(3,minmax(0,1fr));}
   .relative-toolbar{grid-template-columns:minmax(180px,240px) minmax(190px,1fr);}
   .period-kpis{grid-template-columns:repeat(4,minmax(0,1fr));}
+  .novelty-filters{grid-template-columns:minmax(180px,1fr) minmax(180px,1fr) auto;}
 }
 @media (min-width:900px){
   main{width:min(100%,1440px);}
@@ -324,7 +327,7 @@ img,video,iframe,canvas,svg{max-width:100%;}
 </style>
 </head>
 <body class="uf-gate-open">
-<div id="gate"><div style="position:absolute;bottom:18px;left:0;right:0;text-align:center;color:rgba(255,255,255,.75);font-size:12px;font-weight:700">v2.26.1</div><div id="gateInner"><svg class="gIco" width="82" height="82" viewBox="0 0 120 120" style="overflow:visible"><g fill="none" stroke-width="11" stroke-linecap="round" stroke-linejoin="round"><path d="M22 34 L22 68 A18 18 0 0 0 58 68 L58 34" stroke="#9EFF3D"/><path d="M72 34 L72 86 M72 34 L98 34 M72 60 L93 60" stroke="#B98CFF"/></g></svg><div class="gName">Universal Fit</div><div class="gSub">Entrená mejor. Progresá siempre.</div><div class="gStats" aria-label="Comunidad Universal Fit"><div class="gStat" style="--stat-color:#9EFF3D"><i class="gSpark s1"></i><i class="gSpark s2"></i><i class="gSpark s3"></i><div class="gStatIcon">🏋️</div><div class="gStatNum" id="gateProfessors">0</div><div class="gStatLabel">Profesores inscriptos</div></div><div class="gStat" style="--stat-color:#B98CFF"><i class="gSpark s1"></i><i class="gSpark s2"></i><i class="gSpark s3"></i><div class="gStatIcon">⚡</div><div class="gStatNum" id="gateStudents">0</div><div class="gStatLabel">Alumnos que usan la app</div><div class="gStatsToday">hasta hoy</div></div></div></div></div>
+<div id="gate"><div style="position:absolute;bottom:18px;left:0;right:0;text-align:center;color:rgba(255,255,255,.75);font-size:12px;font-weight:700">v2.26.2</div><div id="gateInner"><svg class="gIco" width="82" height="82" viewBox="0 0 120 120" style="overflow:visible"><g fill="none" stroke-width="11" stroke-linecap="round" stroke-linejoin="round"><path d="M22 34 L22 68 A18 18 0 0 0 58 68 L58 34" stroke="#9EFF3D"/><path d="M72 34 L72 86 M72 34 L98 34 M72 60 L93 60" stroke="#B98CFF"/></g></svg><div class="gName">Universal Fit</div><div class="gSub">Entrená mejor. Progresá siempre.</div><div class="gStats" aria-label="Comunidad Universal Fit"><div class="gStat" style="--stat-color:#9EFF3D"><i class="gSpark s1"></i><i class="gSpark s2"></i><i class="gSpark s3"></i><div class="gStatIcon">🏋️</div><div class="gStatNum" id="gateProfessors">0</div><div class="gStatLabel">Profesores inscriptos</div></div><div class="gStat" style="--stat-color:#B98CFF"><i class="gSpark s1"></i><i class="gSpark s2"></i><i class="gSpark s3"></i><div class="gStatIcon">⚡</div><div class="gStatNum" id="gateStudents">0</div><div class="gStatLabel">Alumnos que usan la app</div><div class="gStatsToday">hasta hoy</div></div></div></div></div>
 <div id="a2hs"><div class="a2card" id="a2card"></div></div>
 <div class="app">
   <header>
@@ -409,20 +412,22 @@ function seed(){
 }
 /* Datos exclusivamente locales para probar Novedades. Solo se activan con ?demo=1 en localhost. */
 function ensureLocalDemoNovedades(){
-  if(typeof LOCAL_DEMO==='undefined'||!LOCAL_DEMO||!S||S.demoNovedadesV2261)return;
+  if(typeof LOCAL_DEMO==='undefined'||!LOCAL_DEMO||!S||S.demoNovedadesV2262)return;
   const juan=(S.students||[]).find(s=>s&&s.name==='Juan P.')||(S.students||[])[0];if(!juan)return;
   const rt=routineOf(juan),ex=(rt&&allEx(rt)[0])||{},now=Date.now();
   S.notifs=S.notifs||[];
   const addNotif=(id,text,read,delta)=>{if(!S.notifs.some(n=>n.id===id))S.notifs.unshift({id,date:today(),ts:now+(delta||0),studentId:juan.id,text,read:!!read,demo:true});};
   addNotif('demo-msg-juan','💬 Juan dejó un mensaje: “Hoy me sentí con energía, ¿puedo subir un poco el peso la próxima vez?”',false,30);
   addNotif('demo-checkin-juan','📝 Juan envió su check-in: “Dormí bien y completé todos los hábitos.”',true,20);
+  addNotif('demo-visto-juan','💬 Juan confirmó que aplicó la corrección técnica en su última serie.',true,15);
   juan.techVids=juan.techVids||[];
   if(!juan.techVids.some(v=>v&&v.demoSample))juan.techVids.unshift({exId:ex.id||'demo-tech-juan',name:ex.name||'Sentadilla goblet',url:'https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4',path:'',date:today(),uploadedAt:new Date(now+10).toISOString(),feedback:'',feedbackAt:'',demoSample:true});
   juan.noveltyStatus=juan.noveltyStatus||{};
   juan.noveltyStatus['notif:demo-checkin-juan']={seen:true,responded:true,respondedAt:new Date(now-60000).toISOString(),replyMessageId:'demo-reply-juan'};
+  juan.noveltyStatus['notif:demo-visto-juan']={seen:true,seenAt:new Date(now-30000).toISOString()};
   juan.msgs=juan.msgs||[];
   if(!juan.msgs.some(m=>m&&m.id==='demo-reply-juan'))juan.msgs.unshift({id:'demo-reply-juan',date:today(),createdAt:new Date(now-60000).toISOString(),text:'💬 Respuesta de tu entrenador sobre “Check-in semanal”: ¡Excelente, Juan! Mantené este ritmo y revisamos el peso en la próxima sesión.',read:false,replyToNovelty:'notif:demo-checkin-juan',replyContext:'Check-in semanal',demo:true});
-  S.demoNovedadesV2261=true;
+  S.demoNovedadesV2262=true;
 }
 
 /* helpers */
@@ -659,6 +664,19 @@ function studentNovelties(s){
   (s.logs||[]).filter(l=>validDay(l.completedAt||l.date)===today()).forEach((l,i)=>{if(!hasText('finalizó')&&!hasText('entren'))out.push({key:'workout:'+validDay(l.completedAt||l.date)+':'+i,date:validDay(l.completedAt||l.date),ts:Date.parse(l.completedAt||l.date)||0,text:'Finalizó '+((l.entries||[]).length)+' ejercicio(s)'+(l.note?' — “'+l.note+'”':''),kind:'workout',source:'workout'});});
   const states=noveltyStore(s);return out.filter(n=>!(states[n.key]&&states[n.key].deleted)).sort((a,b)=>(b.ts||0)-(a.ts||0));
 }
+function studentNoveltyFilters(s){
+  S.ui=S.ui||{};S.ui.studentNoveltyFilters=S.ui.studentNoveltyFilters||{};
+  return S.ui.studentNoveltyFilters[s.id]||(S.ui.studentNoveltyFilters[s.id]={status:'all',type:'all'});
+}
+function setStudentNoveltyFilter(studentId,field,value){
+  const s=S.students.find(x=>x.id===studentId);if(!s)return;const f=studentNoveltyFilters(s);f[field]=value;save();render();
+}
+function clearStudentNoveltyFilters(studentId){
+  const s=S.students.find(x=>x.id===studentId);if(!s)return;const f=studentNoveltyFilters(s);f.status='all';f.type='all';save();render();
+}
+function filterStudentNovelties(s,list){
+  const f=studentNoveltyFilters(s),store=noveltyStore(s);return (list||[]).filter(n=>{const st=store[n.key]||{};if(f.status==='seen'&&!st.seen)return false;if(f.status==='unanswered'&&st.responded)return false;if(f.type==='video'&&n.kind!=='video')return false;if(f.type==='message'&&n.kind!=='message')return false;return true;});
+}
 function setNoveltyStatus(studentId,key,field){
   const s=S.students.find(x=>x.id===studentId);if(!s)return;const store=noveltyStore(s),st=store[key]||(store[key]={});
   if(field==='responded'){st.seen=true;st.responded=true;st.respondedAt=new Date().toISOString();}else{st.seen=true;st.seenAt=new Date().toISOString();}
@@ -687,9 +705,10 @@ function deleteStudentNovelty(studentId,key){
 }
 function noveltyIcon(kind){return kind==='video'?'🎥':kind==='workout'?'🏋️':kind==='update'?'📈':'💬';}
 function renderStudentNews(s){
-  const list=studentNovelties(s),store=noveltyStore(s);
+  const all=studentNovelties(s),list=filterStudentNovelties(s,all),store=noveltyStore(s),filters=studentNoveltyFilters(s),active=filters.status!=='all'||filters.type!=='all';
   return `<div class="card" style="background:var(--hero);color:#fff;border:none"><div style="font-size:21px;font-weight:900">🔔 Novedades de hoy</div><div class="cap" style="color:rgba(255,255,255,.84);margin-top:4px">Mensajes, videos y actividad enviada hoy por ${esc(fn(s.name))}. Cada elemento se gestiona por separado.</div></div>
-  ${list.length?list.map(n=>{const st=store[n.key]||{},v=n.video,replyOpen=S.ui&&S.ui.noveltyReplyKey===n.key;return `<article class="novelty-card"><div class="row" style="align-items:flex-start"><div style="font-size:24px">${noveltyIcon(n.kind)}</div><div style="flex:1;min-width:0"><b>${esc(n.text)}</b><div class="cap" style="margin-top:3px">Hoy${st.responded?' · respondido':st.seen?' · visto':' · pendiente'}</div></div>${st.responded?'<span class="pill g">Respondido</span>':st.seen?'<span class="pill y">Visto</span>':'<span class="pill r">Nuevo</span>'}</div>${v?`${videoBox(v.url,v.name)}<div class="cap" style="margin-top:8px">Devolución para el alumno</div><textarea id="techFeedback_${v.exId}" class="in" rows="3" maxlength="1000" placeholder="Ej.: mantené la espalda neutra y controlá la bajada…">${esc(v.feedback||'')}</textarea><button class="btn g sm" onclick="saveTechFeedback('${s.id}','${v.exId}')">Guardar devolución</button>`:''}<div class="novelty-actions"><button class="btn sec sm" onclick="setNoveltyStatus('${s.id}','${n.key}','seen')" ${st.seen?'disabled':''}>✓ ${st.seen?'Visto':'Ya lo vi'}</button><button class="btn g sm" onclick="toggleNoveltyReply('${n.key}')">💬 ${replyOpen?'Cerrar respuesta':st.responded?'Responder de nuevo':'Responder ahora'}</button><button class="btn sec sm" onclick="setNoveltyStatus('${s.id}','${n.key}','responded')" ${st.responded?'disabled':''}>✓ ${st.responded?'Respondido':'Marcar respondida'}</button><button class="btn sec sm" style="color:var(--red)" onclick="deleteStudentNovelty('${s.id}','${n.key}')">🗑 Borrar</button></div>${noveltyReplyEditor(s,n)}</article>`;}).join(''):`<div class="empty"><div class="em">✨</div><p>No hay novedades de ${esc(fn(s.name))} hoy.</p><div class="cap">Cuando envíe un video, check-in, mensaje o finalice un entrenamiento aparecerá acá.</div></div>`}`;
+  ${all.length?`<div class="card"><div class="novelty-filters"><div><div class="cap">Estado</div><select class="in" onchange="setStudentNoveltyFilter('${s.id}','status',this.value)"><option value="all" ${filters.status==='all'?'selected':''}>Todas</option><option value="seen" ${filters.status==='seen'?'selected':''}>Vistas</option><option value="unanswered" ${filters.status==='unanswered'?'selected':''}>Sin responder</option></select></div><div><div class="cap">Tipo</div><select class="in" onchange="setStudentNoveltyFilter('${s.id}','type',this.value)"><option value="all" ${filters.type==='all'?'selected':''}>Todos</option><option value="video" ${filters.type==='video'?'selected':''}>Videos</option><option value="message" ${filters.type==='message'?'selected':''}>Mensajes</option></select></div>${active?`<button class="btn sec sm" onclick="clearStudentNoveltyFilters('${s.id}')">Ver todas</button>`:''}</div><div class="cap" style="margin-top:9px">Mostrando <b>${list.length}</b> de ${all.length} novedad(es).</div></div>`:''}
+  ${list.length?list.map(n=>{const st=store[n.key]||{},v=n.video,replyOpen=S.ui&&S.ui.noveltyReplyKey===n.key;return `<article class="novelty-card"><div class="row" style="align-items:flex-start"><div style="font-size:24px">${noveltyIcon(n.kind)}</div><div style="flex:1;min-width:0"><b>${esc(n.text)}</b><div class="cap" style="margin-top:3px">Hoy${st.responded?' · respondido':st.seen?' · visto':' · pendiente'}</div></div>${st.responded?'<span class="pill g">Respondido</span>':st.seen?'<span class="pill y">Visto</span>':'<span class="pill r">Nuevo</span>'}</div>${v?`${videoBox(v.url,v.name)}<div class="cap" style="margin-top:8px">Devolución para el alumno</div><textarea id="techFeedback_${v.exId}" class="in" rows="3" maxlength="1000" placeholder="Ej.: mantené la espalda neutra y controlá la bajada…">${esc(v.feedback||'')}</textarea><button class="btn g sm" onclick="saveTechFeedback('${s.id}','${v.exId}')">Guardar devolución</button>`:''}<div class="novelty-actions"><button class="btn sec sm" onclick="setNoveltyStatus('${s.id}','${n.key}','seen')" ${st.seen?'disabled':''}>✓ ${st.seen?'Visto':'Ya lo vi'}</button><button class="btn g sm" onclick="toggleNoveltyReply('${n.key}')">💬 ${replyOpen?'Cerrar respuesta':st.responded?'Responder de nuevo':'Responder ahora'}</button><button class="btn sec sm" onclick="setNoveltyStatus('${s.id}','${n.key}','responded')" ${st.responded?'disabled':''}>✓ ${st.responded?'Respondido':'Marcar respondida'}</button><button class="btn sec sm" style="color:var(--red)" onclick="deleteStudentNovelty('${s.id}','${n.key}')">🗑 Borrar</button></div>${noveltyReplyEditor(s,n)}</article>`;}).join(''):`<div class="empty"><div class="em">🔎</div><p>No hay novedades con estos filtros.</p>${active?`<button class="btn sec sm" onclick="clearStudentNoveltyFilters('${s.id}')">Ver todas las novedades</button>`:''}</div>`}`;
 }
 function renderPeriodMedia(s,b){
   const photos=(s.photos||[]).filter(p=>inBounds(p.date,b)),vids=(s.techVids||[]).filter(v=>inBounds(v.uploadedAt||v.date,b));if(!photos.length&&!vids.length)return '';
@@ -1300,7 +1319,7 @@ function dirFoto(t,size){const st=`width:${size}px;height:${size}px;border-radiu
 function stars(r){if(r==null)return '<span class="pill g">Nuevo</span>';return `<span style="color:#ff9600;font-weight:800">★ ${r}</span>`;}
 
 /* ---- Código de equipo del PT ---- */
-const UF_VERSION='v2.26.1';
+const UF_VERSION='v2.26.2';
 const APP_URL=(function(){try{return (location.origin&&location.origin.indexOf('http')===0)?(location.origin+location.pathname):'https://dano-gpt.github.io/universal-fit/v2/';}catch(e){return 'https://dano-gpt.github.io/universal-fit/v2/';}})();
 function inviteUrl(code){return APP_URL+'?code='+encodeURIComponent(code);}
 function teamCode(){if(!S.trainer)return null;if(!S.trainer.code){S.trainer.code=('UF'+Math.random().toString(36).replace(/[^a-z0-9]/g,'').slice(0,4)).toUpperCase();save();}return S.trainer.code;}
@@ -1628,7 +1647,7 @@ async function finishObAlNewCloud(){const d=S.ui.ob.d;let gUser=null;
  if(!ok){toast('Cuenta creada pero no pude cargar tus datos — probá entrar de nuevo.');return;}
  S.ui.ob=null;S.ui.view='al_home';save();toast('¡Solicitud enviada a '+fn(t.name)+'! 📨');render();}
 async function obGoogleAl(){try{if(!sb){toast('Necesitás conexión para usar Google');return;}S.ui.ob.d.oauthWait=true;save();await sb.auth.signInWithOAuth({provider:'google',options:{redirectTo:APP_URL}});}catch(e){toast('No pude iniciar Google: '+((e&&e.message)||e));}}
-const APP_VER='v2.26.1';
+const APP_VER='v2.26.2';
 function _who(){try{if(typeof ADMIN!=='undefined'&&ADMIN&&ADMIN.otp)return{role:'admin',uid:'admin'};const r=(typeof S!=='undefined'&&S&&S.ui&&S.ui.role)||'anon';let uid=null;if(r==='pt'){uid=(typeof CLOUD!=='undefined'&&CLOUD&&CLOUD.uid)||((S.trainer&&S.trainer.code)||'pt');}else if(r==='al'){const m=(typeof me==='function')&&me();uid=(m&&m.id)||null;}return{role:r,uid:uid};}catch(e){return{role:'anon',uid:null};}}
 /* ---- v2.24.0: visitante único + fuente de tráfico (alimenta el Tablero → Alcance) ---- */
 var _VID=null,_VNEW=false,_VSRC='directo';
