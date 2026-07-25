@@ -69,6 +69,36 @@ if (relativeStart < 0 || relativeEnd < 0) {
   }
 }
 
+const newsStart = app.indexOf("function renderStudentNews(");
+const newsEnd = app.indexOf("function renderPeriodMedia(", newsStart);
+if (newsStart < 0 || newsEnd < 0) {
+  errors.push("No se pudo probar la respuesta contextual de novedades");
+} else {
+  try {
+    const newsContext = {
+      S: { ui: {} },
+      studentNovelties: () => [
+        { key: "message:1", text: "Mensaje del alumno", kind: "message" },
+        { key: "video:1", text: "Video de técnica", kind: "video", video: { exId: "ex1", name: "Sentadilla", url: "video.mp4" } },
+      ],
+      noveltyStore: () => ({}),
+      noveltyIcon: (kind) => kind,
+      noveltyReplyEditor: () => "",
+      videoBox: () => "<video></video>",
+      esc: (value) => String(value ?? ""),
+      fn: (value) => String(value ?? "").split(" ")[0],
+    };
+    new vm.Script(app.slice(newsStart, newsEnd)).runInNewContext(newsContext);
+    const html = newsContext.renderStudentNews({ id: "student1", name: "Alumno Demo" });
+    const replyActions = (html.match(/Responder ahora/g) || []).length;
+    if (replyActions !== 2 || !html.includes("Mensaje del alumno") || !html.includes("Video de técnica") || !html.includes("Guardar devolución")) {
+      errors.push("La respuesta contextual no aparece tanto en mensajes como en videos");
+    }
+  } catch (error) {
+    errors.push(`No se pudo ejecutar la vista de novedades: ${error.message}`);
+  }
+}
+
 const customStart = app.indexOf("function customExerciseLibrary()");
 const customEnd = app.indexOf("function hasPlan(", customStart);
 if (customStart < 0 || customEnd < 0) {
@@ -142,7 +172,12 @@ const expected = [
   "function studentNovelties",
   "function setNoveltyStatus",
   "function deleteStudentNovelty",
-  "Ya respondí",
+  "function sendNoveltyReply",
+  "function noveltyReplyEditor",
+  "replyToNovelty",
+  "Enviar respuesta",
+  "Respuesta de tu entrenador",
+  "Marcar respondida",
   "No usa semanas ni meses calendario",
   "Comentario de tu entrenador para esta vez",
   "admin-settings-grid",

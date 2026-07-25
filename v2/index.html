@@ -250,6 +250,10 @@ img,video,iframe,canvas,svg{max-width:100%;}
 .novelty-card{padding:14px;border:1px solid var(--line);border-radius:16px;background:#101020;margin-top:10px;}
 .novelty-actions{display:flex;flex-wrap:wrap;gap:7px;margin-top:11px;}
 .novelty-actions .btn{width:auto;margin:0;padding:8px 11px;}
+.novelty-reply{margin-top:12px;padding:12px;border:1px solid color-mix(in srgb,var(--blue) 55%,var(--line));border-radius:14px;background:rgba(158,255,61,.07);}
+.novelty-reply .in{margin:8px 0 0;}
+.novelty-reply-actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px;}
+.novelty-reply-actions .btn{width:auto;margin:0;}
 .section-heading{margin:18px 2px 8px;font-size:18px;font-weight:900;}
 @media (max-width:420px){
   header{padding-left:12px;padding-right:12px;}
@@ -320,7 +324,7 @@ img,video,iframe,canvas,svg{max-width:100%;}
 </style>
 </head>
 <body class="uf-gate-open">
-<div id="gate"><div style="position:absolute;bottom:18px;left:0;right:0;text-align:center;color:rgba(255,255,255,.75);font-size:12px;font-weight:700">v2.26.0</div><div id="gateInner"><svg class="gIco" width="82" height="82" viewBox="0 0 120 120" style="overflow:visible"><g fill="none" stroke-width="11" stroke-linecap="round" stroke-linejoin="round"><path d="M22 34 L22 68 A18 18 0 0 0 58 68 L58 34" stroke="#9EFF3D"/><path d="M72 34 L72 86 M72 34 L98 34 M72 60 L93 60" stroke="#B98CFF"/></g></svg><div class="gName">Universal Fit</div><div class="gSub">Entrená mejor. Progresá siempre.</div><div class="gStats" aria-label="Comunidad Universal Fit"><div class="gStat" style="--stat-color:#9EFF3D"><i class="gSpark s1"></i><i class="gSpark s2"></i><i class="gSpark s3"></i><div class="gStatIcon">🏋️</div><div class="gStatNum" id="gateProfessors">0</div><div class="gStatLabel">Profesores inscriptos</div></div><div class="gStat" style="--stat-color:#B98CFF"><i class="gSpark s1"></i><i class="gSpark s2"></i><i class="gSpark s3"></i><div class="gStatIcon">⚡</div><div class="gStatNum" id="gateStudents">0</div><div class="gStatLabel">Alumnos que usan la app</div><div class="gStatsToday">hasta hoy</div></div></div></div></div>
+<div id="gate"><div style="position:absolute;bottom:18px;left:0;right:0;text-align:center;color:rgba(255,255,255,.75);font-size:12px;font-weight:700">v2.26.1</div><div id="gateInner"><svg class="gIco" width="82" height="82" viewBox="0 0 120 120" style="overflow:visible"><g fill="none" stroke-width="11" stroke-linecap="round" stroke-linejoin="round"><path d="M22 34 L22 68 A18 18 0 0 0 58 68 L58 34" stroke="#9EFF3D"/><path d="M72 34 L72 86 M72 34 L98 34 M72 60 L93 60" stroke="#B98CFF"/></g></svg><div class="gName">Universal Fit</div><div class="gSub">Entrená mejor. Progresá siempre.</div><div class="gStats" aria-label="Comunidad Universal Fit"><div class="gStat" style="--stat-color:#9EFF3D"><i class="gSpark s1"></i><i class="gSpark s2"></i><i class="gSpark s3"></i><div class="gStatIcon">🏋️</div><div class="gStatNum" id="gateProfessors">0</div><div class="gStatLabel">Profesores inscriptos</div></div><div class="gStat" style="--stat-color:#B98CFF"><i class="gSpark s1"></i><i class="gSpark s2"></i><i class="gSpark s3"></i><div class="gStatIcon">⚡</div><div class="gStatNum" id="gateStudents">0</div><div class="gStatLabel">Alumnos que usan la app</div><div class="gStatsToday">hasta hoy</div></div></div></div></div>
 <div id="a2hs"><div class="a2card" id="a2card"></div></div>
 <div class="app">
   <header>
@@ -644,6 +648,21 @@ function setNoveltyStatus(studentId,key,field){
   const item=(S.notifs||[]).find(n=>'notif:'+n.id===key);if(item){item.read=true;if(item.cid!=null&&typeof cloudOn==='function'&&cloudOn()&&sb){try{sb.from('v1_notifs').update({read:true}).eq('id',item.cid).then(function(){});}catch(e){}}}
   save();toast(field==='responded'?'Marcado como respondido ✓':'Marcado como visto ✓');render();
 }
+function noveltyReplyInputId(key){return 'noveltyReply_'+String(key||'').replace(/[^a-zA-Z0-9_-]/g,'_');}
+function toggleNoveltyReply(key){S.ui=S.ui||{};S.ui.noveltyReplyKey=S.ui.noveltyReplyKey===key?'':key;save();render();}
+function sendNoveltyReply(studentId,key){
+  const s=S.students.find(x=>x.id===studentId);if(!s)return;const novelty=studentNovelties(s).find(n=>n.key===key);if(!novelty){toast('La novedad ya no está disponible');render();return;}
+  const text=(val(noveltyReplyInputId(key))||'').trim().slice(0,1000);if(!text){toast('Escribí una respuesta antes de enviarla');return;}
+  const context=(novelty.text||'la novedad').trim().slice(0,180),message={id:uid(),date:today(),createdAt:new Date().toISOString(),text:'💬 Respuesta de tu entrenador sobre “'+context+'”: '+text,read:false,replyToNovelty:key,replyContext:context};
+  s.msgs=s.msgs||[];s.msgs.unshift(message);
+  const store=noveltyStore(s),st=store[key]||(store[key]={});st.seen=true;st.responded=true;st.respondedAt=message.createdAt;st.replyMessageId=message.id;
+  const item=(S.notifs||[]).find(n=>'notif:'+n.id===key);if(item){item.read=true;if(item.cid!=null&&typeof cloudOn==='function'&&cloudOn()&&sb){try{sb.from('v1_notifs').update({read:true}).eq('id',item.cid).then(function(){});}catch(e){}}}
+  S.ui.noveltyReplyKey='';pushTo({targetStudentId:s.id,title:'💬 Respuesta de tu entrenador',body:text,url:'https://universalfit.com.ar/v2/'});save();toast('Respuesta enviada a '+fn(s.name)+' 💬');render();
+}
+function noveltyReplyEditor(s,n){
+  if(!S.ui||S.ui.noveltyReplyKey!==n.key)return '';
+  return `<div class="novelty-reply"><b>💬 Responder a esta novedad</b><div class="cap" style="margin-top:3px">El mensaje llegará a ${esc(fn(s.name))} y conservará el contexto de esta novedad.</div><textarea class="in" id="${noveltyReplyInputId(n.key)}" rows="4" maxlength="1000" placeholder="Escribí tu respuesta para ${esc(fn(s.name))}…"></textarea><div class="novelty-reply-actions"><button class="btn g sm" onclick="sendNoveltyReply('${s.id}','${n.key}')">Enviar respuesta</button><button class="btn sec sm" onclick="toggleNoveltyReply('${n.key}')">Cancelar</button></div></div>`;
+}
 function deleteStudentNovelty(studentId,key){
   if(!confirm('¿Borrar esta novedad de la bandeja del alumno? El historial de entrenamientos y los videos originales no se eliminan.'))return;
   const s=S.students.find(x=>x.id===studentId);if(!s)return;const item=(S.notifs||[]).find(n=>'notif:'+n.id===key);
@@ -653,7 +672,7 @@ function noveltyIcon(kind){return kind==='video'?'🎥':kind==='workout'?'🏋�
 function renderStudentNews(s){
   const list=studentNovelties(s),store=noveltyStore(s);
   return `<div class="card" style="background:var(--hero);color:#fff;border:none"><div style="font-size:21px;font-weight:900">🔔 Novedades de hoy</div><div class="cap" style="color:rgba(255,255,255,.84);margin-top:4px">Mensajes, videos y actividad enviada hoy por ${esc(fn(s.name))}. Cada elemento se gestiona por separado.</div></div>
-  ${list.length?list.map(n=>{const st=store[n.key]||{},v=n.video;return `<article class="novelty-card"><div class="row" style="align-items:flex-start"><div style="font-size:24px">${noveltyIcon(n.kind)}</div><div style="flex:1;min-width:0"><b>${esc(n.text)}</b><div class="cap" style="margin-top:3px">Hoy${st.responded?' · respondido':st.seen?' · visto':' · pendiente'}</div></div>${st.responded?'<span class="pill g">Respondido</span>':st.seen?'<span class="pill y">Visto</span>':'<span class="pill r">Nuevo</span>'}</div>${v?`${videoBox(v.url,v.name)}<div class="cap" style="margin-top:8px">Devolución para el alumno</div><textarea id="techFeedback_${v.exId}" class="in" rows="3" maxlength="1000" placeholder="Ej.: mantené la espalda neutra y controlá la bajada…">${esc(v.feedback||'')}</textarea><button class="btn g sm" onclick="saveTechFeedback('${s.id}','${v.exId}')">Guardar devolución</button>`:''}<div class="novelty-actions"><button class="btn sec sm" onclick="setNoveltyStatus('${s.id}','${n.key}','seen')" ${st.seen?'disabled':''}>✓ ${st.seen?'Visto':'Ya lo vi'}</button><button class="btn sec sm" onclick="setNoveltyStatus('${s.id}','${n.key}','responded')" ${st.responded?'disabled':''}>💬 ${st.responded?'Respondido':'Ya respondí'}</button><button class="btn sec sm" style="color:var(--red)" onclick="deleteStudentNovelty('${s.id}','${n.key}')">🗑 Borrar</button></div></article>`;}).join(''):`<div class="empty"><div class="em">✨</div><p>No hay novedades de ${esc(fn(s.name))} hoy.</p><div class="cap">Cuando envíe un video, check-in, mensaje o finalice un entrenamiento aparecerá acá.</div></div>`}`;
+  ${list.length?list.map(n=>{const st=store[n.key]||{},v=n.video,replyOpen=S.ui&&S.ui.noveltyReplyKey===n.key;return `<article class="novelty-card"><div class="row" style="align-items:flex-start"><div style="font-size:24px">${noveltyIcon(n.kind)}</div><div style="flex:1;min-width:0"><b>${esc(n.text)}</b><div class="cap" style="margin-top:3px">Hoy${st.responded?' · respondido':st.seen?' · visto':' · pendiente'}</div></div>${st.responded?'<span class="pill g">Respondido</span>':st.seen?'<span class="pill y">Visto</span>':'<span class="pill r">Nuevo</span>'}</div>${v?`${videoBox(v.url,v.name)}<div class="cap" style="margin-top:8px">Devolución para el alumno</div><textarea id="techFeedback_${v.exId}" class="in" rows="3" maxlength="1000" placeholder="Ej.: mantené la espalda neutra y controlá la bajada…">${esc(v.feedback||'')}</textarea><button class="btn g sm" onclick="saveTechFeedback('${s.id}','${v.exId}')">Guardar devolución</button>`:''}<div class="novelty-actions"><button class="btn sec sm" onclick="setNoveltyStatus('${s.id}','${n.key}','seen')" ${st.seen?'disabled':''}>✓ ${st.seen?'Visto':'Ya lo vi'}</button><button class="btn g sm" onclick="toggleNoveltyReply('${n.key}')">💬 ${replyOpen?'Cerrar respuesta':st.responded?'Responder de nuevo':'Responder ahora'}</button><button class="btn sec sm" onclick="setNoveltyStatus('${s.id}','${n.key}','responded')" ${st.responded?'disabled':''}>✓ ${st.responded?'Respondido':'Marcar respondida'}</button><button class="btn sec sm" style="color:var(--red)" onclick="deleteStudentNovelty('${s.id}','${n.key}')">🗑 Borrar</button></div>${noveltyReplyEditor(s,n)}</article>`;}).join(''):`<div class="empty"><div class="em">✨</div><p>No hay novedades de ${esc(fn(s.name))} hoy.</p><div class="cap">Cuando envíe un video, check-in, mensaje o finalice un entrenamiento aparecerá acá.</div></div>`}`;
 }
 function renderPeriodMedia(s,b){
   const photos=(s.photos||[]).filter(p=>inBounds(p.date,b)),vids=(s.techVids||[]).filter(v=>inBounds(v.uploadedAt||v.date,b));if(!photos.length&&!vids.length)return '';
@@ -850,7 +869,7 @@ function wizChoose(f,v){S.ui.wiz[f]=v;S.ui.wiz.step++;save();render();}
 function wizDias(n){S.ui.wiz.dias=n;finishWizard();}
 function finishWizard(){const w=S.ui.wiz,rt=genRoutine(w.objetivo,w.nivel,w.dias);const st={id:uid(),name:w.name.trim(),routineId:rt.id,objetivo:w.objetivo,nivel:w.nivel,dias:w.dias,genero:w.genero,edad:w.edad,altura:null,profileDone:false,measures:[],logs:[],habits:defaultHabits(),habitLog:{},checkins:[]};rt.owner=st.id;S.routines.push(rt);S.students.push(st);S.ui.viewStudentId=st.id;S.ui.wiz=null;S.ui.editMeta=false;save();toast('¡Alumno creado! Completá su perfil entrando como alumno.');go('pt_student');}
 /* student edit */
-function openStudent(id){S.ui.viewStudentId=id;S.ui.editMeta=false;S.ui.studentSection='news';go('pt_student');}
+function openStudent(id){S.ui.viewStudentId=id;S.ui.editMeta=false;S.ui.studentSection='news';S.ui.noveltyReplyKey='';go('pt_student');}
 function toggleMeta(id){S.ui.viewStudentId=id;S.ui.editMeta=!S.ui.editMeta;save();render();}
 function saveMeta(id){const s=S.students.find(x=>x.id===id);s.objetivo=val('mObj');s.nivel=val('mNiv');s.dias=+val('mDias');S.ui.editMeta=false;save();toast('Datos actualizados');render();}
 function regenPlan(id){if(!confirm('¿Regenerar el plan? Se reemplaza la rutina actual.'))return;const s=S.students.find(x=>x.id===id);s.objetivo=val('mObj');s.nivel=val('mNiv');s.dias=+val('mDias');S.routines=S.routines.filter(r=>r.id!==s.routineId);const rt=genRoutine(s.objetivo,s.nivel,s.dias);rt.owner=s.id;S.routines.push(rt);s.routineId=rt.id;S.ui.editMeta=false;save();toast('Plan regenerado 🔄');render();}
@@ -1264,7 +1283,7 @@ function dirFoto(t,size){const st=`width:${size}px;height:${size}px;border-radiu
 function stars(r){if(r==null)return '<span class="pill g">Nuevo</span>';return `<span style="color:#ff9600;font-weight:800">★ ${r}</span>`;}
 
 /* ---- Código de equipo del PT ---- */
-const UF_VERSION='v2.26.0';
+const UF_VERSION='v2.26.1';
 const APP_URL=(function(){try{return (location.origin&&location.origin.indexOf('http')===0)?(location.origin+location.pathname):'https://dano-gpt.github.io/universal-fit/v2/';}catch(e){return 'https://dano-gpt.github.io/universal-fit/v2/';}})();
 function inviteUrl(code){return APP_URL+'?code='+encodeURIComponent(code);}
 function teamCode(){if(!S.trainer)return null;if(!S.trainer.code){S.trainer.code=('UF'+Math.random().toString(36).replace(/[^a-z0-9]/g,'').slice(0,4)).toUpperCase();save();}return S.trainer.code;}
@@ -1592,7 +1611,7 @@ async function finishObAlNewCloud(){const d=S.ui.ob.d;let gUser=null;
  if(!ok){toast('Cuenta creada pero no pude cargar tus datos — probá entrar de nuevo.');return;}
  S.ui.ob=null;S.ui.view='al_home';save();toast('¡Solicitud enviada a '+fn(t.name)+'! 📨');render();}
 async function obGoogleAl(){try{if(!sb){toast('Necesitás conexión para usar Google');return;}S.ui.ob.d.oauthWait=true;save();await sb.auth.signInWithOAuth({provider:'google',options:{redirectTo:APP_URL}});}catch(e){toast('No pude iniciar Google: '+((e&&e.message)||e));}}
-const APP_VER='v2.26.0';
+const APP_VER='v2.26.1';
 function _who(){try{if(typeof ADMIN!=='undefined'&&ADMIN&&ADMIN.otp)return{role:'admin',uid:'admin'};const r=(typeof S!=='undefined'&&S&&S.ui&&S.ui.role)||'anon';let uid=null;if(r==='pt'){uid=(typeof CLOUD!=='undefined'&&CLOUD&&CLOUD.uid)||((S.trainer&&S.trainer.code)||'pt');}else if(r==='al'){const m=(typeof me==='function')&&me();uid=(m&&m.id)||null;}return{role:r,uid:uid};}catch(e){return{role:'anon',uid:null};}}
 /* ---- v2.24.0: visitante único + fuente de tráfico (alimenta el Tablero → Alcance) ---- */
 var _VID=null,_VNEW=false,_VSRC='directo';
