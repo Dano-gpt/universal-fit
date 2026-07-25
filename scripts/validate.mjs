@@ -46,28 +46,26 @@ for (const [, attributes, source] of app.matchAll(/<script(?![^>]*\bsrc=)([^>]*)
   }
 }
 
-const periodFunctions = ["historyLogDate", "historyPeriodMatch"].map((name) => {
-  const match = app.match(new RegExp(`function ${name}\\([^\\n]+`));
-  if (!match) errors.push(`No se pudo probar ${name}`);
-  return match?.[0] ?? "";
-}).join("\n");
-if (periodFunctions.trim()) {
+const relativeStart = app.indexOf("function validDay(");
+const relativeEnd = app.indexOf("function latestWorkoutFeedback(", relativeStart);
+if (relativeStart < 0 || relativeEnd < 0) {
+  errors.push("No se pudo probar el cálculo de semanas y meses desde el inicio");
+} else {
   try {
-    const periodContext = {};
-    new vm.Script(periodFunctions).runInNewContext(periodContext);
-    const sample = { date: "2026-07-15" };
+    const periodContext = { today: () => "2026-07-25" };
+    new vm.Script(app.slice(relativeStart, relativeEnd)).runInNewContext(periodContext);
     const cases = [
-      periodContext.historyPeriodMatch(sample, { mode: "all" }),
-      periodContext.historyPeriodMatch(sample, { mode: "day", date: "2026-07-15" }),
-      !periodContext.historyPeriodMatch(sample, { mode: "day", date: "2026-07-16" }),
-      periodContext.historyPeriodMatch(sample, { mode: "month", month: "2026-07" }),
-      !periodContext.historyPeriodMatch(sample, { mode: "month", month: "2026-06" }),
-      periodContext.historyPeriodMatch(sample, { mode: "range", from: "2026-07-10", to: "2026-07-20" }),
-      periodContext.historyPeriodMatch(sample, { mode: "range", from: "2026-07-20", to: "2026-07-10" }),
+      periodContext.relativePeriodIndex("2026-01-01", "2026-01-01", "week") === 1,
+      periodContext.relativePeriodIndex("2026-01-07", "2026-01-01", "week") === 1,
+      periodContext.relativePeriodIndex("2026-01-08", "2026-01-01", "week") === 2,
+      periodContext.relativePeriodIndex("2026-02-14", "2026-01-15", "month") === 1,
+      periodContext.relativePeriodIndex("2026-02-15", "2026-01-15", "month") === 2,
+      periodContext.relativePeriodBounds("2026-01-01", "week", 2).from === "2026-01-08",
+      periodContext.relativePeriodBounds("2026-01-31", "month", 2).from === "2026-02-28",
     ];
-    if (cases.some((result) => !result)) errors.push("El filtro por periodo no supera sus casos de día, mes y lapso");
+    if (cases.some((result) => !result)) errors.push("El cálculo relativo no supera sus casos de semana y mes desde el inicio");
   } catch (error) {
-    errors.push(`No se pudo ejecutar el filtro por periodo: ${error.message}`);
+    errors.push(`No se pudo ejecutar el cálculo relativo: ${error.message}`);
   }
 }
 
@@ -135,13 +133,21 @@ const expected = [
   "function saveWorkoutExerciseFeedback",
   "function latestWorkoutFeedback",
   "function vPtWorkoutHistory",
-  "Ver historia de entrenamiento",
+  "Configuración del alumno",
+  "Novedades de hoy",
+  "Avances desde el inicio",
+  "function studentTrainingStart",
+  "function relativePeriodIndex",
+  "function relativePeriodBounds",
+  "function studentNovelties",
+  "function setNoveltyStatus",
+  "function deleteStudentNovelty",
+  "Ya respondí",
+  "No usa semanas ni meses calendario",
   "Comentario de tu entrenador para esta vez",
   "admin-settings-grid",
   "admin-directory-grid",
   "function historyPeriodMatch",
-  "Día específico",
-  "Lapso personalizado",
   "La ficha y todo el historial se conservan siempre",
   "Responsive fluido: móvil, tablet, notebook y monitor",
   "function forgotPassword",
