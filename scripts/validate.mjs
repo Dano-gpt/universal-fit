@@ -99,6 +99,35 @@ if (newsStart < 0 || newsEnd < 0) {
   }
 }
 
+const demoSeedStart = app.indexOf("function ensureLocalDemoNovedades()");
+const demoSeedEnd = app.indexOf("/* helpers */", demoSeedStart);
+if (demoSeedStart < 0 || demoSeedEnd < 0) {
+  errors.push("No se pudo probar la carga aislada de novedades demo");
+} else {
+  try {
+    const demoStudent = { id: "demo_student", name: "Juan P.", techVids: [], noveltyStatus: {}, msgs: [] };
+    const demoContext = {
+      LOCAL_DEMO: true,
+      S: { students: [demoStudent], notifs: [] },
+      routineOf: () => ({ id: "routine" }),
+      allEx: () => [{ id: "exercise", name: "Press banca" }],
+      today: () => "2026-07-25",
+    };
+    new vm.Script(app.slice(demoSeedStart, demoSeedEnd)).runInNewContext(demoContext);
+    demoContext.ensureLocalDemoNovedades();
+    if (
+      demoContext.S.notifs.length < 2 ||
+      !demoStudent.techVids.some((video) => video.demoSample) ||
+      !demoStudent.noveltyStatus["notif:demo-checkin-juan"]?.responded ||
+      !demoStudent.msgs.some((message) => message.id === "demo-reply-juan")
+    ) {
+      errors.push("El modo demo no carga novedades de mensaje, video y respuesta de ejemplo");
+    }
+  } catch (error) {
+    errors.push(`No se pudo ejecutar la carga demo: ${error.message}`);
+  }
+}
+
 const customStart = app.indexOf("function customExerciseLibrary()");
 const customEnd = app.indexOf("function hasPlan(", customStart);
 if (customStart < 0 || customEnd < 0) {

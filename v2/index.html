@@ -407,6 +407,23 @@ function seed(){
   const leo=mk('Leo M.','Fuerza','Avanzado',4,[60],[-12],'Masculino',41,182,{peso:88,cintura:92,pecho:108,espalda:106,brazos:39,piernas:62},{peso:89,cintura:91,pecho:109,espalda:107,brazos:40,piernas:62});
   return {user:null,routines,students:[juan,ana,leo],customExercises:[],notifs:[],ui:{role:'pt',studentId:juan.id,view:'pt_home'}};
 }
+/* Datos exclusivamente locales para probar Novedades. Solo se activan con ?demo=1 en localhost. */
+function ensureLocalDemoNovedades(){
+  if(typeof LOCAL_DEMO==='undefined'||!LOCAL_DEMO||!S||S.demoNovedadesV2261)return;
+  const juan=(S.students||[]).find(s=>s&&s.name==='Juan P.')||(S.students||[])[0];if(!juan)return;
+  const rt=routineOf(juan),ex=(rt&&allEx(rt)[0])||{},now=Date.now();
+  S.notifs=S.notifs||[];
+  const addNotif=(id,text,read,delta)=>{if(!S.notifs.some(n=>n.id===id))S.notifs.unshift({id,date:today(),ts:now+(delta||0),studentId:juan.id,text,read:!!read,demo:true});};
+  addNotif('demo-msg-juan','💬 Juan dejó un mensaje: “Hoy me sentí con energía, ¿puedo subir un poco el peso la próxima vez?”',false,30);
+  addNotif('demo-checkin-juan','📝 Juan envió su check-in: “Dormí bien y completé todos los hábitos.”',true,20);
+  juan.techVids=juan.techVids||[];
+  if(!juan.techVids.some(v=>v&&v.demoSample))juan.techVids.unshift({exId:ex.id||'demo-tech-juan',name:ex.name||'Sentadilla goblet',url:'https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4',path:'',date:today(),uploadedAt:new Date(now+10).toISOString(),feedback:'',feedbackAt:'',demoSample:true});
+  juan.noveltyStatus=juan.noveltyStatus||{};
+  juan.noveltyStatus['notif:demo-checkin-juan']={seen:true,responded:true,respondedAt:new Date(now-60000).toISOString(),replyMessageId:'demo-reply-juan'};
+  juan.msgs=juan.msgs||[];
+  if(!juan.msgs.some(m=>m&&m.id==='demo-reply-juan'))juan.msgs.unshift({id:'demo-reply-juan',date:today(),createdAt:new Date(now-60000).toISOString(),text:'💬 Respuesta de tu entrenador sobre “Check-in semanal”: ¡Excelente, Juan! Mantené este ritmo y revisamos el peso en la próxima sesión.',read:false,replyToNovelty:'notif:demo-checkin-juan',replyContext:'Check-in semanal',demo:true});
+  S.demoNovedadesV2261=true;
+}
 
 /* helpers */
 function routineOf(st){return S.routines.find(r=>r.id===st.routineId)||null;}
@@ -2062,6 +2079,7 @@ async function adminToggleTrainer(uid,dis){const {data}=await sb.rpc('admin_set_
 async function adminDelTrainer(uid,name){if(!confirm('¿Borrar DEFINITIVAMENTE a '+name+'? Se elimina su cuenta, su perfil y TODOS sus alumnos.'))return;const {data}=await sb.rpc('admin_delete_trainer',{p_uid:uid});if(data&&data.ok){toast('Entrenador borrado 🗑');adminLoad();}else toast('Error');}
 async function adminRenameStudent(id,cur){const v=prompt('Nuevo nombre:',cur);if(!v||!v.trim())return;const {data}=await sb.rpc('admin_rename',{p_kind:'al',p_id:id,p_name:v.trim()});if(data&&data.ok){toast('Nombre actualizado ✏️');adminLoad();}else toast('Error');}
 S=load();
+ensureLocalDemoNovedades();
 if(AUTH_RECOVERY){S.user=null;S.ui.ob=null;S.ui.grole=null;}
 const QCODE=(function(){try{var c=new URLSearchParams(location.search).get('code');return (c&&c.length<=8)?c:null;}catch(e){return null;}})();
 if(QCODE&&!S.user){S.ui.ob={kind:'al',step:2,d:{path:'code',code:QCODE}};try{history.replaceState(null,'',location.pathname);}catch(e){}}
