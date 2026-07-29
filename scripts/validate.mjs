@@ -159,6 +159,30 @@ if (demoSeedStart < 0 || demoSeedEnd < 0) {
   }
 }
 
+const lastExerciseStart = app.indexOf("function lastExerciseEntry(");
+const lastExerciseEnd = app.indexOf("function bestKg(", lastExerciseStart);
+if (lastExerciseStart < 0 || lastExerciseEnd < 0) {
+  errors.push("No se pudo probar la precarga del último entrenamiento");
+} else {
+  try {
+    const historyContext = {};
+    new vm.Script(app.slice(lastExerciseStart, lastExerciseEnd)).runInNewContext(historyContext);
+    const student = {
+      logs: [
+        { date: "2026-07-12", completedAt: "2026-07-12T10:00:00.000Z", entries: [{ exerciseId: "press", sets: [{ kg: 40, reps: 10 }, { kg: 45, reps: 8 }] }] },
+        { date: "2026-07-20", completedAt: "2026-07-20T10:00:00.000Z", entries: [{ exerciseId: "press", sets: [{ kg: 47.5, reps: 9 }, { kg: 50, reps: 7 }] }] },
+      ],
+    };
+    const last = historyContext.lastExerciseEntry(student, "press");
+    const mark = historyContext.lastMark(student, "press");
+    if (last?.date !== "2026-07-20" || last?.sets?.[0]?.kg !== 47.5 || last?.sets?.[1]?.kg !== 50 || mark?.kg !== 50) {
+      errors.push("La precarga no recupera los pesos de cada serie del último entrenamiento");
+    }
+  } catch (error) {
+    errors.push(`No se pudo ejecutar la precarga del último entrenamiento: ${error.message}`);
+  }
+}
+
 const customStart = app.indexOf("function customExerciseLibrary()");
 const customEnd = app.indexOf("function hasPlan(", customStart);
 if (customStart < 0 || customEnd < 0) {
@@ -209,6 +233,8 @@ if (adStart < 0 || adEnd < 0) {
 
 const expected = [
   "function activeWorkoutFor",
+  "function lastExerciseEntry",
+  "Precargamos los pesos de tu último entrenamiento",
   "function finishWorkout",
   "Finalizar día de entrenamiento",
   "Comentario para tu entrenador",
