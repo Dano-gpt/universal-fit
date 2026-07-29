@@ -327,7 +327,7 @@ img,video,iframe,canvas,svg{max-width:100%;}
 </style>
 </head>
 <body class="uf-gate-open">
-<div id="gate"><div style="position:absolute;bottom:18px;left:0;right:0;text-align:center;color:rgba(255,255,255,.75);font-size:12px;font-weight:700">v2.26.2</div><div id="gateInner"><svg class="gIco" width="82" height="82" viewBox="0 0 120 120" style="overflow:visible"><g fill="none" stroke-width="11" stroke-linecap="round" stroke-linejoin="round"><path d="M22 34 L22 68 A18 18 0 0 0 58 68 L58 34" stroke="#9EFF3D"/><path d="M72 34 L72 86 M72 34 L98 34 M72 60 L93 60" stroke="#B98CFF"/></g></svg><div class="gName">Universal Fit</div><div class="gSub">Entrená mejor. Progresá siempre.</div><div class="gStats" aria-label="Comunidad Universal Fit"><div class="gStat" style="--stat-color:#9EFF3D"><i class="gSpark s1"></i><i class="gSpark s2"></i><i class="gSpark s3"></i><div class="gStatIcon">🏋️</div><div class="gStatNum" id="gateProfessors">0</div><div class="gStatLabel">Profesores inscriptos</div></div><div class="gStat" style="--stat-color:#B98CFF"><i class="gSpark s1"></i><i class="gSpark s2"></i><i class="gSpark s3"></i><div class="gStatIcon">⚡</div><div class="gStatNum" id="gateStudents">0</div><div class="gStatLabel">Alumnos que usan la app</div><div class="gStatsToday">hasta hoy</div></div></div></div></div>
+<div id="gate"><div style="position:absolute;bottom:18px;left:0;right:0;text-align:center;color:rgba(255,255,255,.75);font-size:12px;font-weight:700">v2.26.3</div><div id="gateInner"><svg class="gIco" width="82" height="82" viewBox="0 0 120 120" style="overflow:visible"><g fill="none" stroke-width="11" stroke-linecap="round" stroke-linejoin="round"><path d="M22 34 L22 68 A18 18 0 0 0 58 68 L58 34" stroke="#9EFF3D"/><path d="M72 34 L72 86 M72 34 L98 34 M72 60 L93 60" stroke="#B98CFF"/></g></svg><div class="gName">Universal Fit</div><div class="gSub">Entrená mejor. Progresá siempre.</div><div class="gStats" aria-label="Comunidad Universal Fit"><div class="gStat" style="--stat-color:#9EFF3D"><i class="gSpark s1"></i><i class="gSpark s2"></i><i class="gSpark s3"></i><div class="gStatIcon">🏋️</div><div class="gStatNum" id="gateProfessors">0</div><div class="gStatLabel">Profesores inscriptos</div></div><div class="gStat" style="--stat-color:#B98CFF"><i class="gSpark s1"></i><i class="gSpark s2"></i><i class="gSpark s3"></i><div class="gStatIcon">⚡</div><div class="gStatNum" id="gateStudents">0</div><div class="gStatLabel">Alumnos que usan la app</div><div class="gStatsToday">hasta hoy</div></div></div></div></div>
 <div id="a2hs"><div class="a2card" id="a2card"></div></div>
 <div class="app">
   <header>
@@ -1051,16 +1051,16 @@ function vAlDay_OLD_unused(){/* QA 08-jul: código muerto — la vAlDay activa (
 function vAlLog(){
   const s=me(),rt=routineOf(s),e=findEx(rt,S.ui.logExerciseId);if(!e)return vAlDay();
   const day=rt&&rt.days.find(d=>d.exercises.some(x=>x.id===e.id)),trainerFeedback=latestWorkoutFeedback(s,day&&day.id,e.id);
-  const lm=lastMark(s,e.id);
+  const lastEntry=lastExerciseEntry(s,e.id),lm=lastMark(s,e.id);
   const existing=activeEntry(s,e.id)||((s.logs.find(l=>l.date===today()&&(l.entries||[]).some(x=>x.exerciseId===e.id))||{entries:[]}).entries.find(x=>x.exerciseId===e.id));
-  const sets=Array.from({length:e.sets},(_,i)=>{const pv=existing&&existing.sets[i];return{kg:pv?pv.kg:e.weight,reps:pv?pv.reps:e.reps};});
+  const sets=Array.from({length:e.sets},(_,i)=>{const pv=existing&&existing.sets[i],lastSet=lastEntry&&lastEntry.sets[i];return{kg:pv?pv.kg:(lastSet?lastSet.kg:e.weight),reps:pv?pv.reps:e.reps};});
   const rows=sets.map((s2,i)=>`<div class="setrow"><span class="lbl">Serie ${i+1}</span><input id="kg${i}" type="number" inputmode="decimal" value="${s2.kg}"/><span class="u">kg</span><input id="rp${i}" type="number" inputmode="numeric" value="${s2.reps}"/><span class="u">reps</span></div>`).join('');
   return `<button class="back" onclick="go('al_day')">← Volver</button>
   <div class="banner"><div class="em">${catEmoji(e.category)}</div><div class="nm">${esc(e.name)}</div><div style="margin-top:6px"><span class="catchip" style="background:rgba(255,255,255,.2);color:#fff">${esc(e.category||'General')}</span></div></div>
   <div class="h" style="margin:0 0 6px">Video de técnica</div>${videoBox(e.video,e.name)}${equipCard(e)}
   <div class="card" style="margin-top:12px"><div class="cap">Objetivo: ${exObj(e)}</div>${lm?`<div class="m" style="margin-top:6px">📌 La última vez hiciste <b>${lm.reps} × ${lm.kg} kg</b> (${fmt(lm.date)})</div>`:''}${e.note?`<div class="m" style="margin-top:6px">📝 ${esc(e.note)}</div>`:''}</div>
   ${trainerFeedback?`<div class="card" style="border-color:#6B5A1E;background:#211C10"><b>💬 Comentario de tu entrenador para esta vez</b><div style="margin-top:5px;white-space:pre-wrap">${esc(trainerFeedback.text)}</div><div class="cap" style="margin-top:5px">Sobre tu registro del ${fmt(trainerFeedback.date)}</div></div>`:''}
-  <div class="h" style="margin:0 0 6px">Registrá tus series</div><div class="card">${rows}<div class="cap" style="margin-top:12px">Comentario para tu entrenador (opcional)</div><textarea id="exComment" class="in" rows="3" maxlength="500" placeholder="Ej.: sentí una molestia, bajé el peso o cambié la variante…">${esc(existing&&existing.comment||'')}</textarea></div>
+  <div class="h" style="margin:0 0 6px">Registrá tus series</div><div class="card">${lastEntry&&!existing?`<div class="cap" style="margin-bottom:10px">↩️ Precargamos los pesos de tu último entrenamiento (${fmt(lastEntry.date)}). Podés modificarlos si lo necesitás.</div>`:''}${rows}<div class="cap" style="margin-top:12px">Comentario para tu entrenador (opcional)</div><textarea id="exComment" class="in" rows="3" maxlength="500" placeholder="Ej.: sentí una molestia, bajé el peso o cambié la variante…">${esc(existing&&existing.comment||'')}</textarea></div>
   <div class="card" style="text-align:center"><div class="h" style="margin:0 0 6px">⏱ Descanso entre series · ${e.rest||90} s</div><button class="btn sec" id="restT" onclick="startRest(${e.rest||90})">▶ Iniciar descanso</button></div>
   ${techCard(e)}<button class="btn" onclick="saveLog('${e.id}',${e.sets})">Guardar entreno ✓</button>`;
 }
@@ -1167,7 +1167,8 @@ async function deleteTechVideo(exId){const s=me(),t=techRecord(s,exId);if(!t)ret
 let REST=null,RESTLEFT=0;
 function startRest(sec){if(REST){clearInterval(REST);}RESTLEFT=sec||60;REST=setInterval(()=>{RESTLEFT--;if(RESTLEFT<=0){clearInterval(REST);REST=null;toast('⏰ ¡Descanso listo! Dale a la próxima serie 💪');}paintRest();},1000);paintRest();}
 function paintRest(){const el=document.getElementById('restT');if(!el)return;el.textContent=REST?('⏱ '+RESTLEFT+' s — descansando…'):'▶ Iniciar descanso';}
-function lastMark(st,exId){const prev=st.logs.filter(l=>l.date<today()&&l.entries.some(e=>e.exerciseId===exId)).sort((a,b)=>a.date<b.date?1:-1)[0];if(!prev)return null;const en=prev.entries.find(e=>e.exerciseId===exId);const best=en.sets.reduce((m,x)=>(+x.kg||0)>(+m.kg||0)?x:m,en.sets[0]||{kg:0,reps:0});return {date:prev.date,kg:+best.kg||0,reps:+best.reps||0};}
+function lastExerciseEntry(st,exId){const prev=(st.logs||[]).filter(l=>(l.entries||[]).some(e=>e.exerciseId===exId)).sort((a,b)=>String(b.completedAt||b.date||'').localeCompare(String(a.completedAt||a.date||'')))[0];if(!prev)return null;const en=(prev.entries||[]).find(e=>e.exerciseId===exId);if(!en)return null;return {date:prev.date,sets:(en.sets||[]).map(x=>({kg:+x.kg||0,reps:+x.reps||0}))};}
+function lastMark(st,exId){const prev=lastExerciseEntry(st,exId);if(!prev)return null;const best=prev.sets.reduce((m,x)=>x.kg>m.kg?x:m,prev.sets[0]||{kg:0,reps:0});return {date:prev.date,kg:best.kg||0,reps:best.reps||0};}
 function bestKg(st,exId,excludeToday){let mx=0;st.logs.forEach(l=>{if(excludeToday&&l.date===today())return;l.entries.forEach(en=>{if(en.exerciseId===exId)en.sets.forEach(x=>{if((+x.kg||0)>mx)mx=+x.kg;});});});return mx;}
 function prCount(st){const best={};let n=0;st.logs.slice().sort((a,b)=>a.date<b.date?-1:1).forEach(l=>l.entries.forEach(en=>{const mx=Math.max(0,...en.sets.map(x=>+x.kg||0));if(mx>(best[en.exerciseId]||0)){if(best[en.exerciseId])n++;best[en.exerciseId]=mx;}}));return n;}
 function achieveList(st){const n=st.logs.length,sk=streak(st),pr=prCount(st);return [['🥇','Primer entreno',n>=1],['🔟','10 entrenos',n>=10],['🎖','25 entrenos',n>=25],['💯','50 entrenos',n>=50],['🔥','Racha de 4 semanas',sk>=4],['🏆','1 récord personal',pr>=1],['👑','5 récords personales',pr>=5]];}
@@ -1319,7 +1320,7 @@ function dirFoto(t,size){const st=`width:${size}px;height:${size}px;border-radiu
 function stars(r){if(r==null)return '<span class="pill g">Nuevo</span>';return `<span style="color:#ff9600;font-weight:800">★ ${r}</span>`;}
 
 /* ---- Código de equipo del PT ---- */
-const UF_VERSION='v2.26.2';
+const UF_VERSION='v2.26.3';
 const APP_URL=(function(){try{return (location.origin&&location.origin.indexOf('http')===0)?(location.origin+location.pathname):'https://dano-gpt.github.io/universal-fit/v2/';}catch(e){return 'https://dano-gpt.github.io/universal-fit/v2/';}})();
 function inviteUrl(code){return APP_URL+'?code='+encodeURIComponent(code);}
 function teamCode(){if(!S.trainer)return null;if(!S.trainer.code){S.trainer.code=('UF'+Math.random().toString(36).replace(/[^a-z0-9]/g,'').slice(0,4)).toUpperCase();save();}return S.trainer.code;}
@@ -1647,7 +1648,7 @@ async function finishObAlNewCloud(){const d=S.ui.ob.d;let gUser=null;
  if(!ok){toast('Cuenta creada pero no pude cargar tus datos — probá entrar de nuevo.');return;}
  S.ui.ob=null;S.ui.view='al_home';save();toast('¡Solicitud enviada a '+fn(t.name)+'! 📨');render();}
 async function obGoogleAl(){try{if(!sb){toast('Necesitás conexión para usar Google');return;}S.ui.ob.d.oauthWait=true;save();await sb.auth.signInWithOAuth({provider:'google',options:{redirectTo:APP_URL}});}catch(e){toast('No pude iniciar Google: '+((e&&e.message)||e));}}
-const APP_VER='v2.26.2';
+const APP_VER='v2.26.3';
 function _who(){try{if(typeof ADMIN!=='undefined'&&ADMIN&&ADMIN.otp)return{role:'admin',uid:'admin'};const r=(typeof S!=='undefined'&&S&&S.ui&&S.ui.role)||'anon';let uid=null;if(r==='pt'){uid=(typeof CLOUD!=='undefined'&&CLOUD&&CLOUD.uid)||((S.trainer&&S.trainer.code)||'pt');}else if(r==='al'){const m=(typeof me==='function')&&me();uid=(m&&m.id)||null;}return{role:r,uid:uid};}catch(e){return{role:'anon',uid:null};}}
 /* ---- v2.24.0: visitante único + fuente de tráfico (alimenta el Tablero → Alcance) ---- */
 var _VID=null,_VNEW=false,_VSRC='directo';
