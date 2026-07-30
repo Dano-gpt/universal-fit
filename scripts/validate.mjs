@@ -183,6 +183,77 @@ if (lastExerciseStart < 0 || lastExerciseEnd < 0) {
   }
 }
 
+const excelImportStart = app.indexOf("var IMPORT=null;");
+const excelImportEnd = app.indexOf("function loadXLSX(", excelImportStart);
+if (excelImportStart < 0 || excelImportEnd < 0) {
+  errors.push("No se pudo probar el importador de Excel de GonzaFit");
+} else {
+  try {
+    let sequence = 0;
+    const excelContext = {
+      S: { user: { type: "pt", name: "Entrenador" }, trainer: { name: "Entrenador" } },
+      CLOUD: { kind: "pt", uid: "otro-entrenador" },
+      uid: () => `excel_${++sequence}`,
+    };
+    new vm.Script(app.slice(excelImportStart, excelImportEnd)).runInNewContext(excelContext);
+    if (excelContext.excelImportKind() !== "") errors.push("El importador de GonzaFit se habilita para un entrenador incorrecto");
+    excelContext.CLOUD.uid = "1f81d5d4-b445-42d7-9cc4-b70af5c734c0";
+    if (excelContext.excelImportKind() !== "gonza") errors.push("El importador no se habilita para el UID real de GonzaFit");
+
+    const rows = Array.from({ length: 24 }, () => Array(29).fill(null));
+    rows[2][0] = "SEMANA 1";
+    rows[3][0] = "DIA 1";
+    rows[4][2] = "Ejercicio anterior";
+    rows[4][3] = "3";
+    rows[4][4] = "10";
+    rows[2][20] = "SEMANA 3";
+    rows[3][20] = "DIA 1";
+    rows[4][22] = "Movilidad articular";
+    rows[5][21] = "Bloque de piernas";
+    rows[5][22] = "HIPTHRUST (PESADO)";
+    rows[5][23] = "3";
+    rows[5][24] = "8-10";
+    rows[5][25] = "RPE 8-9";
+    rows[5][26] = "Sug. 40kg ANOTAR CARGAS";
+    rows[5][28] = "https://example.com/hip";
+    rows[8][21] = "Cardio";
+    rows[8][22] = "Caminata con elevación";
+    rows[8][23] = "20-30 Min";
+    rows[10][20] = "DIA 2";
+    rows[11][21] = "Bloque abdominales";
+    rows[11][22] = "Ruedita abdominal";
+    rows[11][23] = "3";
+    rows[11][24] = "10";
+    rows[16][20] = "DIA 3";
+    rows[17][21] = "Bloque de torso";
+    rows[17][22] = "Serrucho c/mancuerna";
+    rows[17][23] = "4";
+    rows[17][24] = "10-12";
+
+    const parsed = excelContext.parseGonzaRoutineRows(rows);
+    const hip = parsed.days[0]?.exercises.find((exercise) => exercise.name.includes("HIPTHRUST"));
+    const cardio = parsed.days[0]?.exercises.find((exercise) => exercise.category === "Cardio");
+    const serrucho = parsed.days[2]?.exercises.find((exercise) => exercise.name.includes("Serrucho"));
+    if (
+      !parsed.ok ||
+      parsed.meta.week !== "SEMANA 3" ||
+      parsed.days.length !== 3 ||
+      hip?.sets !== 3 ||
+      hip?.repsText !== "8-10" ||
+      hip?.weight !== 40 ||
+      hip?.video !== "https://example.com/hip" ||
+      !hip?.note.includes("RPE 8-9") ||
+      cardio?.sets !== 1 ||
+      cardio?.repsText !== "20-30 Min" ||
+      serrucho?.category !== "Espalda"
+    ) {
+      errors.push("El importador de GonzaFit no conserva correctamente semana, días, cargas, tiempos, notas o enlaces");
+    }
+  } catch (error) {
+    errors.push(`No se pudo ejecutar el importador de GonzaFit: ${error.message}`);
+  }
+}
+
 const customStart = app.indexOf("function customExerciseLibrary()");
 const customEnd = app.indexOf("function hasPlan(", customStart);
 if (customStart < 0 || customEnd < 0) {
@@ -295,6 +366,9 @@ const expected = [
   "Guardar y agregar ejercicio",
   "customExercises:customExerciseLibrary()",
   "customExercises:((acc.data&&acc.data.customExercises)||[]).slice()",
+  "function parseGonzaRoutineRows",
+  "1f81d5d4-b445-42d7-9cc4-b70af5c734c0",
+  "video:e.video||''",
   "ufAdBanner",
   "AD_BANNER_GREEN='#0B5B50'",
   "ufAdStylePreview",
