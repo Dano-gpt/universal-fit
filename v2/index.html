@@ -327,7 +327,7 @@ img,video,iframe,canvas,svg{max-width:100%;}
 </style>
 </head>
 <body class="uf-gate-open">
-<div id="gate"><div style="position:absolute;bottom:18px;left:0;right:0;text-align:center;color:rgba(255,255,255,.75);font-size:12px;font-weight:700">v2.26.4</div><div id="gateInner"><svg class="gIco" width="82" height="82" viewBox="0 0 120 120" style="overflow:visible"><g fill="none" stroke-width="11" stroke-linecap="round" stroke-linejoin="round"><path d="M22 34 L22 68 A18 18 0 0 0 58 68 L58 34" stroke="#9EFF3D"/><path d="M72 34 L72 86 M72 34 L98 34 M72 60 L93 60" stroke="#B98CFF"/></g></svg><div class="gName">Universal Fit</div><div class="gSub">Entrená mejor. Progresá siempre.</div><div class="gStats" aria-label="Comunidad Universal Fit"><div class="gStat" style="--stat-color:#9EFF3D"><i class="gSpark s1"></i><i class="gSpark s2"></i><i class="gSpark s3"></i><div class="gStatIcon">🏋️</div><div class="gStatNum" id="gateProfessors">0</div><div class="gStatLabel">Profesores inscriptos</div></div><div class="gStat" style="--stat-color:#B98CFF"><i class="gSpark s1"></i><i class="gSpark s2"></i><i class="gSpark s3"></i><div class="gStatIcon">⚡</div><div class="gStatNum" id="gateStudents">0</div><div class="gStatLabel">Alumnos que usan la app</div><div class="gStatsToday">hasta hoy</div></div></div></div></div>
+<div id="gate"><div style="position:absolute;bottom:18px;left:0;right:0;text-align:center;color:rgba(255,255,255,.75);font-size:12px;font-weight:700">v2.26.5</div><div id="gateInner"><svg class="gIco" width="82" height="82" viewBox="0 0 120 120" style="overflow:visible"><g fill="none" stroke-width="11" stroke-linecap="round" stroke-linejoin="round"><path d="M22 34 L22 68 A18 18 0 0 0 58 68 L58 34" stroke="#9EFF3D"/><path d="M72 34 L72 86 M72 34 L98 34 M72 60 L93 60" stroke="#B98CFF"/></g></svg><div class="gName">Universal Fit</div><div class="gSub">Entrená mejor. Progresá siempre.</div><div class="gStats" aria-label="Comunidad Universal Fit"><div class="gStat" style="--stat-color:#9EFF3D"><i class="gSpark s1"></i><i class="gSpark s2"></i><i class="gSpark s3"></i><div class="gStatIcon">🏋️</div><div class="gStatNum" id="gateProfessors">0</div><div class="gStatLabel">Profesores inscriptos</div></div><div class="gStat" style="--stat-color:#B98CFF"><i class="gSpark s1"></i><i class="gSpark s2"></i><i class="gSpark s3"></i><div class="gStatIcon">⚡</div><div class="gStatNum" id="gateStudents">0</div><div class="gStatLabel">Alumnos que usan la app</div><div class="gStatsToday">hasta hoy</div></div></div></div></div>
 <div id="a2hs"><div class="a2card" id="a2card"></div></div>
 <div class="app">
   <header>
@@ -919,17 +919,17 @@ function editRoutine(id){S.ui.editRoutineId=id;go('pt_redit');}
 function exObj(e){var b=e.repsText?((e.sets?e.sets+' series · ':'')+e.repsText):((e.sets||0)+'×'+(e.reps||0));return b+(e.weight?' · '+e.weight+'kg':'');}
 /* ---- Importar rutina desde Excel (parser específico por entrenador) ---- */
 var IMPORT=null;
-/* GonzaFit se habilita por UID real. Lautaro conserva su importador anterior por nombre/email. */
-var IMPORT_PT_UIDS={gonza:'1f81d5d4-b445-42d7-9cc4-b70af5c734c0'};
+/* Importadores habilitados por UID real. Lautaro conserva su importador anterior por nombre/email. */
+var IMPORT_PT_UIDS={gonza:'1f81d5d4-b445-42d7-9cc4-b70af5c734c0',juanVicario:'2166e681-90b0-4aa9-9b06-cdbc8badc833'};
 var IMPORT_PTS=['lautaro'];
-function excelImportKind(){try{var u=S.user||{},t=S.trainer||{};if(u.type&&u.type!=='pt')return '';if(typeof CLOUD!=='undefined'&&CLOUD&&CLOUD.kind==='pt'&&CLOUD.uid===IMPORT_PT_UIDS.gonza)return 'gonza';if(typeof LOCAL_DEMO!=='undefined'&&LOCAL_DEMO&&new URLSearchParams(location.search).get('gonzaExcel')==='1')return 'gonza';var hay=((u.name||'')+' '+(u.email||'')+' '+(t.name||'')).toLowerCase();return IMPORT_PTS.some(function(k){return k&&hay.indexOf(k)>=0;})?'lautaro':'';}catch(e){return '';}}
+function excelImportKind(){try{var u=S.user||{},t=S.trainer||{};if(u.type&&u.type!=='pt')return '';if(typeof CLOUD!=='undefined'&&CLOUD&&CLOUD.kind==='pt'&&CLOUD.uid===IMPORT_PT_UIDS.gonza)return 'gonza';if(typeof CLOUD!=='undefined'&&CLOUD&&CLOUD.kind==='pt'&&CLOUD.uid===IMPORT_PT_UIDS.juanVicario)return 'juanVicario';if(typeof LOCAL_DEMO!=='undefined'&&LOCAL_DEMO){var demoImport=new URLSearchParams(location.search);if(demoImport.get('gonzaExcel')==='1')return 'gonza';if(demoImport.get('juanVicarioExcel')==='1')return 'juanVicario';}var hay=((u.name||'')+' '+(u.email||'')+' '+(t.name||'')).toLowerCase();return IMPORT_PTS.some(function(k){return k&&hay.indexOf(k)>=0;})?'lautaro':'';}catch(e){return '';}}
 function canImportExcel(){return !!excelImportKind();}
 function _norm(s){return (s==null?'':s.toString()).toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/[^a-z0-9°+\/ -]/g,' ').replace(/\s+/g,' ').trim();}
 var EX_MAP=[
- [/sentadilla|prensa|zancad|estocad|hip ?tr|gluteo|aductor|abductor|sillon|cuadriceps|femoral|peso muerto|sumo|step ?up|subida.*cajon|gemelo|pantorrilla|patada|buen ?d|buenos ?dias|goblet|unipodal|extension.*cuad/,'Piernas'],
+ [/sentadilla|prensa|zancad|estocad|bulgar|hip ?thr?ust|puente|gluteo|aductor|abductor|sillon|cuadriceps|femoral|peso muerto|sumo|step ?up|subida.*cajon|gemelo|pantorrilla|talones|tibial|nordic|psoas|patada|buen ?d|buenos ?dias|goblet|unipodal|extension.*cuad/,'Piernas'],
  [/dominad|jalon|remo|serrucho|espinal|traccion|espalda|dorsal|pull ?over|pullover/,'Espalda'],
  [/press (plano|banca|recto|inclinad|de pecho)|peck ?fl|pec ?fl|apertura|fondos|flexion|pecho/,'Pecho'],
- [/hombro|militar|elevaci|vuelo|deltoide|arnold|paloff|face ?pull|pajaro/,'Hombros'],
+ [/hombro|militar|elevaci|vuelo|deltoide|arnold|paloff|face ?pull|pajaro|remo al menton/,'Hombros'],
  [/curl|biceps|triceps|frances|martillo|copa/,'Brazos'],
  [/abdominal|plancha|core|oblicuo|obvlicuo|rusa|russian|rotacion|crunch|rueda|banco romano|abs/,'Core'],
  [/cinta|cardio|bici|eliptic|soga|hiit|\bhit\b|correr|trote|caminata|escalador/,'Cardio']
@@ -989,6 +989,26 @@ function parseGonzaRoutineRows(rows){
   days=days.filter(function(d){return d.exercises.length;});
   return {ok:(days.length>0&&total>0),meta:{week:week||('Semana '+(base/10+1)),source:'GonzaFit'},days:days,total:total,review:review};
 }
+function juanPrescription(v){var raw=(v==null?'':String(v)).trim(),m=raw.match(/^(\d+)\s*[x×]\s*(.+)$/i),f=raw.match(/^(\d+)\s*(?:al\s+)?fallo$/i);if(m)return {sets:parseInt(m[1],10),repsText:m[2].trim(),reps:parseRepsNum(m[2])};if(f)return {sets:parseInt(f[1],10),repsText:'Al fallo',reps:0};return {sets:parseSeries(raw)||3,repsText:raw,reps:parseRepsNum(raw)};}
+function juanExerciseCategory(name){if(/remo al menton/i.test(name))return 'Hombros';if(/cam(?:i)?nata.*(?:talon|punta)/i.test(name))return 'Piernas';var cat=mapCat(name);if(cat)return cat;return /pogo|valla|burpee|prisionero|angel|despliegue|caminata|camnata/i.test(name)?'Cardio':'Otros';}
+function parseJuanVicarioRoutineRows(rows,planRows){
+  var days=[],cur=null,total=0,review=[],section='',month='Plan mensual';
+  (planRows||[]).some(function(row){var title=row&&row[0];if(title&&/planificacion mensual/i.test(String(title))){var found=String(title).match(/enero|febrero|marzo|abril|mayo|junio|julio|agosto|septiembre|octubre|noviembre|diciembre/i);if(found)month=found[0].charAt(0).toUpperCase()+found[0].slice(1);return true;}return false;});
+  rows.forEach(function(row){
+    row=row||[];var first=(row[0]==null?'':String(row[0]).trim()),header=first.match(/^entrenamiento\s+dia\s+(\d+)/i);
+    if(header){cur={num:parseInt(header[1],10),name:'Día '+header[1]+' · Fuerza',exercises:[],stretch:[]};days.push(cur);section='';return;}
+    if(!cur)return;
+    if(/^entrada en calor$/i.test(first)){section='warmup';return;}
+    if(/^principal$/i.test(first)){section='main';return;}
+    [3,4,5].forEach(function(col){if(row[col]!=null&&String(row[col]).trim())cur.stretch.push(String(row[col]).trim());});
+    if(!first)return;
+    var prescription=juanPrescription(row[1]),cat=juanExerciseCategory(first),warmup=section==='warmup',recognized=cat!=='Otros';
+    cur.exercises.push({id:uid(),name:first,category:cat,sets:prescription.sets,reps:prescription.reps,repsText:prescription.repsText,weight:0,rest:90,note:warmup?'Entrada en calor':'',video:'',_recognized:recognized});
+    total++;if(!recognized)review.push({day:cur.name,name:first,why:'no reconocí la categoría'});
+  });
+  days=days.filter(function(day){if(!day.exercises.length)return false;if(day.stretch.length){var target=day.exercises.find(function(ex){return /entrada en calor/i.test(ex.note);})||day.exercises[0];target.note=(target.note?target.note+' · ':'')+'Elongación: '+day.stretch.join(' · ');}delete day.stretch;return true;});
+  return {ok:(days.length>0&&total>0),meta:{week:month,source:'Juan Francisco Vicario'},days:days,total:total,review:review};
+}
 function loadXLSX(cb){if(window.XLSX)return cb();var s=document.createElement('script');s.src='https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js';s.onload=function(){cb();};s.onerror=function(){cb('err');};document.head.appendChild(s);}
 function importExcel(input,studentId){if(!canImportExcel()){return;}var f=input.files&&input.files[0];if(!f){return;}input.value='';toast('Leyendo Excel… ⏳');
   loadXLSX(function(err){
@@ -996,10 +1016,11 @@ function importExcel(input,studentId){if(!canImportExcel()){return;}var f=input.
     var rd=new FileReader();
     rd.onload=function(e){try{
       var wb=XLSX.read(new Uint8Array(e.target.result),{type:'array'});
-      var ws=wb.Sheets[wb.SheetNames[0]];
       var kind=excelImportKind();
-      var rows=XLSX.utils.sheet_to_json(ws,{header:1,raw:(kind!=='gonza'),defval:null});
-      var p=kind==='gonza'?parseGonzaRoutineRows(rows):parseRoutineRows(rows);
+      var sheetName=kind==='juanVicario'?(wb.SheetNames.find(function(name){return /entrenamiento.*fuerza/i.test(name);})||wb.SheetNames[0]):wb.SheetNames[0];
+      var ws=wb.Sheets[sheetName],rows=XLSX.utils.sheet_to_json(ws,{header:1,raw:(kind==='lautaro'),defval:null});
+      var planRows=kind==='juanVicario'?XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]],{header:1,raw:false,defval:null}):null;
+      var p=kind==='gonza'?parseGonzaRoutineRows(rows):(kind==='juanVicario'?parseJuanVicarioRoutineRows(rows,planRows):parseRoutineRows(rows));
       if(!p.ok){toast('No pude leer este Excel con el formato configurado para tu cuenta. Revisá que sea la plantilla correcta.');return;}
       IMPORT={studentId:studentId,parsed:p};
       showImportSummary();
@@ -1352,7 +1373,7 @@ function dirFoto(t,size){const st=`width:${size}px;height:${size}px;border-radiu
 function stars(r){if(r==null)return '<span class="pill g">Nuevo</span>';return `<span style="color:#ff9600;font-weight:800">★ ${r}</span>`;}
 
 /* ---- Código de equipo del PT ---- */
-const UF_VERSION='v2.26.4';
+const UF_VERSION='v2.26.5';
 const APP_URL=(function(){try{return (location.origin&&location.origin.indexOf('http')===0)?(location.origin+location.pathname):'https://dano-gpt.github.io/universal-fit/v2/';}catch(e){return 'https://dano-gpt.github.io/universal-fit/v2/';}})();
 function inviteUrl(code){return APP_URL+'?code='+encodeURIComponent(code);}
 function teamCode(){if(!S.trainer)return null;if(!S.trainer.code){S.trainer.code=('UF'+Math.random().toString(36).replace(/[^a-z0-9]/g,'').slice(0,4)).toUpperCase();save();}return S.trainer.code;}
@@ -1680,7 +1701,7 @@ async function finishObAlNewCloud(){const d=S.ui.ob.d;let gUser=null;
  if(!ok){toast('Cuenta creada pero no pude cargar tus datos — probá entrar de nuevo.');return;}
  S.ui.ob=null;S.ui.view='al_home';save();toast('¡Solicitud enviada a '+fn(t.name)+'! 📨');render();}
 async function obGoogleAl(){try{if(!sb){toast('Necesitás conexión para usar Google');return;}S.ui.ob.d.oauthWait=true;save();await sb.auth.signInWithOAuth({provider:'google',options:{redirectTo:APP_URL}});}catch(e){toast('No pude iniciar Google: '+((e&&e.message)||e));}}
-const APP_VER='v2.26.4';
+const APP_VER='v2.26.5';
 function _who(){try{if(typeof ADMIN!=='undefined'&&ADMIN&&ADMIN.otp)return{role:'admin',uid:'admin'};const r=(typeof S!=='undefined'&&S&&S.ui&&S.ui.role)||'anon';let uid=null;if(r==='pt'){uid=(typeof CLOUD!=='undefined'&&CLOUD&&CLOUD.uid)||((S.trainer&&S.trainer.code)||'pt');}else if(r==='al'){const m=(typeof me==='function')&&me();uid=(m&&m.id)||null;}return{role:r,uid:uid};}catch(e){return{role:'anon',uid:null};}}
 /* ---- v2.24.0: visitante único + fuente de tráfico (alimenta el Tablero → Alcance) ---- */
 var _VID=null,_VNEW=false,_VSRC='directo';

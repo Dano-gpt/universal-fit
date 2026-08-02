@@ -254,6 +254,56 @@ if (excelImportStart < 0 || excelImportEnd < 0) {
   }
 }
 
+const juanExcelImportStart = app.indexOf("var IMPORT=null;");
+const juanExcelImportEnd = app.indexOf("function loadXLSX(", juanExcelImportStart);
+if (juanExcelImportStart < 0 || juanExcelImportEnd < 0) {
+  errors.push("No se pudo probar el importador de Excel de Juan Francisco Vicario");
+} else {
+  try {
+    let sequence = 0;
+    const juanContext = {
+      S: { user: { type: "pt", name: "Otro entrenador" }, trainer: { name: "Otro entrenador" } },
+      CLOUD: { kind: "pt", uid: "2166e681-90b0-4aa9-9b06-cdbc8badc833" },
+      uid: () => `juan_${++sequence}`,
+    };
+    new vm.Script(app.slice(juanExcelImportStart, juanExcelImportEnd)).runInNewContext(juanContext);
+    if (juanContext.excelImportKind() !== "juanVicario") errors.push("El importador no se habilita para el UID real de Juan Francisco Vicario");
+    const forceRows = [
+      ["ENTRENAMIENTO DIA 1", null, null, null, null, null],
+      ["ENTRADA EN CALOR", null, null, null, null, null],
+      ["SENTADILLAS CON PESO", "4 X 20", null, "Elongacion de piernas", "Toque de pies", null],
+      ["PRINCIPAL", null, null, null, null, null],
+      ["CURL DE TIBIAL", "4 AL FALLO", null, null, null, null],
+      ["ESPINALES", "3 X 25", null, null, null, null],
+      ["ENTRENAMIENTO DIA 2", null, null, null, null, null],
+      ["ENTRADA EN CALOR", null, null, null, null, null],
+      ["ESTOCADAS HACIA ADELANTE", "4 X 20", null, null, null, null],
+      ["PRINCIPAL", null, null, null, null, null],
+      ["BURPEES", "4 X 16", null, null, null, null],
+    ];
+    const parsed = juanContext.parseJuanVicarioRoutineRows(forceRows, [["PLANIFICACION MENSUAL PERSONALIZADA"]]);
+    const sentadillas = parsed.days[0]?.exercises.find((exercise) => exercise.name === "SENTADILLAS CON PESO");
+    const tibial = parsed.days[0]?.exercises.find((exercise) => exercise.name === "CURL DE TIBIAL");
+    const burpees = parsed.days[1]?.exercises.find((exercise) => exercise.name === "BURPEES");
+    if (
+      !parsed.ok ||
+      parsed.days.length !== 2 ||
+      sentadillas?.sets !== 4 ||
+      sentadillas?.repsText !== "20" ||
+      !sentadillas?.note.includes("Entrada en calor") ||
+      !sentadillas?.note.includes("Elongacion") ||
+      tibial?.sets !== 4 ||
+      tibial?.repsText !== "Al fallo" ||
+      tibial?.category !== "Piernas" ||
+      burpees?.category !== "Cardio"
+    ) {
+      errors.push("El importador de Juan Francisco Vicario no conserva dias, prescripciones, entrada en calor y elongacion");
+    }
+  } catch (error) {
+    errors.push(`No se pudo ejecutar el importador de Juan Francisco Vicario: ${error.message}`);
+  }
+}
+
 const customStart = app.indexOf("function customExerciseLibrary()");
 const customEnd = app.indexOf("function hasPlan(", customStart);
 if (customStart < 0 || customEnd < 0) {
@@ -368,6 +418,8 @@ const expected = [
   "customExercises:((acc.data&&acc.data.customExercises)||[]).slice()",
   "function parseGonzaRoutineRows",
   "1f81d5d4-b445-42d7-9cc4-b70af5c734c0",
+  "function parseJuanVicarioRoutineRows",
+  "2166e681-90b0-4aa9-9b06-cdbc8badc833",
   "video:e.video||''",
   "ufAdBanner",
   "AD_BANNER_GREEN='#0B5B50'",
