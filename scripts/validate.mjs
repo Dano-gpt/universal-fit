@@ -139,8 +139,9 @@ if (demoSeedStart < 0 || demoSeedEnd < 0) {
     const demoContext = {
       LOCAL_DEMO: true,
       S: { students: [demoStudent], notifs: [] },
-      routineOf: () => ({ id: "routine" }),
+      routineOf: () => ({ id: "routine", days: [{ id: "day", exercises: [{ id: "exercise", name: "Press banca" }] }] }),
       allEx: () => [{ id: "exercise", name: "Press banca" }],
+      recommendationWeek: () => 4,
       today: () => "2026-07-25",
     };
     new vm.Script(app.slice(demoSeedStart, demoSeedEnd)).runInNewContext(demoContext);
@@ -150,7 +151,8 @@ if (demoSeedStart < 0 || demoSeedEnd < 0) {
       !demoStudent.techVids.some((video) => video.demoSample) ||
       !demoStudent.noveltyStatus["notif:demo-checkin-juan"]?.responded ||
       !demoStudent.noveltyStatus["notif:demo-visto-juan"]?.seen ||
-      !demoStudent.msgs.some((message) => message.id === "demo-reply-juan")
+      !demoStudent.msgs.some((message) => message.id === "demo-reply-juan") ||
+      !demoStudent.exerciseRecommendations?.some((recommendation) => recommendation.demoComparison)
     ) {
       errors.push("El modo demo no carga novedades de mensaje, video y respuesta de ejemplo");
     }
@@ -367,6 +369,11 @@ const expected = [
   "Devolución para el alumno",
   "Borrar este video",
   "function trainerWorkoutDetails",
+  "function recommendationForExercise",
+  "function saveNextRecommendation",
+  "Recomendación indicada",
+  "Ejecución real",
+  "Recomendar para semana",
   "function saveWorkoutExerciseFeedback",
   "function latestWorkoutFeedback",
   "function vPtWorkoutHistory",
