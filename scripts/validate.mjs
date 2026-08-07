@@ -34,6 +34,7 @@ const app = await read("v2/index.html");
 if (!/^v\d+\.\d+\.\d+$/.test(version)) errors.push(`Versión inválida: ${version}`);
 if (`v${packageJson.version}` !== version) errors.push("package.json y v2/version.txt no coinciden");
 if (!app.includes(`const UF_VERSION='${version}'`)) errors.push("UF_VERSION no coincide con version.txt");
+if (!app.includes("const APP_TIME_ZONE='America/Argentina/Buenos_Aires'")) errors.push("La zona horaria de Argentina no está configurada");
 if ((await read("CNAME")).trim() !== "universalfit.com.ar") errors.push("CNAME inválido");
 if (/^(?:<<<<<<<|=======|>>>>>>>)/m.test(app)) errors.push("v2/index.html contiene marcadores de conflicto");
 
@@ -66,6 +67,26 @@ if (relativeStart < 0 || relativeEnd < 0) {
     if (cases.some((result) => !result)) errors.push("El cálculo relativo no supera sus casos de semana y mes desde el inicio");
   } catch (error) {
     errors.push(`No se pudo ejecutar el cálculo relativo: ${error.message}`);
+  }
+}
+
+const monthlyProgressStart = app.indexOf("function validDay(");
+const monthlyProgressEnd = app.indexOf("function addRelativeMonths(", monthlyProgressStart);
+if (monthlyProgressStart < 0 || monthlyProgressEnd < 0) {
+  errors.push("No se pudo probar el filtro mensual de entrenamientos");
+} else {
+  try {
+    const monthlyContext = { S: { ui: {} }, today: () => "2026-08-06", argentinaDay: () => "2026-08-06" };
+    new vm.Script(app.slice(monthlyProgressStart, monthlyProgressEnd)).runInNewContext(monthlyContext);
+    const weeks = monthlyContext.monthTrainingWeeks({ logs: [
+      { date: "2026-08-01" }, { date: "2026-08-03" }, { date: "2026-08-09" }, { date: "2026-07-31" },
+    ] }, "2026-08");
+    const selected = monthlyContext.studentProgressMonth();
+    if (selected !== "2026-08" || weeks.length !== 6 || weeks[0].c !== 1 || weeks[1].c !== 2 || weeks.some((week) => !/^S\d+$/.test(week.k))) {
+      errors.push("El filtro mensual no distribuye correctamente los entrenamientos por semana");
+    }
+  } catch (error) {
+    errors.push(`No se pudo ejecutar el filtro mensual de entrenamientos: ${error.message}`);
   }
 }
 
