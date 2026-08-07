@@ -349,7 +349,7 @@ img,video,iframe,canvas,svg{max-width:100%;}
 </style>
 </head>
 <body class="uf-gate-open">
-<div id="gate"><div style="position:absolute;bottom:18px;left:0;right:0;text-align:center;color:rgba(255,255,255,.75);font-size:12px;font-weight:700">v2.27.3</div><div id="gateInner"><svg class="gIco" width="82" height="82" viewBox="0 0 120 120" style="overflow:visible"><g fill="none" stroke-width="11" stroke-linecap="round" stroke-linejoin="round"><path d="M22 34 L22 68 A18 18 0 0 0 58 68 L58 34" stroke="#9EFF3D"/><path d="M72 34 L72 86 M72 34 L98 34 M72 60 L93 60" stroke="#B98CFF"/></g></svg><div class="gName">Universal Fit</div><div class="gSub">Entrená mejor. Progresá siempre.</div><div class="gStats" aria-label="Comunidad Universal Fit"><div class="gStat" style="--stat-color:#9EFF3D"><i class="gSpark s1"></i><i class="gSpark s2"></i><i class="gSpark s3"></i><div class="gStatIcon">🏋️</div><div class="gStatNum" id="gateProfessors">0</div><div class="gStatLabel">Profesores inscriptos</div></div><div class="gStat" style="--stat-color:#B98CFF"><i class="gSpark s1"></i><i class="gSpark s2"></i><i class="gSpark s3"></i><div class="gStatIcon">⚡</div><div class="gStatNum" id="gateStudents">0</div><div class="gStatLabel">Alumnos que usan la app</div><div class="gStatsToday">hasta hoy</div></div></div></div></div>
+<div id="gate"><div style="position:absolute;bottom:18px;left:0;right:0;text-align:center;color:rgba(255,255,255,.75);font-size:12px;font-weight:700">v2.27.4</div><div id="gateInner"><svg class="gIco" width="82" height="82" viewBox="0 0 120 120" style="overflow:visible"><g fill="none" stroke-width="11" stroke-linecap="round" stroke-linejoin="round"><path d="M22 34 L22 68 A18 18 0 0 0 58 68 L58 34" stroke="#9EFF3D"/><path d="M72 34 L72 86 M72 34 L98 34 M72 60 L93 60" stroke="#B98CFF"/></g></svg><div class="gName">Universal Fit</div><div class="gSub">Entrená mejor. Progresá siempre.</div><div class="gStats" aria-label="Comunidad Universal Fit"><div class="gStat" style="--stat-color:#9EFF3D"><i class="gSpark s1"></i><i class="gSpark s2"></i><i class="gSpark s3"></i><div class="gStatIcon">🏋️</div><div class="gStatNum" id="gateProfessors">0</div><div class="gStatLabel">Profesores inscriptos</div></div><div class="gStat" style="--stat-color:#B98CFF"><i class="gSpark s1"></i><i class="gSpark s2"></i><i class="gSpark s3"></i><div class="gStatIcon">⚡</div><div class="gStatNum" id="gateStudents">0</div><div class="gStatLabel">Alumnos que usan la app</div><div class="gStatsToday">hasta hoy</div></div></div></div></div>
 <div id="a2hs"><div class="a2card" id="a2card"></div></div>
 <div class="app">
   <header>
@@ -371,9 +371,11 @@ let S;
 function load(){try{const r=localStorage.getItem(KEY);if(r)return JSON.parse(r);}catch(e){}return seed();}
 function save(){try{localStorage.setItem((typeof CLOUD!=='undefined'&&CLOUD.on)?('uf_cloud_'+CLOUD.uid):KEY,JSON.stringify(S));}catch(e){} if(typeof cloudOn==='function'&&cloudOn())cloudQueue();}
 function uid(){return Math.random().toString(36).slice(2,9);}
-function today(){return new Date().toISOString().slice(0,10);}
-function dOffset(n){const d=new Date();d.setDate(d.getDate()+n);return d.toISOString().slice(0,10);}
-function daysSince(ds){if(!ds)return 999;return Math.round((new Date(today())-new Date(ds))/86400000);}
+const APP_TIME_ZONE='America/Argentina/Buenos_Aires';
+function argentinaDay(value){const parts=new Intl.DateTimeFormat('en-CA',{timeZone:APP_TIME_ZONE,year:'numeric',month:'2-digit',day:'2-digit'}).formatToParts(value instanceof Date?value:new Date(value||Date.now())),out={};parts.forEach(p=>{if(p.type!=='literal')out[p.type]=p.value;});return out.year+'-'+out.month+'-'+out.day;}
+function today(){return argentinaDay(new Date());}
+function dOffset(n){const d=utcDate(today());d.setUTCDate(d.getUTCDate()+n);return isoUtc(d);}
+function daysSince(ds){if(!ds)return 999;return Math.round((utcDate(today())-utcDate(ds))/86400000);}
 function val(id){const el=document.getElementById(id);return el?el.value:'';}
 function esc(s){return(s||'').toString().replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));}
 function fn(name){return (name||'').split(' ')[0];}
@@ -505,15 +507,16 @@ function findEx(rt,id){return allEx(rt).find(e=>e.id===id);}
 function lastLog(st){if(!st.logs.length)return null;return st.logs.map(l=>l.date).sort().slice(-1)[0];}
 function statusOf(st){const d=daysSince(lastLog(st));if(d<=3)return{c:'g',t:'al día'};if(d<=7)return{c:'y',t:'aflojando'};return{c:'r',t:'sin registrar'};}
 function lastText(st){const d=lastLog(st);if(!d)return'nunca registró';const n=daysSince(d);if(n===0)return'entrenó hoy';if(n===1)return'ayer';return'hace '+n+' días';}
-function weekKey(ds){const d=new Date(ds);const on=new Date(d);on.setDate(d.getDate()-((d.getDay()+6)%7));return on.toISOString().slice(0,10);}
-function streak(st){const wk=new Set(st.logs.map(l=>weekKey(l.date)));let n=0,d=new Date();for(;;){if(wk.has(weekKey(d.toISOString().slice(0,10)))){n++;d.setDate(d.getDate()-7);}else break;}return n;}
+function weekKey(ds){const d=utcDate(validDay(ds)||today());d.setUTCDate(d.getUTCDate()-((d.getUTCDay()+6)%7));return isoUtc(d);}
+function streak(st){const wk=new Set(st.logs.map(l=>weekKey(l.date)));let n=0,d=utcDate(today());for(;;){if(wk.has(weekKey(isoUtc(d)))){n++;d.setUTCDate(d.getUTCDate()-7);}else break;}return n;}
 function progress(st,exId){return st.logs.filter(l=>l.entries.some(e=>e.exerciseId===exId)).map(l=>{const e=l.entries.find(x=>x.exerciseId===exId);return{date:l.date,kg:Math.max(...e.sets.map(s=>+s.kg||0))};}).sort((a,b)=>a.date<b.date?-1:1);}
-function weekly(st){const out=[];for(let i=3;i>=0;i--){const s=new Date();s.setDate(s.getDate()-i*7);const k=weekKey(s.toISOString().slice(0,10));out.push({k:'S'+(4-i),c:st.logs.filter(l=>weekKey(l.date)===k).length});}return out;}
+function weekly(st){const out=[],base=utcDate(today());for(let i=3;i>=0;i--){const s=new Date(base);s.setUTCDate(s.getUTCDate()-i*7);const k=weekKey(isoUtc(s));out.push({k:'S'+(4-i),c:st.logs.filter(l=>weekKey(l.date)===k).length});}return out;}
 function validDay(v){const d=(''+(v||'')).slice(0,10);return /^\d{4}-\d{2}-\d{2}$/.test(d)&&!isNaN(Date.parse(d))?d:'';}
+function logDay(log){return validDay(log&&log.date)||argentinaDay(log&&log.completedAt);}
 function studentTrainingStart(s){
   const dates=[];function add(v){v=validDay(v);if(v)dates.push(v);}
   add(s.trainingStartedAt);
-  (s.logs||[]).forEach(l=>add(l.completedAt||l.date));
+  (s.logs||[]).forEach(l=>add(logDay(l)));
   (s.measures||[]).forEach(m=>add(m.date));
   (s.checkins||[]).forEach(c=>add(c.date));
   (s.techVids||[]).forEach(v=>add(v.uploadedAt||v.date));
@@ -523,16 +526,29 @@ function studentTrainingStart(s){
 }
 function utcDate(ds){const p=validDay(ds).split('-').map(Number);return new Date(Date.UTC(p[0],p[1]-1,p[2]));}
 function isoUtc(d){return d.toISOString().slice(0,10);}
+function studentProgressMonth(){S.ui=S.ui||{};const month=(''+(S.ui.studentProgressMonth||'')).slice(0,7);if(!/^\d{4}-\d{2}$/.test(month))S.ui.studentProgressMonth=today().slice(0,7);return S.ui.studentProgressMonth;}
+function setStudentProgressMonth(month){S.ui=S.ui||{};S.ui.studentProgressMonth=/^\d{4}-\d{2}$/.test(month||'')?month:today().slice(0,7);save();render();}
+function monthTrainingWeeks(st,month){
+  const first=month+'-01',firstDate=utcDate(first),lastDate=new Date(Date.UTC(firstDate.getUTCFullYear(),firstDate.getUTCMonth()+1,0)),last=isoUtc(lastDate),start=new Date(firstDate),rows=[];
+  start.setUTCDate(start.getUTCDate()-((start.getUTCDay()+6)%7));
+  for(let index=1;isoUtc(start)<=last;index++){
+    const end=new Date(start);end.setUTCDate(end.getUTCDate()+6);
+    const from=isoUtc(start)<first?first:isoUtc(start),to=isoUtc(end)>last?last:isoUtc(end);
+    const count=(st.logs||[]).filter(log=>{const day=validDay(log.date)||argentinaDay(log.completedAt);return day>=from&&day<=to;}).length;
+    rows.push({k:'S'+index,c:count,from:from,to:to});start.setUTCDate(start.getUTCDate()+7);
+  }
+  return rows;
+}
 function addRelativeMonths(ds,n){const d=utcDate(ds),day=d.getUTCDate(),target=new Date(Date.UTC(d.getUTCFullYear(),d.getUTCMonth()+n,1)),last=new Date(Date.UTC(target.getUTCFullYear(),target.getUTCMonth()+1,0)).getUTCDate();target.setUTCDate(Math.min(day,last));return isoUtc(target);}
 function relativePeriodIndex(ds,start,mode){ds=validDay(ds);start=validDay(start);if(!ds||!start||ds<start)return 1;if(mode==='month'){let n=(+ds.slice(0,4)-+start.slice(0,4))*12+(+ds.slice(5,7)-+start.slice(5,7));if(ds<addRelativeMonths(start,n))n--;return Math.max(1,n+1);}return Math.max(1,Math.floor((utcDate(ds)-utcDate(start))/604800000)+1);}
 function relativePeriodBounds(start,mode,index){index=Math.max(1,+index||1);if(mode==='month'){const from=addRelativeMonths(start,index-1),next=addRelativeMonths(start,index);const end=utcDate(next);end.setUTCDate(end.getUTCDate()-1);return{from,to:isoUtc(end)};}const from=utcDate(start);from.setUTCDate(from.getUTCDate()+(index-1)*7);const end=new Date(from);end.setUTCDate(end.getUTCDate()+6);return{from:isoUtc(from),to:isoUtc(end)};}
-function relativePeriodState(s){S.ui=S.ui||{};S.ui.studentPeriod=S.ui.studentPeriod||{};let p=S.ui.studentPeriod[s.id];const start=studentTrainingStart(s);if(!p){const latest=(s.logs||[]).map(l=>validDay(l.completedAt||l.date)).filter(Boolean).sort().slice(-1)[0]||today();p={mode:'week',index:relativePeriodIndex(latest,start,'week')};S.ui.studentPeriod[s.id]=p;}const max=relativePeriodIndex(today(),start,p.mode);p.index=Math.max(1,Math.min(+p.index||max,max));return p;}
+function relativePeriodState(s){S.ui=S.ui||{};S.ui.studentPeriod=S.ui.studentPeriod||{};let p=S.ui.studentPeriod[s.id];const start=studentTrainingStart(s);if(!p){const latest=(s.logs||[]).map(l=>logDay(l)).filter(Boolean).sort().slice(-1)[0]||today();p={mode:'week',index:relativePeriodIndex(latest,start,'week')};S.ui.studentPeriod[s.id]=p;}const max=relativePeriodIndex(today(),start,p.mode);p.index=Math.max(1,Math.min(+p.index||max,max));return p;}
 function setRelativePeriod(studentId,field,value){const s=S.students.find(x=>x.id===studentId);if(!s)return;const p=relativePeriodState(s);if(field==='mode'){p.mode=value==='month'?'month':'week';p.index=relativePeriodIndex(today(),studentTrainingStart(s),p.mode);}else p.index=Math.max(1,+value||1);save();render();}
 function inBounds(ds,b){ds=validDay(ds);return !!ds&&ds>=b.from&&ds<=b.to;}
-function periodLogs(s,b){return (s.logs||[]).filter(l=>inBounds(l.completedAt||l.date,b));}
+function periodLogs(s,b){return (s.logs||[]).filter(l=>inBounds(logDay(l),b));}
 function exercisePeriodStats(s,logs){
   const rt=routineOf(s),map={};
-  logs.forEach(l=>(l.entries||[]).forEach(en=>{const ex=findEx(rt,en.exerciseId),key=en.exerciseId||((ex&&ex.name)||'Ejercicio'),row=map[key]||(map[key]={name:(ex&&ex.name)||en.name||'Ejercicio',sessions:0,sets:0,reps:0,first:0,last:0,best:0,dates:[]}),sets=en.sets||[],mx=Math.max(0,...sets.map(x=>+x.kg||0));row.sessions++;row.sets+=sets.length;row.reps+=sets.reduce((a,x)=>a+(+x.reps||0),0);row.best=Math.max(row.best,mx);row.dates.push({date:validDay(l.completedAt||l.date),kg:mx});}));
+  logs.forEach(l=>(l.entries||[]).forEach(en=>{const ex=findEx(rt,en.exerciseId),key=en.exerciseId||((ex&&ex.name)||'Ejercicio'),row=map[key]||(map[key]={name:(ex&&ex.name)||en.name||'Ejercicio',sessions:0,sets:0,reps:0,first:0,last:0,best:0,dates:[]}),sets=en.sets||[],mx=Math.max(0,...sets.map(x=>+x.kg||0));row.sessions++;row.sets+=sets.length;row.reps+=sets.reduce((a,x)=>a+(+x.reps||0),0);row.best=Math.max(row.best,mx);row.dates.push({date:logDay(l),kg:mx});}));
   return Object.values(map).map(r=>{r.dates.sort((a,b)=>a.date.localeCompare(b.date));r.first=r.dates[0]?r.dates[0].kg:0;r.last=r.dates.length?r.dates[r.dates.length-1].kg:0;r.delta=r.last-r.first;return r;}).sort((a,b)=>b.sessions-a.sessions||a.name.localeCompare(b.name));
 }
 function recommendationWeek(s,date){return relativePeriodIndex(validDay(date)||today(),studentTrainingStart(s),'week');}
@@ -750,7 +766,7 @@ function studentNovelties(s){
   const hasText=x=>out.some(n=>(n.text||'').toLowerCase().includes(x));
   (s.techVids||[]).filter(v=>validDay(v.uploadedAt||v.date)===today()).forEach(v=>{if(!hasText('video'))out.push({key:'video:'+v.exId+':'+v.date,date:v.date,ts:Date.parse(v.uploadedAt||v.date)||0,text:'Subió un video de técnica de '+(v.name||'un ejercicio'),kind:'video',source:'video',video:v});});
   (s.checkins||[]).filter(c=>validDay(c.date)===today()).forEach((c,i)=>{if(!hasText('check-in'))out.push({key:'checkin:'+c.date+':'+i,date:c.date,ts:0,text:'Envió su check-in'+(c.nota?' — “'+c.nota+'”':''),kind:'update',source:'checkin'});});
-  (s.logs||[]).filter(l=>validDay(l.completedAt||l.date)===today()).forEach((l,i)=>{if(!hasText('finalizó')&&!hasText('entren'))out.push({key:'workout:'+validDay(l.completedAt||l.date)+':'+i,date:validDay(l.completedAt||l.date),ts:Date.parse(l.completedAt||l.date)||0,text:'Finalizó '+((l.entries||[]).length)+' ejercicio(s)'+(l.note?' — “'+l.note+'”':''),kind:'workout',source:'workout'});});
+  (s.logs||[]).filter(l=>logDay(l)===today()).forEach((l,i)=>{if(!hasText('finalizó')&&!hasText('entren'))out.push({key:'workout:'+logDay(l)+':'+i,date:logDay(l),ts:Date.parse(l.completedAt||l.date)||0,text:'Finalizó '+((l.entries||[]).length)+' ejercicio(s)'+(l.note?' — “'+l.note+'”':''),kind:'workout',source:'workout'});});
   const states=noveltyStore(s);return out.filter(n=>!(states[n.key]&&states[n.key].deleted)).sort((a,b)=>(b.ts||0)-(a.ts||0));
 }
 function studentNoveltyFilters(s){
@@ -1225,11 +1241,11 @@ function vAlLog(){
   ${techCard(e)}<button class="btn" onclick="saveLog('${e.id}',${recommendation.sets})">Guardar entreno ✓</button>`;
 }
 function vAlProgress(){
-  const s=me();if(!s)return'';const rt=routineOf(s),ex0=allEx(rt)[0],prog=ex0?progress(s,ex0.id):[];
+  const s=me();if(!s)return'';const rt=routineOf(s),ex0=allEx(rt)[0],prog=ex0?progress(s,ex0.id):[],month=studentProgressMonth(),monthWeeks=monthTrainingWeeks(s,month);
   const ach=achieveList(s),got=ach.filter(a=>a[2]).length;
   return `<div class="card"><div class="row"><div><div class="big">${streak(s)} 🔥</div><div class="cap">semanas de racha</div></div><div style="text-align:right"><div class="big">${s.logs.length}</div><div class="cap">entrenos</div></div></div></div>
   <div class="card"><div class="h" style="margin:0 0 8px">🏅 Logros (${got}/${ach.length})</div><div class="chips">${ach.map(a=>`<span class="chip" style="${a[2]?'background:#183A1C;color:#9BEF6E':'opacity:.4'}">${a[0]} ${a[1]}</span>`).join('')}</div></div>
-  <div class="card"><div class="h" style="margin:0 0 6px">Entrenos por semana</div>${barChart(weekly(s))}</div>
+  <div class="card"><div class="row" style="align-items:end;gap:10px"><div class="h" style="margin:0">Entrenos por semana</div><label class="cap" style="margin-left:auto">Mes<br><input class="in" type="month" value="${month}" onchange="setStudentProgressMonth(this.value)" style="margin-top:3px;min-width:148px"></label></div><div class="cap" style="margin:8px 0 2px">Cantidad de entrenamientos realizados en cada semana de ${month.slice(5,7)}/${month.slice(0,4)}.</div>${barChart(monthWeeks)}<div class="chips" style="margin-top:6px">${monthWeeks.map(w=>`<span class="chip">${w.k}: ${fmt(w.from)}–${fmt(w.to)}</span>`).join('')}</div></div>
   ${ex0?`<div class="card"><div class="h" style="margin:0 0 6px">${esc(ex0.name)} — peso (kg)</div>${lineChart(prog)}<div class="cap" style="text-align:center;margin-top:6px">${prog.length>=2?'¡Vas subiendo! 💪':'Registrá más entrenos para ver tu evolución.'}</div></div>`:'<div class="empty cap">Sin rutina asignada.</div>'}`;
 }
 function openLog(exId){const s=me(),rt=routineOf(s);const day=rt&&rt.days.find(d=>d.exercises.some(e=>e.id===exId));if(day&&!dayStarted(s,day)){toast('Primero tocá ▶ Iniciar rutina');return;}S.ui.logExerciseId=exId;go('al_log');}
@@ -1479,7 +1495,7 @@ function dirFoto(t,size){const st=`width:${size}px;height:${size}px;border-radiu
 function stars(r){if(r==null)return '<span class="pill g">Nuevo</span>';return `<span style="color:#ff9600;font-weight:800">★ ${r}</span>`;}
 
 /* ---- Código de equipo del PT ---- */
-const UF_VERSION='v2.27.3';
+const UF_VERSION='v2.27.4';
 const APP_URL=(function(){try{return (location.origin&&location.origin.indexOf('http')===0)?(location.origin+location.pathname):'https://dano-gpt.github.io/universal-fit/v2/';}catch(e){return 'https://dano-gpt.github.io/universal-fit/v2/';}})();
 function inviteUrl(code){return APP_URL+'?code='+encodeURIComponent(code);}
 function teamCode(){if(!S.trainer)return null;if(!S.trainer.code){S.trainer.code=('UF'+Math.random().toString(36).replace(/[^a-z0-9]/g,'').slice(0,4)).toUpperCase();save();}return S.trainer.code;}
@@ -1807,7 +1823,7 @@ async function finishObAlNewCloud(){const d=S.ui.ob.d;let gUser=null;
  if(!ok){toast('Cuenta creada pero no pude cargar tus datos — probá entrar de nuevo.');return;}
  S.ui.ob=null;S.ui.view='al_home';save();toast('¡Solicitud enviada a '+fn(t.name)+'! 📨');render();}
 async function obGoogleAl(){try{if(!sb){toast('Necesitás conexión para usar Google');return;}S.ui.ob.d.oauthWait=true;save();await sb.auth.signInWithOAuth({provider:'google',options:{redirectTo:APP_URL}});}catch(e){toast('No pude iniciar Google: '+((e&&e.message)||e));}}
-const APP_VER='v2.27.3';
+const APP_VER='v2.27.4';
 function _who(){try{if(typeof ADMIN!=='undefined'&&ADMIN&&ADMIN.otp)return{role:'admin',uid:'admin'};const r=(typeof S!=='undefined'&&S&&S.ui&&S.ui.role)||'anon';let uid=null;if(r==='pt'){uid=(typeof CLOUD!=='undefined'&&CLOUD&&CLOUD.uid)||((S.trainer&&S.trainer.code)||'pt');}else if(r==='al'){const m=(typeof me==='function')&&me();uid=(m&&m.id)||null;}return{role:r,uid:uid};}catch(e){return{role:'anon',uid:null};}}
 /* ---- v2.24.0: visitante único + fuente de tráfico (alimenta el Tablero → Alcance) ---- */
 var _VID=null,_VNEW=false,_VSRC='directo';
