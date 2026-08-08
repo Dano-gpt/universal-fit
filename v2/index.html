@@ -2297,5 +2297,6 @@ if(sb&&!AUTH_RECOVERY){sb.auth.getSession().then(({data})=>{if(data&&data.sessio
  else{cloudBoot(u).then(ok=>{if(!ok){var ob=S.ui&&S.ui.ob;if(ob&&ob.kind==='al'&&ob.d&&ob.d.oauthWait){S.user=null;S.ui.grole=null;ob.d.oauth=true;ob.d.oauthWait=false;ob.d.email=u.email||ob.d.email||'';save();render();if(ob.d.path==='code')finishObCodeCloud();else if(ob.d.path==='new')finishObAlNewCloud();}else{S.user=null;S.ui.ob=null;S.ui.grole={name:(u.user_metadata&&(u.user_metadata.full_name||u.user_metadata.name))||'',email:u.email||''};save();render();}}});}
 }}).catch(()=>{});}
 </script>
+<script src="impersonate.js?v=2.28.0"></script>
 </body>
 </html>
