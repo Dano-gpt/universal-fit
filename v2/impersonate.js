@@ -20,7 +20,7 @@ async function adminImpersonate(kind, id, name) {
     else { toast('No se pudo iniciar la suplantacion: ' + ((data && data.error) || (resp && resp.error && resp.error.message) || 'error desconocido')); }
     return;
   }
-  const { error: vErr } = await sb.auth.verifyOtp({ email: data.email, token_hash: data.hashed_token, type: 'magiclink' });
+  const { error: vErr } = await sb.auth.verifyOtp({ token_hash: data.hashed_token, type: 'magiclink' });
   if (vErr) { toast('No se pudo entrar como ese usuario: ' + vErr.message); return; }
   IMPERSONATE = { on: true, adminSession: adminSession, target: { kind: kind, id: id, name: name || data.email, email: data.email } };
   _impSave();
