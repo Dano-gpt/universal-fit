@@ -1,5 +1,5 @@
 /* Universal Fit — service worker (network-first para no quedar pegado con archivos viejos) */
-const CACHE = 'uf-shell-v6-2.28.0';
+const CACHE = 'uf-shell-v6-2.28.1';
 const SHELL = ['./', './index.html', './manifest.json', './icon-192.png', './icon-512.png'];
 self.addEventListener('install', (e) => {
   self.skipWaiting();
