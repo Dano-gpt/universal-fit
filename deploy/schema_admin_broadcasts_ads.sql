@@ -1,4 +1,4 @@
--- Universal Fit v2.29.0
+-- Universal Fit v2.29.1
 -- Avisos generales de Administracion y cancelacion auditable de publicidad.
 -- Ejecutar en Supabase SQL Editor al aprobar esta version candidata.
 
@@ -10,12 +10,15 @@ create table if not exists public.v1_admin_broadcasts (
   id bigserial primary key,
   title text not null check (char_length(title) between 1 and 120),
   body text not null check (char_length(body) between 1 and 1000),
+  audience text not null default 'all' check (audience in ('pt', 'al', 'all')),
   active boolean not null default true,
   created_by uuid not null,
   created_at timestamptz not null default now()
 );
 
 alter table public.v1_admin_broadcasts enable row level security;
+alter table public.v1_admin_broadcasts
+  add column if not exists audience text not null default 'all';
 
 create or replace function public.v1_active_ads()
 returns jsonb
@@ -112,13 +115,20 @@ as $$
         'body', b.body,
         'created_at', b.created_at
       ) order by b.id desc)
-       from (select * from public.v1_admin_broadcasts where active = true order by id desc limit 5) b),
+       from (
+         select * from public.v1_admin_broadcasts
+          where active = true
+            and (audience = 'all' or audience = case when exists (select 1 from public.v1_accounts a where a.id = auth.uid() and a.kind = 'pt') then 'pt' else 'al' end)
+          order by id desc limit 5
+       ) b),
       '[]'::jsonb
     ) end
   );
 $$;
 
-create or replace function public.admin_create_broadcast(p_title text, p_body text)
+drop function if exists public.admin_create_broadcast(text, text);
+
+create or replace function public.admin_create_broadcast(p_title text, p_body text, p_audience text)
 returns jsonb
 language plpgsql
 security definer
@@ -127,6 +137,7 @@ as $$
 declare
   v_title text := left(trim(coalesce(p_title, '')), 120);
   v_body text := left(trim(coalesce(p_body, '')), 1000);
+  v_audience text := lower(trim(coalesce(p_audience, 'all')));
   v_id bigint;
   v_recipients jsonb;
 begin
@@ -136,19 +147,22 @@ begin
   if v_title = '' or v_body = '' then
     return jsonb_build_object('ok', false, 'error', 'mensaje_requerido');
   end if;
+  if v_audience not in ('pt', 'al', 'all') then
+    return jsonb_build_object('ok', false, 'error', 'destinatario_invalido');
+  end if;
 
-  insert into public.v1_admin_broadcasts(title, body, created_by)
-  values(v_title, v_body, auth.uid())
+  insert into public.v1_admin_broadcasts(title, body, audience, created_by)
+  values(v_title, v_body, v_audience, auth.uid())
   returning id into v_id;
 
   select coalesce(jsonb_agg(uid), '[]'::jsonb) into v_recipients
   from (
-    select id as uid from public.v1_accounts where kind = 'pt'
+    select id as uid from public.v1_accounts where kind = 'pt' and v_audience in ('pt', 'all')
     union
-    select user_uid as uid from public.v1_students where user_uid is not null
+    select user_uid as uid from public.v1_students where user_uid is not null and v_audience in ('al', 'all')
   ) recipients;
 
-  return jsonb_build_object('ok', true, 'id', v_id, 'recipients', v_recipients);
+  return jsonb_build_object('ok', true, 'id', v_id, 'audience', v_audience, 'recipients', v_recipients);
 end;
 $$;
 
@@ -169,6 +183,7 @@ begin
         'id', id,
         'title', title,
         'body', body,
+        'audience', audience,
         'active', active,
         'created_at', created_at
       ) order by id desc)
@@ -185,5 +200,5 @@ grant execute on function public.v1_active_ads() to anon, authenticated;
 grant execute on function public.v1_active_admin_broadcasts() to authenticated;
 grant execute on function public.admin_list_ads_v229() to authenticated;
 grant execute on function public.admin_cancel_ad(bigint, text) to authenticated;
-grant execute on function public.admin_create_broadcast(text, text) to authenticated;
+grant execute on function public.admin_create_broadcast(text, text, text) to authenticated;
 grant execute on function public.admin_list_broadcasts(int) to authenticated;
