@@ -2094,7 +2094,7 @@ function openInstallManual(){if(isStandalone()){toast('Ya la estás usando como 
 const VAPID_PUB='BMGkcWiS-wQT7k5_IJQQkFGmmMi_UrXYmR4IotyMQzOEyxCrd3mrDpr6rDSsk9S1ZZhNh0GlwhQLq_gstoIpjo8';
 function urlB64ToUint8Array(b64){var pad='='.repeat((4-b64.length%4)%4);var base=(b64+pad).replace(/-/g,'+').replace(/_/g,'/');var raw=atob(base);var out=new Uint8Array(raw.length);for(var i=0;i<raw.length;i++)out[i]=raw.charCodeAt(i);return out;}
 function pushSupported(){return ('serviceWorker' in navigator)&&('PushManager' in window)&&('Notification' in window);}
-function pushTo(opts){try{if(sb&&typeof cloudOn==='function'&&cloudOn()){sb.functions.invoke('push-send',{body:opts}).then(function(){},function(){});}}catch(e){}}
+function pushTo(opts){try{const adminPush=(typeof ADMIN!=='undefined'&&ADMIN&&ADMIN.on&&ADMIN.otp);if(sb&&((typeof cloudOn==='function'&&cloudOn())||adminPush)){sb.functions.invoke('push-send',{body:opts}).then(function(){},function(){});}}catch(e){}}
 async function activarNotis(){
   if(!pushSupported()){toast('Tu navegador/dispositivo no soporta notificaciones 🔕');return;}
   try{
