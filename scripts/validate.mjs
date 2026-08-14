@@ -383,7 +383,7 @@ if (customStart < 0 || customEnd < 0) {
   }
 }
 
-const adStart = app.indexOf("function adBanner()");
+const adStart = app.indexOf("function adBanner(ad)");
 const adEnd = app.indexOf("function updateAd()", adStart);
 if (adStart < 0 || adEnd < 0) {
   errors.push("No se pudo probar el estilo de publicidad");
@@ -395,7 +395,7 @@ if (adStart < 0 || adEnd < 0) {
       esc: (value) => String(value),
     };
     new vm.Script(app.slice(adStart, adEnd)).runInNewContext(adContext);
-    const banner = adContext.adBanner();
+    const banner = adContext.adBanner(adContext.AD);
     if (!banner.includes("ufAdBanner") || !banner.includes("Plan Pro") || !banner.includes("Conocé los beneficios") || banner.includes("AD.color")) {
       errors.push("El banner no usa la composición blanca y verde esperada");
     }
@@ -490,6 +490,12 @@ const expected = [
   "Indicadores de la pantalla inicial",
   "admin_set_public_stats",
   "v1_public_stats",
+  "function loadAdminBroadcasts",
+  "function adminCreateBroadcast",
+  "Aviso a todos los usuarios",
+  "function adminCancelAd",
+  "function adGo",
+  "ufAdCarousel",
 ];
 for (const marker of expected) {
   if (!app.includes(marker)) errors.push(`Falta la funcionalidad aprobada: ${marker}`);
@@ -521,6 +527,18 @@ for (const marker of [
   "grant execute on function public.admin_set_public_stats(int, int) to authenticated",
 ]) {
   if (!publicStatsSchema.includes(marker)) errors.push(`Esquema de indicadores incompleto: falta ${marker}`);
+}
+
+const broadcastsSchema = await read("deploy/schema_admin_broadcasts_ads.sql");
+for (const marker of [
+  "create table if not exists public.v1_admin_broadcasts",
+  "create or replace function public.v1_active_ads()",
+  "create or replace function public.admin_cancel_ad",
+  "create or replace function public.admin_create_broadcast",
+  "create or replace function public.v1_active_admin_broadcasts()",
+  "if not public.admin_check()",
+]) {
+  if (!broadcastsSchema.includes(marker)) errors.push(`Esquema de avisos y publicidad incompleto: falta ${marker}`);
 }
 
 const serviceWorker = await read("v2/sw.js");
