@@ -90,6 +90,35 @@ if (monthlyProgressStart < 0 || monthlyProgressEnd < 0) {
   }
 }
 
+const prescriptionStart = app.indexOf("function recommendationBase(");
+const prescriptionEnd = app.indexOf("function executionSummary(", prescriptionStart);
+if (prescriptionStart < 0 || prescriptionEnd < 0) {
+  errors.push("No se pudo probar la prescripción que recibe el alumno");
+} else {
+  try {
+    const prescriptionContext = { recommendationWeek: () => 3 };
+    new vm.Script(app.slice(prescriptionStart, prescriptionEnd)).runInNewContext(prescriptionContext);
+    const day = { id: "day-1" };
+    const exercise = { id: "press", sets: 4, reps: 10, repsText: "8-10", weight: 25, rest: 90, note: "Controlado" };
+    const base = prescriptionContext.recommendationForExercise({ exerciseRecommendations: [] }, day, exercise, "2026-08-14");
+    const stale = prescriptionContext.recommendationForExercise({ exerciseRecommendations: [
+      { exerciseId: "press", dayId: "day-1", sets: 0, reps: 0, weight: 0, rest: 0, effectiveWeek: 2, createdAt: "2026-08-01" },
+    ] }, day, exercise, "2026-08-14");
+    const explicitZero = prescriptionContext.recommendationForExercise({ exerciseRecommendations: [
+      { exerciseId: "press", dayId: "day-1", sets: 3, setsExplicit: true, reps: 0, repsExplicit: true, weight: 0, weightExplicit: true, rest: 0, restExplicit: true, effectiveWeek: 3, createdAt: "2026-08-14" },
+    ] }, day, exercise, "2026-08-14");
+    if (
+      !prescriptionContext.recommendationSummary(base).includes("8-10") ||
+      stale.sets !== 4 || stale.reps !== 10 || stale.weight !== 25 || stale.rest !== 90 ||
+      explicitZero.sets !== 3 || explicitZero.reps !== 0 || explicitZero.weight !== 0 || explicitZero.rest !== 0
+    ) {
+      errors.push("La vista del alumno no conserva las repeticiones y cargas indicadas por el profesor");
+    }
+  } catch (error) {
+    errors.push(`No se pudo ejecutar la prescripción del alumno: ${error.message}`);
+  }
+}
+
 const newsStart = app.indexOf("function renderStudentNews(");
 const newsEnd = app.indexOf("function renderPeriodMedia(", newsStart);
 if (newsStart < 0 || newsEnd < 0) {
