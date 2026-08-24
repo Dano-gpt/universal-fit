@@ -581,6 +581,12 @@ function setTrainerLoadMonth(studentId,month){
   S.ui=S.ui||{};S.ui.trainerLoadMonth=S.ui.trainerLoadMonth||{};
   S.ui.trainerLoadMonth[studentId]=/^\d{4}-\d{2}$/.test(month||'')?month:today().slice(0,7);save();render();
 }
+function trainerLoadMonthOptions(s,selected){
+  const current=today().slice(0,7),items=new Set([current,selected]);
+  (s.logs||[]).forEach(log=>{const day=logDay(log);if(day)items.add(day.slice(0,7));});
+  const base=utcDate(current+'-01');for(let i=1;i<24;i++){const d=new Date(Date.UTC(base.getUTCFullYear(),base.getUTCMonth()-i,1));items.add(isoUtc(d).slice(0,7));}
+  return [...items].filter(v=>/^\d{4}-\d{2}$/.test(v)).sort().reverse().map(v=>`<option value="${v}" ${v===selected?'selected':''}>${new Intl.DateTimeFormat('es-AR',{month:'long',year:'numeric',timeZone:'America/Argentina/Buenos_Aires'}).format(new Date(v+'-01T12:00:00Z'))}</option>`).join('');
+}
 function fourMonthWeeks(month){
   const first=utcDate(month+'-01'),lastDay=new Date(Date.UTC(first.getUTCFullYear(),first.getUTCMonth()+1,0)).getUTCDate();
   return [1,2,3,4].map(index=>{const fromDay=(index-1)*7+1,toDay=index===4?lastDay:Math.min(lastDay,fromDay+6);return {index,from:month+'-'+String(fromDay).padStart(2,'0'),to:month+'-'+String(toDay).padStart(2,'0')};});
@@ -610,9 +616,9 @@ function monthlyWeightCell(row,index){
   return `<div class="monthly-load-value flat"><b>${value} kg</b><span>→ Sin cambio</span></div>`;
 }
 function renderMonthlyWeightGrid(s){
-  const month=trainerLoadMonth(s),weeks=fourMonthWeeks(month),rows=monthlyWeightProgressRows(s,month),headers=weeks.map(w=>`<div class="monthly-grid-head">Semana ${w.index}<br><span style="font-weight:700;text-transform:none">${fmt(w.from)}–${fmt(w.to)}</span></div>`).join('');
+  const month=trainerLoadMonth(s),weeks=fourMonthWeeks(month),rows=monthlyWeightProgressRows(s,month),headers=weeks.map(w=>`<div class="monthly-grid-head">Semana ${w.index}<br><span style="font-weight:700;text-transform:none">${fmt(w.from)}–${fmt(w.to)}</span></div>`).join(''),monthOptions=trainerLoadMonthOptions(s,month);
   const body=rows.length?rows.map((row,i)=>{const end=i===rows.length-1?' monthly-grid-end':'';return `<div class="monthly-exercise${end}">${esc(row.name)}<span class="monthly-exercise-sub">${esc(row.day)}</span></div>${row.weights.map((_,index)=>`<div class="${end}">${monthlyWeightCell(row,index)}</div>`).join('')}`;}).join(''):'<div class="empty cap" style="grid-column:1 / -1">No hay pesos registrados durante este mes.</div>';
-  return `<div class="card monthly-load-card"><div class="row responsive-stack" style="gap:10px;align-items:end"><div style="flex:1"><div class="h" style="margin:0">📈 Progresión de cargas por mes</div><div class="cap" style="margin-top:4px">Peso máximo realizado por ejercicio en cada semana del mes calendario.</div></div><label style="min-width:170px"><div class="cap">Mes a revisar</div><input class="in" type="month" value="${esc(month)}" onchange="setTrainerLoadMonth('${s.id}',this.value)"/></label></div><div class="monthly-load-grid-wrap"><div class="monthly-load-grid"><div class="monthly-grid-head">Ejercicio</div>${headers}${body}</div></div><div class="cap" style="margin-top:8px">↑ aumentó frente al último registro semanal · ↓ bajó · el mes actual queda seleccionado por defecto.</div></div>`;
+  return `<div class="card monthly-load-card"><div class="row responsive-stack" style="gap:10px;align-items:end"><div style="flex:1"><div class="h" style="margin:0">📈 Progresión de cargas por mes</div><div class="cap" style="margin-top:4px">Peso máximo realizado por ejercicio en cada semana del mes calendario.</div></div><label style="min-width:190px"><div class="cap">Mes a revisar</div><select class="in" onchange="setTrainerLoadMonth('${s.id}',this.value)">${monthOptions}</select></label></div><div class="monthly-load-grid-wrap"><div class="monthly-load-grid"><div class="monthly-grid-head">Ejercicio</div>${headers}${body}</div></div><div class="cap" style="margin-top:8px">↑ aumentó frente al último registro semanal · ↓ bajó · el mes actual queda seleccionado por defecto.</div></div>`;
 }
 function addRelativeMonths(ds,n){const d=utcDate(ds),day=d.getUTCDate(),target=new Date(Date.UTC(d.getUTCFullYear(),d.getUTCMonth()+n,1)),last=new Date(Date.UTC(target.getUTCFullYear(),target.getUTCMonth()+1,0)).getUTCDate();target.setUTCDate(Math.min(day,last));return isoUtc(target);}
 function relativePeriodIndex(ds,start,mode){ds=validDay(ds);start=validDay(start);if(!ds||!start||ds<start)return 1;if(mode==='month'){let n=(+ds.slice(0,4)-+start.slice(0,4))*12+(+ds.slice(5,7)-+start.slice(5,7));if(ds<addRelativeMonths(start,n))n--;return Math.max(1,n+1);}return Math.max(1,Math.floor((utcDate(ds)-utcDate(start))/604800000)+1);}
