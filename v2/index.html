@@ -621,11 +621,11 @@ function monthlyWeightProgressRows(s,month){
     const day=(rt&&rt.days||[]).find(d=>d.id===log.dayId);
     (log.entries||[]).forEach(en=>{
       const ex=findEx(rt,en.exerciseId),key=(en.exerciseId||((ex&&ex.name)||en.name||'Ejercicio'))+'|'+(log.dayId||'');
-      const row=map[key]||(map[key]={name:(ex&&ex.name)||en.name||'Ejercicio',day:(day&&day.name)||'Rutina',weeks:Array.from({length:4},()=>({actual:null,target:null}))});
-      const maxKg=Math.max(0,...(en.sets||[]).map(set=>+set.kg||0));
+      const row=map[key]||(map[key]={name:(ex&&ex.name)||en.name||'Ejercicio',day:(day&&day.name)||'Rutina',weeks:Array.from({length:4},()=>({actual:null,actualReps:'',target:null,targetReps:''}))});
+      const maxKg=Math.max(0,...(en.sets||[]).map(set=>+set.kg||0)),actualReps=(en.sets||[]).map(set=>+set.reps||0).join(' / ');
       const historicalRec=en.recommendation||(ex?recommendationForExercise(s,day,ex,date):null),target=historicalRec&&Number.isFinite(+historicalRec.weight)?+historicalRec.weight:null,cell=row.weeks[weekIndex];
-      if(cell.actual===null||maxKg>cell.actual)cell.actual=maxKg;
-      if(target!==null&&(cell.target===null||target>cell.target))cell.target=target;
+      if(cell.actual===null||maxKg>cell.actual){cell.actual=maxKg;cell.actualReps=actualReps;}
+      if(target!==null&&(cell.target===null||target>cell.target)){cell.target=target;cell.targetReps=(historicalRec.repsText||'').trim()||(+historicalRec.reps||0);}
     });
   });
   return Object.values(map).sort((a,b)=>a.name.localeCompare(b.name)||a.day.localeCompare(b.day));
@@ -633,17 +633,17 @@ function monthlyWeightProgressRows(s,month){
 function monthlyWeightCell(row,index){
   const cell=row.weeks[index];if(cell.actual===null)return '<div class="monthly-load-value empty">—</div>';
   let previous=null;for(let i=index-1;i>=0;i--)if(row.weeks[i].actual!==null){previous=row.weeks[i].actual;break;}
-  const targetText=cell.target===null?'—':cell.target+' kg';
-  if(previous===null)return `<div class="monthly-load-value"><span class="monthly-target">Objetivo: ${targetText}</span><b>Real: ${cell.actual} kg</b><span>Primer registro</span></div>`;
+  const targetText=cell.target===null?'—':`${cell.targetReps||'—'} rep · ${cell.target} kg`,actualText=`${cell.actualReps||'—'} rep · ${cell.actual} kg`;
+  if(previous===null)return `<div class="monthly-load-value"><span class="monthly-target">Objetivo: ${targetText}</span><b>Real: ${actualText}</b><span>Primer registro</span></div>`;
   const delta=Math.round((cell.actual-previous)*100)/100;
-  if(delta>0)return `<div class="monthly-load-value up"><span class="monthly-target">Objetivo: ${targetText}</span><b>Real: ${cell.actual} kg</b><span>↑ +${delta} kg vs. anterior</span></div>`;
-  if(delta<0)return `<div class="monthly-load-value down"><span class="monthly-target">Objetivo: ${targetText}</span><b>Real: ${cell.actual} kg</b><span>↓ ${Math.abs(delta)} kg vs. anterior</span></div>`;
-  return `<div class="monthly-load-value flat"><span class="monthly-target">Objetivo: ${targetText}</span><b>Real: ${cell.actual} kg</b><span>→ Sin cambio</span></div>`;
+  if(delta>0)return `<div class="monthly-load-value up"><span class="monthly-target">Objetivo: ${targetText}</span><b>Real: ${actualText}</b><span>↑ +${delta} kg vs. anterior</span></div>`;
+  if(delta<0)return `<div class="monthly-load-value down"><span class="monthly-target">Objetivo: ${targetText}</span><b>Real: ${actualText}</b><span>↓ ${Math.abs(delta)} kg vs. anterior</span></div>`;
+  return `<div class="monthly-load-value flat"><span class="monthly-target">Objetivo: ${targetText}</span><b>Real: ${actualText}</b><span>→ Sin cambio</span></div>`;
 }
 function renderMonthlyWeightGrid(s){
   const month=trainerLoadMonth(s),weeks=fourMonthWeeks(month),rows=monthlyWeightProgressRows(s,month),headers=weeks.map(w=>`<div class="monthly-grid-head"><strong>Semana ${w.index}</strong><span>${fmt(w.from)}–${fmt(w.to)}</span></div>`).join(''),monthOptions=trainerLoadMonthOptions(s,month);
   const body=rows.length?rows.map((row,i)=>{const end=i===rows.length-1?' monthly-grid-end':'';return `<div class="monthly-exercise${end}">${esc(row.name)}<span class="monthly-exercise-sub">${esc(row.day)}</span></div>${row.weeks.map((_,index)=>`<div class="${end}">${monthlyWeightCell(row,index)}</div>`).join('')}`;}).join(''):'<div class="empty cap" style="grid-column:1 / -1">No hay pesos registrados durante este mes.</div>';
-  return `<div class="card monthly-load-card"><div class="row responsive-stack" style="gap:10px;align-items:end"><div style="flex:1"><div class="h" style="margin:0">📈 Objetivo vs. carga real por mes</div><div class="cap" style="margin-top:4px">Cada semana compara el peso indicado por el entrenador con el máximo realizado por el alumno.</div></div><label style="min-width:190px"><div class="cap">Mes a revisar</div><select class="in" onchange="setTrainerLoadMonth('${s.id}',this.value)">${monthOptions}</select></label></div><div class="monthly-load-grid-wrap"><div class="monthly-load-grid"><div class="monthly-grid-head"><strong>Ejercicio</strong></div>${headers}${body}</div></div><div class="cap" style="margin-top:8px">↑ aumentó frente al último registro semanal · ↓ bajó · el mes actual queda seleccionado por defecto.</div></div>`;
+  return `<div class="card monthly-load-card"><div class="row responsive-stack" style="gap:10px;align-items:end"><div style="flex:1"><div class="h" style="margin:0">📈 Objetivo vs. carga real por mes</div><div class="cap" style="margin-top:4px">Cada semana compara las repeticiones y el peso indicados con la ejecución real del alumno.</div></div><label style="min-width:190px"><div class="cap">Mes a revisar</div><select class="in" onchange="setTrainerLoadMonth('${s.id}',this.value)">${monthOptions}</select></label></div><div class="monthly-load-grid-wrap"><div class="monthly-load-grid"><div class="monthly-grid-head"><strong>Ejercicio</strong></div>${headers}${body}</div></div><div class="cap" style="margin-top:8px">↑ aumentó frente al último registro semanal · ↓ bajó · el mes actual queda seleccionado por defecto.</div></div>`;
 }
 function addRelativeMonths(ds,n){const d=utcDate(ds),day=d.getUTCDate(),target=new Date(Date.UTC(d.getUTCFullYear(),d.getUTCMonth()+n,1)),last=new Date(Date.UTC(target.getUTCFullYear(),target.getUTCMonth()+1,0)).getUTCDate();target.setUTCDate(Math.min(day,last));return isoUtc(target);}
 function relativePeriodIndex(ds,start,mode){ds=validDay(ds);start=validDay(start);if(!ds||!start||ds<start)return 1;if(mode==='month'){let n=(+ds.slice(0,4)-+start.slice(0,4))*12+(+ds.slice(5,7)-+start.slice(5,7));if(ds<addRelativeMonths(start,n))n--;return Math.max(1,n+1);}return Math.max(1,Math.floor((utcDate(ds)-utcDate(start))/604800000)+1);}
