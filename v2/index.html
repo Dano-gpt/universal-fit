@@ -267,6 +267,13 @@ img,video,iframe,canvas,svg{max-width:100%;}
 .followup-grid>div{padding:10px 9px;border-bottom:1px solid var(--line);display:flex;align-items:center;}
 .followup-grid .grid-head{background:#17172B;color:var(--muted);font-size:10px;font-weight:900;text-transform:uppercase;letter-spacing:.03em;}
 .followup-grid .grid-end{border-bottom:0;}.followup-grid .grid-exercise{font-weight:850;display:block;}.followup-grid .grid-sub{display:block;color:var(--muted);font-size:11px;font-weight:700;margin-top:2px;}
+.monthly-load-card{margin-top:14px;}
+.monthly-load-grid-wrap{overflow-x:auto;border:1px solid var(--line);border-radius:14px;background:#101020;margin-top:11px;}
+.monthly-load-grid{min-width:760px;display:grid;grid-template-columns:minmax(220px,2fr) repeat(4,minmax(120px,1fr));}
+.monthly-load-grid>div{padding:11px 10px;border-bottom:1px solid var(--line);display:flex;align-items:center;}
+.monthly-load-grid .monthly-grid-head{background:#17172B;color:var(--muted);font-size:10px;font-weight:900;text-transform:uppercase;letter-spacing:.03em;line-height:1.25;}
+.monthly-load-grid .monthly-grid-end{border-bottom:0;}.monthly-exercise{font-weight:850;display:block;}.monthly-exercise-sub{display:block;color:var(--muted);font-size:11px;font-weight:700;margin-top:3px;}
+.monthly-load-value{display:flex;flex-direction:column;gap:2px;line-height:1.15;}.monthly-load-value b{font-size:14px;}.monthly-load-value span{font-size:11px;font-weight:800;}.monthly-load-value.up span{color:#7DEB8A;}.monthly-load-value.down span{color:#FF9090;}.monthly-load-value.flat span{color:#FFD27A;}.monthly-load-value.empty{color:var(--muted);font-weight:800;}
 .traffic-light{width:13px;height:13px;border-radius:50%;display:inline-block;margin-right:6px;box-shadow:0 0 0 4px rgba(255,255,255,.04);}.traffic-light.up{background:#60D66A;box-shadow:0 0 10px rgba(96,214,106,.55);}.traffic-light.on{background:#FFC857;}.traffic-light.down{background:#FF6767;box-shadow:0 0 10px rgba(255,103,103,.35);}
 .actual-reference{margin-top:7px;padding:8px 9px;border-radius:10px;background:#182234;border:1px solid #2B4770;color:#D7E9FF;font-size:12px;line-height:1.4;}
 .novelty-card{padding:14px;border:1px solid var(--line);border-radius:16px;background:#101020;margin-top:10px;}
@@ -351,7 +358,7 @@ img,video,iframe,canvas,svg{max-width:100%;}
 </style>
 </head>
 <body>
-<div id="gate"><div style="position:absolute;bottom:18px;left:0;right:0;text-align:center;color:rgba(255,255,255,.75);font-size:12px;font-weight:700">v2.29.3</div><div id="gateInner"><svg class="gIco" width="82" height="82" viewBox="0 0 120 120" style="overflow:visible"><g fill="none" stroke-width="11" stroke-linecap="round" stroke-linejoin="round"><path d="M22 34 L22 68 A18 18 0 0 0 58 68 L58 34" stroke="#9EFF3D"/><path d="M72 34 L72 86 M72 34 L98 34 M72 60 L93 60" stroke="#B98CFF"/></g></svg><div class="gName">Universal Fit</div><div class="gSub">Entrená mejor. Progresá siempre.</div><div class="gStats" aria-label="Comunidad Universal Fit"><div class="gStat" style="--stat-color:#9EFF3D"><i class="gSpark s1"></i><i class="gSpark s2"></i><i class="gSpark s3"></i><div class="gStatIcon">🏋️</div><div class="gStatNum" id="gateProfessors">0</div><div class="gStatLabel">Profesores inscriptos</div></div><div class="gStat" style="--stat-color:#B98CFF"><i class="gSpark s1"></i><i class="gSpark s2"></i><i class="gSpark s3"></i><div class="gStatIcon">⚡</div><div class="gStatNum" id="gateStudents">0</div><div class="gStatLabel">Alumnos que usan la app</div><div class="gStatsToday">hasta hoy</div></div></div></div></div>
+<div id="gate"><div style="position:absolute;bottom:18px;left:0;right:0;text-align:center;color:rgba(255,255,255,.75);font-size:12px;font-weight:700">v2.29.4</div><div id="gateInner"><svg class="gIco" width="82" height="82" viewBox="0 0 120 120" style="overflow:visible"><g fill="none" stroke-width="11" stroke-linecap="round" stroke-linejoin="round"><path d="M22 34 L22 68 A18 18 0 0 0 58 68 L58 34" stroke="#9EFF3D"/><path d="M72 34 L72 86 M72 34 L98 34 M72 60 L93 60" stroke="#B98CFF"/></g></svg><div class="gName">Universal Fit</div><div class="gSub">Entrená mejor. Progresá siempre.</div><div class="gStats" aria-label="Comunidad Universal Fit"><div class="gStat" style="--stat-color:#9EFF3D"><i class="gSpark s1"></i><i class="gSpark s2"></i><i class="gSpark s3"></i><div class="gStatIcon">🏋️</div><div class="gStatNum" id="gateProfessors">0</div><div class="gStatLabel">Profesores inscriptos</div></div><div class="gStat" style="--stat-color:#B98CFF"><i class="gSpark s1"></i><i class="gSpark s2"></i><i class="gSpark s3"></i><div class="gStatIcon">⚡</div><div class="gStatNum" id="gateStudents">0</div><div class="gStatLabel">Alumnos que usan la app</div><div class="gStatsToday">hasta hoy</div></div></div></div></div>
 <div id="a2hs"><div class="a2card" id="a2card"></div></div>
 <div class="app">
   <header>
@@ -491,6 +498,25 @@ function ensureLocalDemoFollowup(){
   S.ui.studentPeriod[juan.id]={mode:'week',index:5};
   S.demoFollowupV227=true;
 }
+/* Sesiones locales adicionales para revisar la grilla mensual de pesos. No toca cuentas ni datos reales. */
+function ensureLocalDemoMonthlyWeightGrid(){
+  if(typeof LOCAL_DEMO==='undefined'||!LOCAL_DEMO||!S||S.demoMonthlyWeightGridV2294)return;
+  const juan=(S.students||[]).find(s=>s&&s.name==='Juan P.')||(S.students||[])[0],rt=juan&&routineOf(juan),day=rt&&rt.days&&rt.days[0];
+  if(!juan||!day||!(day.exercises||[]).length)return;
+  const month=today().slice(0,7),lastDay=new Date(Date.UTC(+month.slice(0,4),+month.slice(5,7),0)).getUTCDate(),days=[2,9,16,23].map(n=>Math.min(n,lastDay));
+  juan.logs=(juan.logs||[]).filter(log=>!log.demoMonthlyWeightGrid);
+  const logs=days.map((dayNumber,weekIndex)=>{
+    const date=month+'-'+String(dayNumber).padStart(2,'0'),entries=(day.exercises||[]).slice(0,4).map((ex,exIndex)=>{
+      const base=Math.max(5,+ex.weight||20)+exIndex*2;
+      /* Una pequeña baja demostrativa en el segundo ejercicio de la semana 3 permite probar ambas direcciones. */
+      const max=base+(weekIndex*2)+(weekIndex===2&&exIndex===1?-5:0);
+      return {exerciseId:ex.id,sets:Array.from({length:3},(_,setIndex)=>({kg:max-(setIndex===2?1:0),reps:Math.max(6,(+ex.reps||10)-(setIndex===2?1:0))})),comment:'Demo · Registro para revisar la progresión mensual.'};
+    });
+    return {date,dayId:day.id,startedAt:date+'T18:00:00.000Z',completedAt:date+'T19:00:00.000Z',entries,feel:'💪',note:'Demo · Sesión incluida para la grilla mensual.',demoMonthlyWeightGrid:true};
+  });
+  juan.logs=juan.logs.concat(logs).sort((a,b)=>(a.date||'').localeCompare(b.date||''));
+  S.demoMonthlyWeightGridV2294=true;
+}
 
 /* helpers */
 function routineOf(st){return S.routines.find(r=>r.id===st.routineId)||null;}
@@ -542,6 +568,51 @@ function monthTrainingWeeks(st,month){
     rows.push({k:'S'+index,c:count,from:from,to:to});start.setUTCDate(start.getUTCDate()+7);
   }
   return rows;
+}
+/* Grilla de cargas para el entrenador: cuatro tramos dentro del mes calendario elegido. */
+function trainerLoadMonth(s){
+  S.ui=S.ui||{};S.ui.trainerLoadMonth=S.ui.trainerLoadMonth||{};
+  const saved=(''+(S.ui.trainerLoadMonth[s.id]||'')).slice(0,7),fallback=today().slice(0,7);
+  if(!/^\d{4}-\d{2}$/.test(saved))S.ui.trainerLoadMonth[s.id]=fallback;
+  return S.ui.trainerLoadMonth[s.id];
+}
+function setTrainerLoadMonth(studentId,month){
+  const s=(S.students||[]).find(x=>x.id===studentId);if(!s)return;
+  S.ui=S.ui||{};S.ui.trainerLoadMonth=S.ui.trainerLoadMonth||{};
+  S.ui.trainerLoadMonth[studentId]=/^\d{4}-\d{2}$/.test(month||'')?month:today().slice(0,7);save();render();
+}
+function fourMonthWeeks(month){
+  const first=utcDate(month+'-01'),lastDay=new Date(Date.UTC(first.getUTCFullYear(),first.getUTCMonth()+1,0)).getUTCDate();
+  return [1,2,3,4].map(index=>{const fromDay=(index-1)*7+1,toDay=index===4?lastDay:Math.min(lastDay,fromDay+6);return {index,from:month+'-'+String(fromDay).padStart(2,'0'),to:month+'-'+String(toDay).padStart(2,'0')};});
+}
+function monthlyWeightProgressRows(s,month){
+  const rt=routineOf(s),weeks=fourMonthWeeks(month),map={};
+  (s.logs||[]).forEach(log=>{
+    const date=logDay(log);if(!date||date.slice(0,7)!==month)return;
+    const weekIndex=weeks.findIndex(w=>date>=w.from&&date<=w.to);if(weekIndex<0)return;
+    const day=(rt&&rt.days||[]).find(d=>d.id===log.dayId);
+    (log.entries||[]).forEach(en=>{
+      const ex=findEx(rt,en.exerciseId),key=(en.exerciseId||((ex&&ex.name)||en.name||'Ejercicio'))+'|'+(log.dayId||'');
+      const row=map[key]||(map[key]={name:(ex&&ex.name)||en.name||'Ejercicio',day:(day&&day.name)||'Rutina',weights:[null,null,null,null]});
+      const maxKg=Math.max(0,...(en.sets||[]).map(set=>+set.kg||0));
+      if(row.weights[weekIndex]===null||maxKg>row.weights[weekIndex])row.weights[weekIndex]=maxKg;
+    });
+  });
+  return Object.values(map).sort((a,b)=>a.name.localeCompare(b.name)||a.day.localeCompare(b.day));
+}
+function monthlyWeightCell(row,index){
+  const value=row.weights[index];if(value===null)return '<div class="monthly-load-value empty">—</div>';
+  let previous=null;for(let i=index-1;i>=0;i--)if(row.weights[i]!==null){previous=row.weights[i];break;}
+  if(previous===null)return `<div class="monthly-load-value"><b>${value} kg</b><span>Primer registro</span></div>`;
+  const delta=Math.round((value-previous)*100)/100;
+  if(delta>0)return `<div class="monthly-load-value up"><b>${value} kg</b><span>↑ +${delta} kg</span></div>`;
+  if(delta<0)return `<div class="monthly-load-value down"><b>${value} kg</b><span>↓ ${Math.abs(delta)} kg</span></div>`;
+  return `<div class="monthly-load-value flat"><b>${value} kg</b><span>→ Sin cambio</span></div>`;
+}
+function renderMonthlyWeightGrid(s){
+  const month=trainerLoadMonth(s),weeks=fourMonthWeeks(month),rows=monthlyWeightProgressRows(s,month),headers=weeks.map(w=>`<div class="monthly-grid-head">Semana ${w.index}<br><span style="font-weight:700;text-transform:none">${fmt(w.from)}–${fmt(w.to)}</span></div>`).join('');
+  const body=rows.length?rows.map((row,i)=>{const end=i===rows.length-1?' monthly-grid-end':'';return `<div class="monthly-exercise${end}">${esc(row.name)}<span class="monthly-exercise-sub">${esc(row.day)}</span></div>${row.weights.map((_,index)=>`<div class="${end}">${monthlyWeightCell(row,index)}</div>`).join('')}`;}).join(''):'<div class="empty cap" style="grid-column:1 / -1">No hay pesos registrados durante este mes.</div>';
+  return `<div class="card monthly-load-card"><div class="row responsive-stack" style="gap:10px;align-items:end"><div style="flex:1"><div class="h" style="margin:0">📈 Progresión de cargas por mes</div><div class="cap" style="margin-top:4px">Peso máximo realizado por ejercicio en cada semana del mes calendario.</div></div><label style="min-width:170px"><div class="cap">Mes a revisar</div><input class="in" type="month" value="${esc(month)}" onchange="setTrainerLoadMonth('${s.id}',this.value)"/></label></div><div class="monthly-load-grid-wrap"><div class="monthly-load-grid"><div class="monthly-grid-head">Ejercicio</div>${headers}${body}</div></div><div class="cap" style="margin-top:8px">↑ aumentó frente al último registro semanal · ↓ bajó · el mes actual queda seleccionado por defecto.</div></div>`;
 }
 function addRelativeMonths(ds,n){const d=utcDate(ds),day=d.getUTCDate(),target=new Date(Date.UTC(d.getUTCFullYear(),d.getUTCMonth()+n,1)),last=new Date(Date.UTC(target.getUTCFullYear(),target.getUTCMonth()+1,0)).getUTCDate();target.setUTCDate(Math.min(day,last));return isoUtc(target);}
 function relativePeriodIndex(ds,start,mode){ds=validDay(ds);start=validDay(start);if(!ds||!start||ds<start)return 1;if(mode==='month'){let n=(+ds.slice(0,4)-+start.slice(0,4))*12+(+ds.slice(5,7)-+start.slice(5,7));if(ds<addRelativeMonths(start,n))n--;return Math.max(1,n+1);}return Math.max(1,Math.floor((utcDate(ds)-utcDate(start))/604800000)+1);}
@@ -861,6 +932,7 @@ function renderStudentProgress(s){
   return `<div class="card" style="background:var(--hero);color:#fff;border:none"><div style="font-size:21px;font-weight:900">📊 Avances desde el inicio</div><div class="cap" style="color:rgba(255,255,255,.84);margin-top:4px">El seguimiento comienza el ${fmt(start)}. No usa semanas ni meses calendario.</div></div>
   <div class="card"><div class="relative-toolbar"><div><div class="cap">Escala</div><select class="in" onchange="setRelativePeriod('${s.id}','mode',this.value)"><option value="week" ${p.mode==='week'?'selected':''}>Avance semanal</option><option value="month" ${p.mode==='month'?'selected':''}>Avance mensual</option></select></div><div><div class="cap">Período desde el inicio</div><select class="in" onchange="setRelativePeriod('${s.id}','index',this.value)">${options}</select></div></div><div class="row" style="margin-top:11px"><b>${label}</b><span class="cap">${fmt(b.from)} al ${fmt(b.to)}</span></div><div class="period-kpis"><div class="period-kpi"><b>${logs.length}</b><span>Sesiones</span></div><div class="period-kpi"><b>${adherence}%</b><span>Adherencia</span></div><div class="period-kpi"><b>${stats.length}</b><span>Ejercicios</span></div><div class="period-kpi"><b>${habitTarget?Math.round(habitDoneCount/habitTarget*100):0}%</b><span>Hábitos</span></div></div><div class="cap"><b>Lectura rápida:</b> ${insight}</div></div>
   ${weeklyFollowup(s,b)}
+  ${renderMonthlyWeightGrid(s)}
   <details style="margin-top:14px"><summary class="section-heading" style="cursor:pointer">Ver contexto y detalle de la semana</summary><div class="section-heading">Progresión de ejercicios</div>${stats.length?`<div class="exercise-progress-grid">${stats.map(r=>`<div class="exercise-progress-row"><div class="row"><b>${esc(r.name)}</b><span class="pill ${r.delta>0?'g':r.delta<0?'r':'y'}">${r.delta>0?'+':''}${r.delta} kg</span></div><div class="cap" style="margin-top:6px">${r.sessions} sesión(es) · ${r.sets} series · ${r.reps} repeticiones</div><div class="cap">Carga: ${r.first} kg inicial · ${r.last} kg final · mejor ${r.best} kg</div></div>`).join('')}</div>`:'<div class="empty cap">Sin ejercicios registrados en este período.</div>'}
   <div class="section-heading">Medidas y check-ins</div><div class="card">${measureRows||'<div class="cap">No hay medidas disponibles para comparar en este período.</div>'}${checkins.length?`<div class="h" style="margin:14px 0 5px">Check-ins del período</div>${checkins.map(c=>`<div style="padding:7px 0;border-top:1px solid var(--line)"><b>${fmt(c.date)} ${c.feel||''}</b>${c.peso?` · ${c.peso} kg`:''}${c.nota?`<div class="cap">“${esc(c.nota)}”</div>`:''}</div>`).join('')}`:'<div class="cap" style="margin-top:10px">Sin check-ins en este período.</div>'}</div>${renderPeriodMedia(s,b)}${progCard(s)}<div class="section-heading">Detalle completo de entrenamientos</div>${logs.length?trainerWorkoutDetails(s,routineOf(s),null,{mode:'relative',from:b.from,to:b.to}):'<div class="empty cap">El alumno no finalizó entrenamientos en este período.</div>'}</details>
   <button class="btn" style="margin-top:12px;background:#B98CFF;color:#0A0A16" onclick="genStudentPDF('${s.id}')">📄 Informe de evolución (PDF) para compartir</button>`;
@@ -1515,7 +1587,7 @@ function dirFoto(t,size){const st=`width:${size}px;height:${size}px;border-radiu
 function stars(r){if(r==null)return '<span class="pill g">Nuevo</span>';return `<span style="color:#ff9600;font-weight:800">★ ${r}</span>`;}
 
 /* ---- Código de equipo del PT ---- */
-const UF_VERSION='v2.29.3';
+const UF_VERSION='v2.29.4';
 const APP_URL=(function(){try{return (location.origin&&location.origin.indexOf('http')===0)?(location.origin+location.pathname):'https://dano-gpt.github.io/universal-fit/v2/';}catch(e){return 'https://dano-gpt.github.io/universal-fit/v2/';}})();
 function inviteUrl(code){return APP_URL+'?code='+encodeURIComponent(code);}
 function teamCode(){if(!S.trainer)return null;if(!S.trainer.code){S.trainer.code=('UF'+Math.random().toString(36).replace(/[^a-z0-9]/g,'').slice(0,4)).toUpperCase();save();}return S.trainer.code;}
@@ -1843,7 +1915,7 @@ async function finishObAlNewCloud(){const d=S.ui.ob.d;let gUser=null;
  if(!ok){toast('Cuenta creada pero no pude cargar tus datos — probá entrar de nuevo.');return;}
  S.ui.ob=null;S.ui.view='al_home';save();toast('¡Solicitud enviada a '+fn(t.name)+'! 📨');render();}
 async function obGoogleAl(){try{if(!sb){toast('Necesitás conexión para usar Google');return;}S.ui.ob.d.oauthWait=true;save();await sb.auth.signInWithOAuth({provider:'google',options:{redirectTo:APP_URL}});}catch(e){toast('No pude iniciar Google: '+((e&&e.message)||e));}}
-const APP_VER='v2.29.3';
+const APP_VER='v2.29.4';
 function _who(){try{if(typeof ADMIN!=='undefined'&&ADMIN&&ADMIN.otp)return{role:'admin',uid:'admin'};const r=(typeof S!=='undefined'&&S&&S.ui&&S.ui.role)||'anon';let uid=null;if(r==='pt'){uid=(typeof CLOUD!=='undefined'&&CLOUD&&CLOUD.uid)||((S.trainer&&S.trainer.code)||'pt');}else if(r==='al'){const m=(typeof me==='function')&&me();uid=(m&&m.id)||null;}return{role:r,uid:uid};}catch(e){return{role:'anon',uid:null};}}
 /* ---- v2.24.0: visitante único + fuente de tráfico (alimenta el Tablero → Alcance) ---- */
 var _VID=null,_VNEW=false,_VSRC='directo';
@@ -2279,6 +2351,7 @@ async function adminRenameStudent(id,cur){const v=prompt('Nuevo nombre:',cur);if
 S=load();
 ensureLocalDemoNovedades();
 ensureLocalDemoFollowup();
+ensureLocalDemoMonthlyWeightGrid();
 if(AUTH_RECOVERY){S.user=null;S.ui.ob=null;S.ui.grole=null;}
 const QCODE=(function(){try{var c=new URLSearchParams(location.search).get('code');return (c&&c.length<=8)?c:null;}catch(e){return null;}})();
 if(QCODE&&!S.user){S.ui.ob={kind:'al',step:2,d:{path:'code',code:QCODE}};try{history.replaceState(null,'',location.pathname);}catch(e){}}
@@ -2290,6 +2363,6 @@ if(sb&&!AUTH_RECOVERY){sb.auth.getSession().then(({data})=>{if(data&&data.sessio
  else{cloudBoot(u).then(ok=>{if(!ok){var ob=S.ui&&S.ui.ob;if(ob&&ob.kind==='al'&&ob.d&&ob.d.oauthWait){S.user=null;S.ui.grole=null;ob.d.oauth=true;ob.d.oauthWait=false;ob.d.email=u.email||ob.d.email||'';save();render();if(ob.d.path==='code')finishObCodeCloud();else if(ob.d.path==='new')finishObAlNewCloud();}else{S.user=null;S.ui.ob=null;S.ui.grole={name:(u.user_metadata&&(u.user_metadata.full_name||u.user_metadata.name))||'',email:u.email||''};save();render();}}});}
 }}).catch(()=>{});}
 </script>
-<script src="impersonate.js?v=2.29.3"></script>
+<script src="impersonate.js?v=2.29.4"></script>
 </body>
 </html>
