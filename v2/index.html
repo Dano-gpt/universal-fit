@@ -517,6 +517,26 @@ function ensureLocalDemoMonthlyWeightGrid(){
   juan.logs=juan.logs.concat(logs).sort((a,b)=>(a.date||'').localeCompare(b.date||''));
   S.demoMonthlyWeightGridV2294=true;
 }
+/* Historial completo de julio de 2026 para revisar la grilla candidata. Solo vive en ?demo=1. */
+function ensureLocalDemoJuly2026(){
+  if(typeof LOCAL_DEMO==='undefined'||!LOCAL_DEMO||!S||S.demoJuly2026V2294)return;
+  const juan=(S.students||[]).find(s=>s&&s.name==='Juan P.')||(S.students||[])[0],rt=juan&&routineOf(juan);if(!juan||!rt||!rt.days||!rt.days.length)return;
+  const month='2026-07',weekStarts=[1,8,15,22];
+  juan.logs=(juan.logs||[]).filter(log=>!log.demoJuly2026);
+  const logs=[];
+  weekStarts.forEach((startDay,weekIndex)=>(rt.days||[]).forEach((day,dayIndex)=>{
+    const date=month+'-'+String(startDay+dayIndex*2).padStart(2,'0');
+    const entries=(day.exercises||[]).map((ex,exIndex)=>{
+      const target=Math.max(0,(+ex.weight||20)+(weekIndex*2)+(dayIndex*.5));
+      const actual=Math.max(0,target+(weekIndex===2&&exIndex===1?-2:(weekIndex===3?2:exIndex===0?1:0)));
+      const reps=Math.max(6,(+ex.reps||10)-(weekIndex===2&&exIndex===1?1:0));
+      return {exerciseId:ex.id,sets:Array.from({length:3},(_,setIndex)=>({kg:Math.max(0,actual-(setIndex===2?1:0)),reps:Math.max(5,reps-(setIndex===2?1:0))})),comment:'Demo julio 2026 · Ejecución registrada.',recommendation:{exerciseId:ex.id,dayId:day.id,sets:+ex.sets||3,reps:+ex.reps||10,weight:target,rest:+ex.rest||90,note:'Demo julio 2026 · Objetivo del entrenador.',effectiveWeek:weekIndex+1,source:'Objetivo demo julio 2026'}};
+    });
+    logs.push({date,dayId:day.id,startedAt:date+'T18:00:00.000Z',completedAt:date+'T19:00:00.000Z',entries,feel:weekIndex===2?'😐':'💪',note:'Demo julio 2026 · Sesión completa para evaluar progreso.',demoJuly2026:true});
+  }));
+  juan.logs=juan.logs.concat(logs).sort((a,b)=>(a.date||'').localeCompare(b.date||''));
+  S.demoJuly2026V2294=true;
+}
 
 /* helpers */
 function routineOf(st){return S.routines.find(r=>r.id===st.routineId)||null;}
@@ -2361,6 +2381,7 @@ S=load();
 ensureLocalDemoNovedades();
 ensureLocalDemoFollowup();
 ensureLocalDemoMonthlyWeightGrid();
+ensureLocalDemoJuly2026();
 if(AUTH_RECOVERY){S.user=null;S.ui.ob=null;S.ui.grole=null;}
 const QCODE=(function(){try{var c=new URLSearchParams(location.search).get('code');return (c&&c.length<=8)?c:null;}catch(e){return null;}})();
 if(QCODE&&!S.user){S.ui.ob={kind:'al',step:2,d:{path:'code',code:QCODE}};try{history.replaceState(null,'',location.pathname);}catch(e){}}
