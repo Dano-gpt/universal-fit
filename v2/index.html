@@ -28,6 +28,7 @@
 <script>window.GA_ID='G-DCNWRR831V';(function(){try{if(!GA_ID||GA_ID.indexOf('XXXX')>=0)return;var s=document.createElement('script');s.async=1;s.src='https://www.googletagmanager.com/gtag/js?id='+GA_ID;document.head.appendChild(s);window.dataLayer=window.dataLayer||[];window.gtag=function(){dataLayer.push(arguments);};gtag('js',new Date());gtag('config',GA_ID);}catch(e){}})();</script>
 <!-- PWA / instalar como app -->
 <link rel="manifest" href="manifest.json"/>
+<link rel="stylesheet" href="gym-agenda.css?v=2.29.5"/>
 <link rel="apple-touch-icon" href="apple-touch-icon.png"/>
 <link rel="icon" type="image/png" href="icon-192.png"/>
 <meta name="apple-mobile-web-app-capable" content="yes"/>
@@ -1785,10 +1786,11 @@ function cloudQueue(delay){if(!cloudOn())return;CLOUD.dirty=true;clearTimeout(CL
 function mergeById(remote,local){const out=[],seen={};(remote||[]).concat(local||[]).forEach(x=>{const k=(x&&x.id)||JSON.stringify(x);if(seen[k]){const i=out.findIndex(y=>((y&&y.id)||JSON.stringify(y))===k);out[i]=Object.assign({},out[i],x);}else{seen[k]=true;out.push(x);}});return out;}
 function trainerLogs(remote,local){return (remote||[]).map(r=>{const l=(local||[]).find(x=>(x.id&&x.id===r.id)||(!x.id&&!r.id&&x.date===r.date&&x.dayId===r.dayId));if(!l)return r;const entries=(r.entries||[]).map(re=>{const le=(l.entries||[]).find(x=>x.exerciseId===re.exerciseId);return le&&Object.prototype.hasOwnProperty.call(le,'trainerComment')?Object.assign({},re,{trainerComment:le.trainerComment,trainerCommentAt:le.trainerCommentAt}):re;});return Object.assign({},r,{entries});});}
 /* Nunca dejamos que la edición de un plan pise la ejecución que el alumno acaba de registrar. */
-function studentForTrainerWrite(remote,local){const out=Object.assign({},remote||{},local||{});['activeWorkout','measures','checkins','habitLog','techVids','photos','trainingStartedAt'].forEach(k=>{if(remote&&Object.prototype.hasOwnProperty.call(remote,k))out[k]=remote[k];});out.logs=trainerLogs((remote&&remote.logs)||[],(local&&local.logs)||[]);out.msgs=mergeById((remote&&remote.msgs)||[],(local&&local.msgs)||[]);return out;}
+function studentForTrainerWrite(remote,local){const out=Object.assign({},remote||{},local||{});['activeWorkout','measures','checkins','habitLog','techVids','photos','trainingStartedAt'].forEach(k=>{if(remote&&Object.prototype.hasOwnProperty.call(remote,k))out[k]=remote[k];});if(remote&&!Object.prototype.hasOwnProperty.call(remote,'activeWorkout'))delete out.activeWorkout;out.logs=remote?trainerLogs(remote.logs||[],(local&&local.logs)||[]):((local&&local.logs)||[]);out.techVids=((remote&&remote.techVids)||((local&&local.techVids)||[])).map(v=>{const l=((local&&local.techVids)||[]).find(x=>x.exId===v.exId);return l&&l.feedbackAt&&(!v.feedbackAt||l.feedbackAt>=v.feedbackAt)?Object.assign({},v,{feedback:l.feedback,feedbackAt:l.feedbackAt}):v;});out.msgs=mergeById((remote&&remote.msgs)||[],(local&&local.msgs)||[]);return out;}
 /* Nunca dejamos que un cierre de entrenamiento restaure una rutina anterior en el servidor. */
-function studentForStudentWrite(remote,local){const out=Object.assign({},remote||{},local||{});['active','adminDisabled','objetivo','nivel','dias','genero','edad','altura','profileDone','habits','exerciseRecommendations','trainerName','routineId'].forEach(k=>{if(remote&&Object.prototype.hasOwnProperty.call(remote,k))out[k]=remote[k];});out.msgs=mergeById((remote&&remote.msgs)||[],(local&&local.msgs)||[]);return out;}
+function studentForStudentWrite(remote,local){const out=Object.assign({},remote||{},local||{});['active','adminDisabled','objetivo','nivel','dias','habits','exerciseRecommendations','trainerName','routineId'].forEach(k=>{if(remote&&Object.prototype.hasOwnProperty.call(remote,k))out[k]=remote[k];});out.logs=trainerLogs((local&&local.logs)||[],(remote&&remote.logs)||[]);if(!local?.activeWorkout&&out.activeWorkout&&out.logs.some(l=>l.completedAt&&l.dayId===out.activeWorkout.dayId&&l.startedAt===out.activeWorkout.startedAt))delete out.activeWorkout;out.msgs=mergeById((remote&&remote.msgs)||[],(local&&local.msgs)||[]);return out;}
 async function latestCloudStudent(id){const {data,error}=await sb.from('v1_students').select('data,pending,updated_at').eq('id',id).maybeSingle();if(error)throw error;return data||null;}
+async function saveCloudStudent(doc,remote){let query;if(remote){query=sb.from('v1_students').update({pending:doc.pending,data:doc.data,updated_at:doc.updated_at}).eq('id',doc.id);query=remote.updated_at?query.eq('updated_at',remote.updated_at):query.is('updated_at',null);}else query=sb.from('v1_students').insert(doc);const {data,error}=await query.select('id');if(error)throw error;if(!data||!data.length)throw new Error('Los datos cambiaron durante el guardado; reintentando con la última versión');}
 async function cloudPush(){if(!cloudOn()||CLOUD.pushing)return false;CLOUD.pushing=true;CLOUD.dirty=false;let ok=true;
  try{
   if(CLOUD.kind==='pt'){
@@ -1797,10 +1799,10 @@ async function cloudPush(){if(!cloudOn()||CLOUD.pushing)return false;CLOUD.pushi
       brand:S.brand||{},data:{trainer:S.trainer||{},templates:S.routines.filter(r=>!r.owner),customExercises:customExerciseLibrary()},updated_at:new Date().toISOString()};
     const ah=JSON.stringify([acc.name,acc.code,acc.publico,acc.brand,acc.data]);
     if(CLOUD.hashes.acc!==ah){const {error}=await sb.from('v1_accounts').upsert(acc);if(error)throw error;CLOUD.hashes.acc=ah;}
-    for(const st of S.students){if(st.ext)continue;const localRt=S.routines.find(r=>r.owner===st.id)||null,remote=await latestCloudStudent(st.id),merged=studentForTrainerWrite(remote&&remote.data&&remote.data.student,st),doc={id:st.id,trainer_uid:CLOUD.uid,code:st.id.slice(0,6),pending:!!st.pending,data:{student:merged,routine:localRt},updated_at:new Date().toISOString()},h=JSON.stringify(doc.data)+doc.pending;if(CLOUD.hashes['st_'+st.id]!==h){const {error}=await sb.from('v1_students').upsert(doc);if(error)throw error;Object.assign(st,merged);CLOUD.hashes['st_'+st.id]=h;CLOUD.pushMark=CLOUD.pushMark||{};CLOUD.pushMark[st.id]=doc.updated_at;}}
+for(const st of S.students){if(st.ext)continue;const localRt=S.routines.find(r=>r.owner===st.id)||null,remote=await latestCloudStudent(st.id),merged=studentForTrainerWrite(remote&&remote.data&&remote.data.student,st),doc={id:st.id,trainer_uid:CLOUD.uid,code:st.id.slice(0,6),pending:!!st.pending,data:{student:merged,routine:localRt},updated_at:new Date().toISOString()},h=JSON.stringify(doc.data)+doc.pending;if(CLOUD.hashes['st_'+st.id]!==h){await saveCloudStudent(doc,remote);if(!CLOUD.dirty)Object.assign(st,merged);CLOUD.hashes['st_'+st.id]=h;CLOUD.pushMark=CLOUD.pushMark||{};CLOUD.pushMark[st.id]=doc.updated_at;}}
     const ids=S.students.filter(x=>!x.ext).map(x=>x.id),gone=(CLOUD.knownIds||[]).filter(id=>!ids.includes(id));
     for(const id of gone){const {error}=await sb.from('v1_students').delete().eq('id',id);if(error)throw error;}CLOUD.knownIds=ids;
-  }else{const st=me();if(st){const remote=await latestCloudStudent(st.id),merged=studentForStudentWrite(remote&&remote.data&&remote.data.student,st),data={student:merged,routine:(remote&&remote.data&&remote.data.routine)||S.routines.find(r=>r.owner===st.id)||(st.routineId?S.routines.find(r=>r.id===st.routineId):null)||null},h=JSON.stringify(data)+(!!st.pending);if(CLOUD.hashes.me!==h){const ts=new Date().toISOString(),{error}=await sb.from('v1_students').update({pending:!!st.pending,data,updated_at:ts}).eq('id',st.id);if(error)throw error;Object.assign(st,merged);CLOUD.hashes.me=h;CLOUD.pushMarkMe=ts;}}}
+}else{const st=me();if(st){const remote=await latestCloudStudent(st.id),merged=studentForStudentWrite(remote&&remote.data&&remote.data.student,st),data={student:merged,routine:remote?(remote.data?.routine||null):(S.routines.find(r=>r.owner===st.id)||(st.routineId?S.routines.find(r=>r.id===st.routineId):null)||null)},h=JSON.stringify(data)+(!!st.pending);if(CLOUD.hashes.me!==h){const ts=new Date().toISOString();await saveCloudStudent({id:st.id,pending:remote?!!remote.pending:!!st.pending,data,updated_at:ts},remote);if(!CLOUD.dirty){Object.assign(st,merged);S.routines=S.routines.filter(r=>r.owner!==st.id);if(data.routine)S.routines.push(data.routine);}CLOUD.hashes.me=h;CLOUD.pushMarkMe=ts;}}}
  }catch(e){ok=false;CLOUD.lastError=(e&&e.message)||'No se pudo guardar';CLOUD.dirty=true;CLOUD.retryMs=Math.min(CLOUD.retryMs?CLOUD.retryMs*2:1500,15000);console.warn('cloudPush',e);}
  finally{CLOUD.pushing=false;if(CLOUD.dirty){clearTimeout(CLOUD.timer);CLOUD.timer=setTimeout(cloudPush,CLOUD.retryMs||300);}else{CLOUD.retryMs=0;CLOUD.lastError='';}}
  return ok;}
@@ -2121,7 +2123,7 @@ function tourShow(){if(!TOUR)return;const st=TOUR.steps[TOUR.i];const hole=docum
  else{hole.style.display='none';hot.style.display='none';tip.style.top='auto';tip.style.bottom='42%';}}
 function maybeTour(){try{if(TOUR||window.__tourArmed)return;if(typeof ADMIN!=='undefined'&&ADMIN.on)return;const g=document.getElementById('gate');if(g&&getComputedStyle(g).display!=='none')return;if(typeof S==='undefined'||!S.user)return;const r=S.ui.role,v=S.ui.view;let role=null;if(r==='pt'&&v==='pt_home')role='pt';else if(r==='al'&&v==='al_home'){const mm=(typeof me==='function')&&me();if(mm&&mm.profileDone)role='al';}if(!role||_tourDone(role))return;window.__tourArmed=true;setTimeout(function(){window.__tourArmed=false;maybeTourFire(role);},800);}catch(e){}}
 function maybeTourFire(role){try{if(TOUR||_tourDone(role))return;if(typeof ADMIN!=='undefined'&&ADMIN.on)return;const g=document.getElementById('gate');if(g&&getComputedStyle(g).display!=='none')return;const v=S.ui.view;if((role==='pt'&&v==='pt_home')||(role==='al'&&v==='al_home'))tourStart(role);}catch(e){}}
-function fmtDMY(x){try{return new Date(x).toLocaleDateString('es-AR');}catch(e){return (''+x).slice(0,10);}}
+function fmtDMY(x){try{const raw=String(x||'');if(/^\d{4}-\d{2}-\d{2}$/.test(raw)){const [y,m,d]=raw.split('-');return d+'/'+m+'/'+y;}const day=argentinaDay(x);return day.slice(8,10)+'/'+day.slice(5,7)+'/'+day.slice(0,4);}catch(e){return (''+x).slice(0,10);}}
 let PUBLIC_STATS={professors:0,students:0};
 function animateGateNumber(id,target,delay){const el=document.getElementById(id);if(!el)return;target=Math.max(0,Math.min(999999,+target||0));const card=el.closest('.gStat');if(window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches){el.textContent=target.toLocaleString('es-AR');return;}const started=Date.now()+(delay||0),duration=1420;function frame(){const now=Date.now();if(now<started){requestAnimationFrame(frame);return;}const elapsed=Math.min(1,(now-started)/duration),ease=1-Math.pow(1-elapsed,5);el.textContent=Math.round(target*ease).toLocaleString('es-AR');if(elapsed<1){requestAnimationFrame(frame);return;}if(card){card.classList.add('gStatHit');setTimeout(function(){card.classList.remove('gStatHit');card.classList.add('is-live');},620);}}requestAnimationFrame(frame);}
 function paintPublicStats(){animateGateNumber('gateProfessors',PUBLIC_STATS.professors,260);animateGateNumber('gateStudents',PUBLIC_STATS.students,480);}
@@ -2144,6 +2146,7 @@ function maybeOfferInstall(){
  setTimeout(function(){openInstall(true);},900);
 }
 function openInstall(firstTime){
+ if(typeof LOCAL_DEMO!=='undefined'&&LOCAL_DEMO)return;
  const el=document.getElementById('a2hs'),card=document.getElementById('a2card');if(!el||!card)return;
  const ios=isIOS(), canNative=!!A2HS_DEFERRED;
  let body='';
@@ -2396,5 +2399,6 @@ if(sb&&!AUTH_RECOVERY){sb.auth.getSession().then(({data})=>{if(data&&data.sessio
 }}).catch(()=>{});}
 </script>
 <script src="impersonate.js?v=2.29.5"></script>
+<script src="gym-agenda.js?v=2.29.5"></script>
 </body>
 </html>

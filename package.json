@@ -4,7 +4,8 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "validate": "node scripts/validate.mjs"
+    "validate": "node scripts/validate.mjs && node scripts/qa-gym-agenda.mjs",
+    "qa:gym": "node scripts/qa-gym-agenda.mjs"
   },
   "engines": {
     "node": ">=20"
