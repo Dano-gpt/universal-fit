@@ -117,7 +117,7 @@ grant execute on function public.v1_save_gym_document(jsonb,jsonb) to authentica
 
 create or replace function public.v1_gym_workspace() returns jsonb
 language sql stable security definer set search_path=public as $$
- select jsonb_build_object('ok',true,'staff',coalesce((select jsonb_agg(to_jsonb(g)) from public.v1_gym_staff g where user_uid=auth.uid() and active),'[]'::jsonb),'rows',coalesce((select jsonb_agg(to_jsonb(s)) from public.v1_students s where s.trainer_uid is null and s.data->'student'->>'membershipMode'='gym' and exists(select 1 from public.v1_gym_staff g where g.user_uid=auth.uid() and g.active and g.gym_id=s.data->'student'->>'gymId' and (g.branch_id is null or g.branch_id=s.data->'student'->>'gymBranchId'))),'[]'::jsonb));
+ select jsonb_build_object('ok',true,'staff',coalesce((select jsonb_agg(to_jsonb(g)) from public.v1_gym_staff g where user_uid=auth.uid() and active),'[]'::jsonb),'rows',coalesce((select jsonb_agg(to_jsonb(s)||jsonb_build_object('email',u.email)) from public.v1_students s left join auth.users u on u.id=s.user_uid where s.trainer_uid is null and s.data->'student'->>'membershipMode'='gym' and exists(select 1 from public.v1_gym_staff g where g.user_uid=auth.uid() and g.active and g.gym_id=s.data->'student'->>'gymId' and (g.branch_id is null or g.branch_id=s.data->'student'->>'gymBranchId'))),'[]'::jsonb));
 $$;
 revoke all on function public.v1_gym_workspace() from public;
 grant execute on function public.v1_gym_workspace() to authenticated;

@@ -1125,7 +1125,7 @@ function vPtEdit(){
       <div class="h" style="margin:12px 4px 8px">Día ${di+1} · ejercicios <span class="cap" style="font-weight:400">(${nEx})</span></div>${exs||'<div class="cap" style="margin:0 4px 8px">Sin ejercicios.</div>'}
       <button class="btn sec" onclick="openAddEx('${day.id}')">＋ Agregar ejercicio a este día</button></div>`;
   }).join('');
-  const doneBtn=owner?`openStudent('${owner.id}')`:`go('pt_routines')`;
+  const doneBtn=`saveRoutineAndReturn('${owner?owner.id:''}')`;
   return `${backBtn}<div class="card"><label class="h" style="margin:0">Nombre de la rutina</label><input class="in" value="${esc(r.name)}" onchange="renameRoutine(this.value)"/><div class="cap" style="margin-top:12px">Cómo verá los ejercicios el alumno</div><select class="in" onchange="setRoutineExerciseView(this.value)"><option value="grouped" ${routineExerciseView(r)==='grouped'?'selected':''}>Por grupo muscular</option><option value="ordered" ${routineExerciseView(r)==='ordered'?'selected':''}>En el orden cargado</option></select><div class="cap">Por grupo muscular es la opción predeterminada. El orden cargado respeta exactamente las flechas ↑ ↓ de cada ejercicio.</div><div style="margin-top:10px">${ctx}</div></div>${days}<button class="btn sec" onclick="addDay()">＋ Agregar día</button><button class="btn" style="margin-top:10px" onclick="${doneBtn}">Guardar ✓</button>`;
 }
 /* wizard */
@@ -1158,6 +1158,7 @@ function fromTemplate(id){const tpls=S.routines.filter(r=>!r.owner);if(!tpls.len
 /* routine editor */
 function newRoutine(){const r={id:uid(),owner:null,name:'Nueva plantilla',exerciseDisplayMode:'grouped',days:[{id:uid(),name:'Día 1',exercises:[]}]};S.routines.push(r);S.ui.editRoutineId=r.id;save();go('pt_redit');}
 function editRoutine(id){S.ui.editRoutineId=id;go('pt_redit');}
+async function saveRoutineAndReturn(studentId){document.activeElement?.blur();save();toast('Guardando rutina…');const saved=await cloudFlush();if(!saved){toast('Seguimos intentando guardar. Revisá tu conexión antes de salir.');return;}toast('Rutina guardada ✓');if(studentId)openStudent(studentId);else go('pt_routines');}
 /* ---- Objetivo (series×reps) legible: usa repsText del profe si existe ---- */
 function exObj(e){var b=e.repsText?((e.sets?e.sets+' series · ':'')+e.repsText):((e.sets||0)+'×'+(e.reps||0));return b+(e.weight?' · '+e.weight+'kg':'');}
 /* ---- Importar rutina desde Excel (parser específico por entrenador) ---- */

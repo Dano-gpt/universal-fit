@@ -20,6 +20,26 @@ assert.equal(context.appointmentEnd(a.starts_at,60),'2026-10-15T22:00:00.000Z');
 const ics=context.appointmentICS(a);assert(ics.includes('DTSTART:20261015T210000Z'));assert(ics.includes('TRIGGER:-PT1H'));assert(ics.includes('Hola\\; mundo\\, línea\\n2'));
 console.log(`Catálogo completo: ${catalog.branches.length} sedes. Horarios, solapamientos y exportación verificados.`);
 
+const searchContext={S:{gymMemberEmails:{s1:'sofia.hurtado@demo.fit'}}};
+new vm.Script(js.slice(js.indexOf('function isGymStudent('),js.indexOf('function branchById(')).replace(/GYM\.id/g,"'sportclub'")).runInNewContext(searchContext);
+const searchFunctions=js.slice(js.indexOf('function gymMemberEmail('),js.indexOf('function filterGymMembers('));
+new vm.Script(searchFunctions).runInNewContext(searchContext);
+const searchable={id:'s1',name:'Sofía Hurtado',membershipMode:'gym',gymId:'sportclub',gymBranchId:'saavedra',gymBranchName:'SportClub Saavedra'};
+for(const term of ['sofia','HURTADO','sofia.hurtado@demo.fit','Saavedra','sofia hurtado'])assert(searchContext.gymMemberMatches(searchable,term,''));
+assert(!searchContext.gymMemberMatches(searchable,'Nombre inexistente',''));
+assert(!searchContext.gymMemberMatches(searchable,'','otra-sede'));
+assert(!searchContext.gymMemberMatches({...searchable,membershipMode:undefined},'sofia',''));
+
+// Un profesor que también esté autorizado en SportClub conserva su perfil particular.
+const legacyStudent={id:'legacy',name:'Alumno particular',routineId:'legacy-routine'};
+const bootContext={cloudBoot:null,sb:{rpc:async()=>({data:{staff:[{gym_id:'sportclub'}],rows:[]}})},S:{user:{type:'pt'},students:[legacyStudent]},_gymBase:{cloudBoot:async()=>true},sessionStorage:{getItem:()=>null},isGymStudent:()=>false,me:()=>legacyStudent,render:()=>{}};
+new vm.Script(js.slice(js.indexOf('cloudBoot=async function('),js.indexOf('cloudPush=async function('))).runInNewContext(bootContext);
+assert(await bootContext.cloudBoot({id:'coach',email:'coach@demo.fit'}));
+assert.equal(bootContext.S.students[0].id,'legacy');
+assert.equal(bootContext.S.user.type,'pt');
+assert(bootContext.S.gymWorkspaceAvailable);
+console.log('Búsqueda por nombre, apellido, email y sede; perfil particular con doble rol: OK.');
+
 // PostgreSQL embebido para ejecutar realmente las funciones, sin tocar Supabase.
 if(!process.env.QA_PGLITE_MODULE){console.log('Para probar la migración SQL, definir QA_PGLITE_MODULE con el módulo local de PGlite.');process.exit(0);}
 const {PGlite}=await import(pathToFileURL(process.env.QA_PGLITE_MODULE));
@@ -44,6 +64,7 @@ assert((await call(al,'select public.v1_join_gym($1::jsonb) as result',[JSON.str
 assert.equal((await db.query('select count(*) as n from v1_students')).rows[0].n,1);
 assert((await call(admin,'select public.admin_set_gym_staff($1,$2,true) as result',['staff@demo.fit',branch.id])).ok);
 assert.equal((await call(pt,'select public.v1_gym_workspace() as result')).rows.length,1);
+assert.equal((await call(pt,'select public.v1_gym_workspace() as result')).rows[0].email,'al@demo.fit');
 assert.equal((await call(other,'select public.v1_gym_workspace() as result')).rows.length,0);
 const start=new Date(Date.now()+3*86400000).toISOString(),end=context.appointmentEnd(start,60),turn={...a,id:'10000000-0000-0000-0000-000000000001',student_id:doc.student.id,starts_at:start,ends_at:end,gym_id:'sportclub',branch_id:branch.id};
 assert((await call(al,'select public.v1_save_appointment($1::jsonb) as result',[JSON.stringify(turn)])).ok);
@@ -66,6 +87,13 @@ const pupilTraining=structuredClone(baseline);pupilTraining.student.logs.push({i
 const merged=await call(al,'select public.v1_save_gym_document($1::jsonb,$2::jsonb) as result',[JSON.stringify(pupilTraining),JSON.stringify(baseline)]);
 assert.equal(merged.document.routine.days[0].exercises[0].weight,25);
 assert(merged.document.student.logs.some(l=>l.id==='new-training'));
+// La migración no convierte ni modifica a los alumnos tradicionales.
+const legacyData={student:{id:'legacy-private',name:'Alumno particular',routineId:'legacy-plan',logs:[{id:'legacy-history'}]},routine:{id:'legacy-plan',owner:'legacy-private',days:[{id:'legacy-day',exercises:[{id:'legacy-ex',reps:12,weight:30}]}]}};
+await db.query('insert into v1_students(id,trainer_uid,user_uid,data) values($1,$2,$3,$4::jsonb)',['legacy-private',pt,other,JSON.stringify(legacyData)]);
+assert.equal((await call(pt,'select public.v1_gym_workspace() as result')).rows.length,1);
+const unchanged=(await db.query('select data from v1_students where id=$1',['legacy-private'])).rows[0].data;
+assert.deepEqual(unchanged,legacyData);
+await assert.rejects(()=>call(pt,'select public.v1_gym_save_member($1::jsonb,$2::jsonb) as result',[JSON.stringify(legacyData),JSON.stringify(legacyData)]),/fuera de tu sede/);
 await assert.rejects(()=>call(other,'select public.v1_save_gym_document($1::jsonb) as result',[JSON.stringify(doc)]),/no autorizada/);
 await db.exec('set role authenticated');
 await call(other,'select 1 as result');
