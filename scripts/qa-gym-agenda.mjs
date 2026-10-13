@@ -20,6 +20,17 @@ assert.equal(context.appointmentEnd(a.starts_at,60),'2026-10-15T22:00:00.000Z');
 const ics=context.appointmentICS(a);assert(ics.includes('DTSTART:20261015T210000Z'));assert(ics.includes('TRIGGER:-PT1H'));assert(ics.includes('Hola\\; mundo\\, línea\\n2'));
 console.log(`Catálogo completo: ${catalog.branches.length} sedes. Horarios, solapamientos y exportación verificados.`);
 
+const branchContext={GYM_CATALOG:{branches:[
+  {id:'leloir',name:'Punto ILoveRun Plaza de la Media Caña',zone:'Parque Leloir',address:'Martín Fierro 3290',province:'Buenos Aires',category:'Total',phone:'',email:''},
+  {id:'palermo',name:'SportClub Palermo',zone:'Palermo',address:'Avenida Cabildo 2200',province:'Ciudad de Buenos Aires',category:'Total',phone:'',email:''}
+]}};
+new vm.Script(js.slice(js.indexOf('function branchSearchText('),js.indexOf('function startGymSignup('))).runInNewContext(branchContext);
+assert.deepEqual([...branchContext.filteredBranches('leloir','').map(b=>b.id)],['leloir']);
+assert.deepEqual([...branchContext.filteredBranches('media cana','').map(b=>b.id)],['leloir']);
+assert.deepEqual([...branchContext.filteredBranches('cabildo','').map(b=>b.id)],['palermo']);
+assert.deepEqual([...branchContext.filteredBranches('buenos leloir','Buenos Aires').map(b=>b.id)],['leloir']);
+assert.equal(branchContext.filteredBranches('sede inexistente','').length,0);
+
 const searchContext={S:{gymMemberEmails:{s1:'sofia.hurtado@demo.fit'}}};
 new vm.Script(js.slice(js.indexOf('function isGymStudent('),js.indexOf('function branchById(')).replace(/GYM\.id/g,"'sportclub'")).runInNewContext(searchContext);
 const searchFunctions=js.slice(js.indexOf('function gymMemberEmail('),js.indexOf('function filterGymMembers('));
