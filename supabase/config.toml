@@ -1,0 +1,3 @@
+[functions.appointment-reminders]
+# El worker valida x-cron-secret, almacenado en Vault y en secretos de la función.
+verify_jwt = false

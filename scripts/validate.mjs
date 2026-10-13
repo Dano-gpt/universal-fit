@@ -16,6 +16,12 @@ const required = [
   "v2/manifest.json",
   "v2/sw.js",
   "v2/version.txt",
+  "v2/gym-agenda.js",
+  "v2/gym-agenda.css",
+  "v2/sportclub-catalog.b64",
+  "deploy/schema_gym_agenda.sql",
+  "deploy/schedule_appointment_reminders.sql",
+  "supabase/functions/appointment-reminders/index.ts",
   "v2/icon-192.png",
   "v2/icon-512.png",
   ".github/workflows/daily-database-backup.yml",
@@ -30,6 +36,7 @@ const read = (file) => readFile(path.join(root, file), "utf8");
 const version = (await read("v2/version.txt")).trim();
 const packageJson = JSON.parse(await read("package.json"));
 const app = await read("v2/index.html");
+try { new vm.Script(await read('v2/gym-agenda.js'),{filename:'gym-agenda.js'}); } catch(error) { errors.push(`Módulo de gimnasio/agenda inválido: ${error.message}`); }
 
 if (!/^v\d+\.\d+\.\d+$/.test(version)) errors.push(`Versión inválida: ${version}`);
 if (`v${packageJson.version}` !== version) errors.push("package.json y v2/version.txt no coinciden");
@@ -232,6 +239,54 @@ if (lastExerciseStart < 0 || lastExerciseEnd < 0) {
     }
   } catch (error) {
     errors.push(`No se pudo ejecutar la precarga del último entrenamiento: ${error.message}`);
+  }
+}
+
+const syncMergeStart = app.indexOf("function mergeById(");
+const syncMergeEnd = app.indexOf("async function latestCloudStudent(", syncMergeStart);
+if (syncMergeStart < 0 || syncMergeEnd < 0) {
+  errors.push("No se pudo probar la protección de sincronización de alumno y rutina");
+} else {
+  try {
+    const syncContext = {};
+    new vm.Script(app.slice(syncMergeStart, syncMergeEnd)).runInNewContext(syncContext);
+    const remote = { activeWorkout: { dayId: "day-1" }, logs: [{ id: "log-1", entries: [{ exerciseId: "press", sets: [{ kg: 40, reps: 10 }] }] }], exerciseRecommendations: [{ id: "old", weight: 40 }], msgs: [{ id: "student-message", text: "Consulta" }] };
+    const trainer = { exerciseRecommendations: [{ id: "new", weight: 45 }], msgs: [{ id: "coach-message", text: "Respuesta" }], logs: [{ id: "log-1", entries: [{ exerciseId: "press", trainerComment: "Subí despacio" }] }] };
+    const student = { logs: [{ id: "log-2", entries: [] }], activeWorkout: null, exerciseRecommendations: [{ id: "stale", weight: 20 }] };
+    const coachMerged = syncContext.studentForTrainerWrite(remote, trainer);
+    const studentMerged = syncContext.studentForStudentWrite(remote, student);
+    const closedWorkout=syncContext.studentForStudentWrite({activeWorkout:{dayId:'day',startedAt:'2026-10-12T12:00:00Z'},logs:[]},{logs:[{id:'closed',dayId:'day',startedAt:'2026-10-12T12:00:00Z',completedAt:'2026-10-12T13:00:00Z',entries:[]}]});
+    const staleTrainer=syncContext.studentForTrainerWrite({logs:[]},{activeWorkout:{dayId:'old'},logs:[]});
+    if (
+      coachMerged.activeWorkout?.dayId !== "day-1" ||
+      coachMerged.logs?.[0]?.entries?.[0]?.trainerComment !== "Subí despacio" ||
+      !coachMerged.msgs?.some((message) => message.id === "student-message") ||
+      !coachMerged.msgs?.some((message) => message.id === "coach-message") ||
+      studentMerged.logs?.[0]?.id !== "log-2" ||
+      studentMerged.exerciseRecommendations?.[0]?.id !== "old" ||
+      !!closedWorkout.activeWorkout ||
+      !!staleTrainer.activeWorkout
+    ) {
+      errors.push("La sincronización puede pisar una ejecución, comentario o recomendación concurrente");
+    }
+  } catch (error) {
+    errors.push(`No se pudo ejecutar la protección de sincronización: ${error.message}`);
+  }
+}
+
+const repsParserStart = app.indexOf("function parseRepsNum(");
+const repsParserEnd = app.indexOf("function dayHeader(", repsParserStart);
+if (repsParserStart < 0 || repsParserEnd < 0) {
+  errors.push("No se pudo probar los rangos de repeticiones");
+} else {
+  try {
+    const repsContext = {};
+    new vm.Script(app.slice(repsParserStart, repsParserEnd)).runInNewContext(repsContext);
+    if (repsContext.parseRepsNum("10-12") !== 10 || repsContext.parseRepsNum("3x8-10") !== 8 || !app.includes("placeholder=\"Ej.: 10-12\"")) {
+      errors.push("La rutina no conserva correctamente rangos de repeticiones");
+    }
+  } catch (error) {
+    errors.push(`No se pudo ejecutar la validación de rangos: ${error.message}`);
   }
 }
 
