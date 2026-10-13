@@ -1,6 +1,6 @@
 /* Universal Fit — service worker (network-first para no quedar pegado con archivos viejos) */
-const CACHE = 'uf-shell-v6-2.29.7';
-const SHELL = ['./', './index.html', './manifest.json', './icon-192.png', './icon-512.png', './gym-agenda.js?v=2.29.7', './gym-agenda.css?v=2.29.7', './sportclub-catalog.b64'];
+const CACHE = 'uf-shell-v6-2.29.8';
+const SHELL = ['./', './index.html', './manifest.json', './icon-192.png', './icon-512.png', './gym-agenda.js?v=2.29.8', './gym-agenda.css?v=2.29.8', './sportclub-catalog.js?v=2.29.8', './sportclub-catalog.b64'];
 self.addEventListener('install', (e) => {
   self.skipWaiting();
   e.waitUntil(caches.open(CACHE).then((c) => c.addAll(SHELL).catch(() => {})));
