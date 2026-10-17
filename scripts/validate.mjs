@@ -20,6 +20,7 @@ const required = [
   "v2/gym-agenda.css",
   "v2/sportclub-catalog.b64",
   "deploy/schema_gym_agenda.sql",
+  "deploy/schema_appointment_slots.sql",
   "deploy/schedule_appointment_reminders.sql",
   "supabase/functions/appointment-reminders/index.ts",
   "v2/icon-192.png",
